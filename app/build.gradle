@@ -8,6 +8,7 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
+    id 'com.bmuschko.clover' version '3.0.7'
 }
 
 repositories {
@@ -18,7 +19,9 @@ repositories {
 dependencies {
     // Use JUnit Jupiter for testing.
     testImplementation libs.junit.jupiter
-
+    testImplementation 'org.junit.platform:junit-platform-launcher:1.11.4'
+    clover 'org.openclover:clover:4.5.2'
+    
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // This dependency is used by the application.
@@ -40,4 +43,20 @@ application {
 tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+}
+
+test {
+    testLogging {
+        showStandardStreams = true
+        exceptionFormat = 'full'
+    }
+}
+
+clover {
+    report{
+        html = true
+    }
+    compiler {
+        debug = true
+    }
 }
