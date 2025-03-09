@@ -9,4 +9,4 @@ app/bin
 # Ignore backup and lock files
 *~
 \#*
-Af
+.idea/

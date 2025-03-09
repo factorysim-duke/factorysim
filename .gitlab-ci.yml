@@ -1,17 +1,77 @@
+image: gradle:8.12.1-jdk21
+
 stages:
   - build
   - test
+  - coverage
+  - pages
+  - deploy
+  - test-deployment
 
 build:
   stage: build
   tags:
     - factorysim
   script:
-    - ./gradlew build
+    - docker build --build-arg LOCAL_USER_ID=`id -u` --tag citest .
 
 test:
   stage: test
   tags:
     - factorysim
   script:
-    - ./gradlew test
+    - chmod +x scripts/run-tests-in-docker.sh
+    - scripts/run-tests-in-docker.sh
+    - chmod +x scripts/coverage_summary.sh
+    - scripts/coverage_summary.sh
+  coverage: '/TOTAL COVERAGE: (\d+\.\d+)%/'
+
+coverage:
+  stage: coverage
+  tags:
+    - factorysim
+  dependencies:
+    - test
+  script:
+    - ./gradlew cloverGenerateReport
+  artifacts:
+    paths:
+      - app/build/reports/clover/html
+    expire_in: 1 week
+
+pages:
+  stage: pages
+  tags:
+    - factorysim
+  script:
+    - mkdir -p public
+    - cp -r app/build/reports/clover/html/* public/
+  dependencies:
+    - coverage
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
+
+deploy:
+  stage: deploy
+  tags:
+    - factorysim
+  script:
+    - chmod +x scripts/redeploy.sh
+    - ./scripts/redeploy.sh
+  only:
+    - main
+
+test-deployment:
+  stage: test-deployment
+  tags:
+    - factorysim
+  dependencies:
+    - deploy
+  script:
+    - chmod +x scripts/test-deployment.sh
+    - ./scripts/test-deployment.sh
+  only:
+    - main
