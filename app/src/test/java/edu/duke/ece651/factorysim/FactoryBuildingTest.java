@@ -11,8 +11,6 @@ public class FactoryBuildingTest {
   @Test
   public void test_getters_and_canProduce() {
     Item a = new Item("a");
-    Item b = new Item("b");
-    Item c = new Item("c");
     Item out1 = new Item("out1");
     Item out2 = new Item("out2");
 
