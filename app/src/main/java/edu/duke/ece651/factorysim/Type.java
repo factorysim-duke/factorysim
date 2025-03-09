@@ -14,6 +14,7 @@ public class Type {
    * 
    * @param name    is the factory type's name.
    * @param recipes is the list of recipes of this factory type.
+   * @throws IllegalArgumentException if the name is not valid.
    */
   public Type(String name, List<Recipe> recipes) {
     if (Utils.isNameValid(name) == false) {
