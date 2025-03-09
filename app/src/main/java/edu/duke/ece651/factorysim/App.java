@@ -6,4 +6,7 @@ package edu.duke.ece651.factorysim;
 public class App {
   public static void main(String[] args) {
   }
+  public String getGreeting() {
+    return "Hello world";
+  }
 }
