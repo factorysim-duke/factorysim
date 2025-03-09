@@ -1,0 +1,17 @@
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  tags:
+    - factorysim
+  script:
+    - ./gradlew build
+
+test:
+  stage: test
+  tags:
+    - factorysim
+  script:
+    - ./gradlew test
