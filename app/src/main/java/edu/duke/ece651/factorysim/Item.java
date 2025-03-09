@@ -10,8 +10,12 @@ public class Item {
    * Constructs an item with given name.
    * 
    * @param name is the item's name.
+   * @throws IllegalArgumentException if the name is not valid.
    */
   public Item(String name) {
+    if (Utils.isNameValid(name) == false) {
+      throw new IllegalArgumentException("Item name cannot contain " + Utils.notAllowedInName + ", but is: " + name);
+    }
     this.name = name;
   }
 

@@ -32,4 +32,10 @@ public class TypeTest {
     assertSame(bottleRecipe, dollAndBottle.getRecipes().get(1));
   }
 
+  @Test
+  public void test_invalid_names() {
+    ArrayList<Recipe> emptyRecipe = new ArrayList<>();
+    assertThrows(IllegalArgumentException.class, () -> new Type("'", emptyRecipe));
+    assertThrows(IllegalArgumentException.class, () -> new Type("Do'or", emptyRecipe));
+  }
 }

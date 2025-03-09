@@ -16,6 +16,9 @@ public class Type {
    * @param recipes is the list of recipes of this factory type.
    */
   public Type(String name, List<Recipe> recipes) {
+    if (Utils.isNameValid(name) == false) {
+      throw new IllegalArgumentException("Type name cannot contain " + Utils.notAllowedInName + ", but is: " + name);
+    }
     this.name = name;
     this.recipes = recipes;
   }

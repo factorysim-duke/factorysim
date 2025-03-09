@@ -11,5 +11,15 @@ public class ItemTest {
     assertEquals("wood", wood.getName());
     Item water = new Item("wATeR");
     assertEquals("wATeR", water.getName());
+    Item gba = new Item("game machine");
+    assertEquals("game machine", gba.getName());
+  }
+
+  @Test
+  public void test_invalid_name() {
+    assertThrows(IllegalArgumentException.class, () -> new Item("woo'd"));
+    assertThrows(IllegalArgumentException.class, () -> new Item("wood'"));
+    assertThrows(IllegalArgumentException.class, () -> new Item("'A"));
+    assertThrows(IllegalArgumentException.class, () -> new Item("'"));
   }
 }
