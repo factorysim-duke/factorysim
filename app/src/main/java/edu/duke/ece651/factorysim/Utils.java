@@ -5,9 +5,11 @@ package edu.duke.ece651.factorysim;
  */
 public class Utils {
   public static String notAllowedInName = "'";
+
   /**
    * Tells if the name is valid.
    * 
+   * @param name is the name to check.
    * @return true if the name is valid (i.e. not containing '), false otherwise.
    */
   public static boolean isNameValid(String name) {
