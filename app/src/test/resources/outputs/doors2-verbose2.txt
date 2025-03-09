@@ -1,0 +1,88 @@
+0> request 'door' from 'D'
+[source selection]: D (qlen) has request for door on 0
+[D:door:0] For ingredient wood
+    W: 0
+    Selecting W
+[ingredient assignment]: wood assigned to W to deliver to D
+[D:door:1] For ingredient handle
+    Hw1: 0
+    Hw2: 0
+    Selecting Hw2
+[ingredient assignment]: handle assigned to Hw2 to deliver to D
+[source selection]: Hw2 (qlen) has request for handle on 0
+[Hw2:handle:0] For ingredient metal
+    M1: 0
+    M2: 0
+    Selecting M2
+[ingredient assignment]: metal assigned to M2 to deliver to Hw2
+[D:door:2] For ingredient hinge
+    Hw1: 0
+    Hw2: 1
+    Selecting Hw2
+[ingredient assignment]: hinge assigned to Hw2 to deliver to D
+[source selection]: Hw2 (qlen) has request for hinge on 0
+[Hw2:hinge:0] For ingredient metal
+    M1: 0
+    M2: 1
+    Selecting M2
+[ingredient assignment]: metal assigned to M2 to deliver to Hw2
+    Hw1: 0
+    Hw2: 2
+    Selecting Hw2
+[ingredient assignment]: hinge assigned to Hw2 to deliver to D
+[source selection]: Hw2 (qlen) has request for hinge on 0
+[Hw2:hinge:0] For ingredient metal
+    M1: 0
+    M2: 2
+    Selecting M2
+[ingredient assignment]: metal assigned to M2 to deliver to Hw2
+    Hw1: 0
+    Hw2: 3
+    Selecting Hw2
+[ingredient assignment]: hinge assigned to Hw2 to deliver to D
+[source selection]: Hw2 (qlen) has request for hinge on 0
+[Hw2:hinge:0] For ingredient metal
+    M1: 0
+    M2: 3
+    Selecting M2
+[ingredient assignment]: metal assigned to M2 to deliver to Hw2
+0> step 50
+[recipe selection]: D has fifo on cycle 1
+    0: is not ready, waiting on {wood, handle, 3x hinge}
+[recipe selection]: Hw2 has fifo on cycle 1
+    0: is not ready, waiting on {metal}
+    1: is not ready, waiting on {metal}
+    2: is not ready, waiting on {metal}
+    3: is not ready, waiting on {metal}
+[ingredient delivered]: wood to D from W on cycle 1
+    0: handle is ready
+[ingredient delivered]: metal to Hw2 from M2 on cycle 1
+    0: handle is ready
+    1: hinge is ready
+[ingredient delivered]: metal to Hw2 from M2 on cycle 2
+    0: handle is ready
+    1: hinge is ready
+    2: hinge is ready
+[ingredient delivered]: metal to Hw2 from M2 on cycle 3
+    0: handle is ready
+    1: hinge is ready
+    2: hinge is ready
+    3: hinge is ready
+[ingredient delivered]: metal to Hw2 from M2 on cycle 4
+[ingredient delivered]: handle to D from Hw2 on cycle 7
+[recipe selection]: Hw2 has fifo on cycle 8
+    0: is ready
+    1: is ready
+    2: is ready
+[ingredient delivered]: hinge to D from Hw2 on cycle 9
+[recipe selection]: Hw2 has fifo on cycle 10
+    0: is ready
+    1: is ready
+[ingredient delivered]: hinge to D from Hw2 on cycle 11
+[recipe selection]: Hw2 has fifo on cycle 12
+    0: is ready
+    0: door is ready
+[ingredient delivered]: hinge to D from Hw2 on cycle 13
+[order complete] Order 0 completed (door) at time 26
+50> finish
+Simulation completed at time-step 50
