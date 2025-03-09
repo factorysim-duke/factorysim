@@ -4,20 +4,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 public class FactoryBuildingTest {
-  @Test
-  public void test_getters_and_canProduce() {
-    Item a = new Item("a");
-    Item out1 = new Item("out1");
-    Item out2 = new Item("out2");
-
+  private Type makeTestFactoryType() {
     // {("a", 1), ("b", 2)}
     HashMap<Item, Integer> ingredients1 = TestUtils.makeTestIngredientMap(2);
     // {("a", 1), ("b", 2), ("c", 3)}
     HashMap<Item, Integer> ingredients2 = TestUtils.makeTestIngredientMap(3);
+    Item out1 = new Item("out1");
+    Item out2 = new Item("out2");
     Recipe recipe1 = new Recipe(out1, ingredients1, 10);
     Recipe recipe2 = new Recipe(out2, ingredients2, 20);
     ArrayList<Recipe> recipes = new ArrayList<>();
@@ -25,6 +23,15 @@ public class FactoryBuildingTest {
     recipes.add(recipe2);
 
     Type factoryType = new Type("ABCFactory", recipes);
+    return factoryType;
+  }
+
+  @Test
+  public void test_getters_and_canProduce() {
+    Item a = new Item("a");
+    Item out1 = new Item("out1");
+    Item out2 = new Item("out2");
+    Type factoryType = makeTestFactoryType();
     FactoryBuilding factory = new FactoryBuilding(factoryType, "myFactory", new ArrayList<>());
 
     assertEquals(30, factory.getRemainingLatency());
@@ -32,5 +39,65 @@ public class FactoryBuildingTest {
     assertTrue(factory.canProduce(out1));
     assertTrue(factory.canProduce(out2));
     assertFalse(factory.canProduce(a));
+    assertEquals(0, factory.getSources().size());
+  }
+
+  @Test
+  public void test_invalid_name() {
+    Type factoryType = makeTestFactoryType();
+    assertThrows(IllegalArgumentException.class, () -> new FactoryBuilding(factoryType, "'factory", new ArrayList<>()));
+    assertThrows(IllegalArgumentException.class,
+        () -> new FactoryBuilding(factoryType, "Fac tory'", new ArrayList<>()));
+  }
+
+  @Test
+  public void test_interaction_with_mine() {
+    Item a = new Item("a");
+    Item b = new Item("b");
+    Item c = new Item("c");
+    Recipe recipeA = new Recipe(a, new HashMap<>(), 1);
+    Recipe recipeB = new Recipe(b, new HashMap<>(), 3);
+    Recipe recipeC = new Recipe(c, new HashMap<>(), 5);
+    MineBuilding mineA = new MineBuilding(recipeA, "mineA");
+    MineBuilding mineB = new MineBuilding(recipeB, "mineB");
+    MineBuilding mineC = new MineBuilding(recipeC, "mineC");
+
+    Type factoryType = makeTestFactoryType();
+    ArrayList<Building> sources = new ArrayList<>();
+    sources.add(mineA);
+    sources.add(mineB);
+    sources.add(mineC);
+    FactoryBuilding factory = new FactoryBuilding(factoryType, "myFactory", sources);
+
+    List<Building> factorySources = factory.getSources();
+    assertEquals(3, factorySources.size());
+    assertEquals("mineA", factorySources.get(0).getName());
+    assertEquals("mineB", factorySources.get(1).getName());
+    assertEquals("mineC", factorySources.get(2).getName());
+
+    Item d = new Item("d");
+    assertEquals(-1, factory.getStorageNumberOf(d));
+    assertEquals(-1, factory.getStorageNumberOf(a));
+
+    mineA.deliverTo(factory, a, 2);
+    assertEquals(2, factory.getStorageNumberOf(a));
+    assertEquals(-1, factory.getStorageNumberOf(b));
+    assertEquals(-1, factory.getStorageNumberOf(c));
+
+    mineC.deliverTo(factory, c, 3);
+    assertEquals(3, factory.getStorageNumberOf(c));
+
+    factory.takeFromStorage(a, 2);
+    factory.takeFromStorage(c, 2);
+    assertEquals(1, factory.getStorageNumberOf(c));
+    assertEquals(-1, factory.getStorageNumberOf(a));
+
+    mineB.deliverTo(factory, b, 4);
+    mineB.deliverTo(factory, b, 10);
+    assertEquals(14, factory.getStorageNumberOf(b));
+    
+    assertThrows(IllegalArgumentException.class, () -> factory.takeFromStorage(d, 3));
+    assertThrows(IllegalArgumentException.class, () -> factory.takeFromStorage(c, 2));
+    assertThrows(IllegalArgumentException.class, () -> factory.takeFromStorage(a, 1));
   }
 }
