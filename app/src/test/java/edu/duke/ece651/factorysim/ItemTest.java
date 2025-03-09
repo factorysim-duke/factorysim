@@ -12,5 +12,4 @@ public class ItemTest {
     Item water = new Item("wATeR");
     assertEquals("wATeR", water.getName());
   }
-
 }
