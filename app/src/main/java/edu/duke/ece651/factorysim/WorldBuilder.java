@@ -7,13 +7,36 @@ import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 
-
 /**
  * WorldBuilder is a class for building the game world from the ConfigData.
- * It will create all the buildings, types and recipes, and check the validity of the
- * them.
+ * It will create all the buildings, types and recipes, and check the validity
+ * of the data.
  */
 public class WorldBuilder {
+
+    /**
+     * Builds the world from the ConfigData.
+     * 
+     * @param configData is the ConfigData to build the world from.
+     * @return the World object.
+     */
+    public static World buildWorld(ConfigData configData) {
+        nullCheck(configData, "ConfigData is null");
+        nullCheck(configData.buildings, "Buildings are null");
+        nullCheck(configData.types, "Types are null");
+        nullCheck(configData.recipes, "Recipes are null");
+
+        Map<String, Type> types = buildTypes(configData.types);
+        Map<String, Recipe> recipes = buildRecipes(configData.recipes);
+        Map<String, Building> buildings = buildBuildings(configData.buildings, types);
+
+        World world = new World();
+        world.types = new ArrayList<>(types.values());
+        world.recipes = new ArrayList<>(recipes.values());
+        world.buildings = new ArrayList<>(buildings.values());
+
+        return world;
+    }
 
     private static void nameCheck(List<String> names) {
         Set<String> nameSet = new HashSet<>(names);
@@ -22,8 +45,15 @@ public class WorldBuilder {
         }
         for (String name : names) {
             if (name.contains("'")) {
-                throw new IllegalArgumentException("Name cannot contain " + Utils.notAllowedInName + ", but is: " + name);
+                throw new IllegalArgumentException(
+                        "Name cannot contain " + Utils.notAllowedInName + ", but is: " + name);
             }
+        }
+    }
+
+    private static void nullCheck(Object o, String message) {
+        if (o == null) {
+            throw new IllegalArgumentException(message);
         }
     }
 
@@ -54,8 +84,9 @@ public class WorldBuilder {
             }
         }
     }
-    private static Map<String, Building> buildBuildings(List<BuildingDTO> buildingDTOs, 
-                                                        Map<String, Type> typeMap) {
+
+    private static Map<String, Building> buildBuildings(List<BuildingDTO> buildingDTOs,
+            Map<String, Type> typeMap) {
         Map<String, Building> buildings = new HashMap<>();
         List<String> names = new ArrayList<>();
         List<String> types = new ArrayList<>();
@@ -66,26 +97,5 @@ public class WorldBuilder {
         nameCheck(names);
         typeCheck(types, typeMap);
         return buildings;
-    }
-    
-
-    public static World buildWorld(ConfigData configData) {
-        if (configData == null) {
-            throw new IllegalArgumentException("ConfigData is null");
-        }
-        if (configData.buildings == null || configData.types == null || configData.recipes == null) {
-            throw new IllegalArgumentException("ConfigData is invalid");
-        }
-
-        Map<String, Type> types = buildTypes(configData.types);
-        Map<String, Recipe> recipes = buildRecipes(configData.recipes); 
-        Map<String, Building> buildings = buildBuildings(configData.buildings, types);
-
-        World world = new World();
-        world.types = new ArrayList<>(types.values());
-        world.recipes = new ArrayList<>(recipes.values());
-        world.buildings = new ArrayList<>(buildings.values());
-
-        return world;
     }
 }
