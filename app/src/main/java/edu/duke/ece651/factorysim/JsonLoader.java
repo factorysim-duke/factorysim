@@ -14,6 +14,7 @@ public class JsonLoader {
    * Loads the ConfigData from the given JSON file path.
    * @param jsonFilePath is the path to the JSON file.
    * @return the ConfigData object.
+   * @throws IOException if the file is not found or cannot be read.
    */
   public static ConfigData loadConfigData(String jsonFilePath) {
     Gson gson = new Gson();
