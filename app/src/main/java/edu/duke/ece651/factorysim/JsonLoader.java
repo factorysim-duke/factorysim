@@ -9,6 +9,12 @@ import java.io.IOException;
  * It is used to transfer JSON data to ConfigData.
  */
 public class JsonLoader {
+
+  /**
+   * Loads the ConfigData from the given JSON file path.
+   * @param jsonFilePath is the path to the JSON file.
+   * @return the ConfigData object.
+   */
   public static ConfigData loadConfigData(String jsonFilePath) {
     Gson gson = new Gson();
     try (FileReader reader = new FileReader(jsonFilePath)) {

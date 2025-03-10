@@ -23,7 +23,7 @@ public class JsonLoaderTest {
 
   @Test
   public void test_JasonLoader_failure_invalid_json_format() {
-    String jsonFilePath = "src/test/resources/inputs/InvalidJSONFormat.json";
+    String jsonFilePath = "src/test/resources/inputs/InvalidJSONFormat.txt";
     assertThrows(JsonSyntaxException.class, () -> {
       JsonLoader.loadConfigData(jsonFilePath);
     });
