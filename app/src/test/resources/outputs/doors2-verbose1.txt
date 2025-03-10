@@ -1,0 +1,34 @@
+0> request 'door' from 'D'
+[ingredient assignment]: wood assigned to W to deliver to D
+[ingredient assignment]: handle assigned to Hw2 to deliver to D
+[ingredient assignment]: metal assigned to M2 to deliver to Hw2
+[ingredient assignment]: hinge assigned to Hw2 to deliver to D
+[ingredient assignment]: metal assigned to M2 to deliver to Hw2
+[ingredient assignment]: hinge assigned to Hw2 to deliver to D
+[ingredient assignment]: metal assigned to M2 to deliver to Hw2
+[ingredient assignment]: hinge assigned to Hw2 to deliver to D
+[ingredient assignment]: metal assigned to M2 to deliver to Hw2
+0> step 50
+[ingredient delivered]: wood to D from W on cycle 1
+    0: handle is ready
+[ingredient delivered]: metal to Hw2 from M2 on cycle 1
+    0: handle is ready
+    1: hinge is ready
+[ingredient delivered]: metal to Hw2 from M2 on cycle 2
+    0: handle is ready
+    1: hinge is ready
+    2: hinge is ready
+[ingredient delivered]: metal to Hw2 from M2 on cycle 3
+    0: handle is ready
+    1: hinge is ready
+    2: hinge is ready
+    3: hinge is ready
+[ingredient delivered]: metal to Hw2 from M2 on cycle 4
+[ingredient delivered]: handle to D from Hw2 on cycle 7
+[ingredient delivered]: hinge to D from Hw2 on cycle 9
+[ingredient delivered]: hinge to D from Hw2 on cycle 11
+    0: door is ready
+[ingredient delivered]: hinge to D from Hw2 on cycle 13
+[order complete] Order 0 completed (door) at time 26
+50> finish
+Simulation completed at time-step 50

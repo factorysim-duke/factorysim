@@ -1,0 +1,5 @@
+0> request 'door' from 'D'
+0> step 50
+[order complete] Order 0 completed (door) at time 26
+50> finish
+Simulation completed at time-step 50
