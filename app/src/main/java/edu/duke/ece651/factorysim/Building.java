@@ -48,6 +48,16 @@ public abstract class Building {
   }
 
   /**
+   * Updates the sources of the building.
+   * 
+   * @param newSources is the new list of sources.
+   */
+  public void updateSources(List<Building> newSources) {
+    sources.clear();
+    sources.addAll(newSources);
+  }
+
+  /**
    * Gets the current storage number of an item.
    * 
    * @param item is the item to be checked.

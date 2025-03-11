@@ -11,4 +11,8 @@ public class BuildingDTO {
     public String type;
     public String mine;
     public List<String> sources;
+
+    public List<String> getSources() {
+        return sources;
+    }
 }

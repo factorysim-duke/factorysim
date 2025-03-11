@@ -17,8 +17,9 @@ public class JsonLoaderTest {
 
   @Test
   public void test_JasonLoader_failure_null() {
-    ConfigData configData = JsonLoader.loadConfigData("null.json");
-    assertNull(configData);
+    assertThrows(NullPointerException.class, () -> {
+      JsonLoader.loadConfigData(null);
+    });
   }
 
   @Test
@@ -27,5 +28,12 @@ public class JsonLoaderTest {
     assertThrows(JsonSyntaxException.class, () -> {
       JsonLoader.loadConfigData(jsonFilePath);
     });
+  }
+
+  @Test
+  public void test_JsonLoader_failure_fileNotFound() {
+    String nonExistentPath = "src/test/resources/inputs/NoSuchFile.json";
+    ConfigData configData = JsonLoader.loadConfigData(nonExistentPath);
+    assertNull(configData);
   }
 }

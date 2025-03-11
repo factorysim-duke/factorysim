@@ -1,7 +1,6 @@
 package edu.duke.ece651.factorysim;
 
 import java.util.ArrayList;
-
 /**
  * Represents a mine building in the simulation.
  */
@@ -42,5 +41,27 @@ public class MineBuilding extends Building {
    */
   public int getMiningLatency() {
     return miningLatency;
+  }
+
+  /**
+   * Gets the mining recipe of this mine.
+   * 
+   * @return the mining recipe of this mine.
+   */
+  public Recipe getMiningRecipe() {
+    return miningRecipe;
+  }
+
+  /**
+   * Checks if this mine can produce a given item.
+   * 
+   * @param item is the item to be checked.
+   * @return true if this mine can produce this item, false otherwise.
+   */
+  public boolean canProduce(Item item) {
+    if (miningRecipe.getOutput().getName().equals(item.getName())) {
+      return true;
+    }
+    return false;
   }
 }

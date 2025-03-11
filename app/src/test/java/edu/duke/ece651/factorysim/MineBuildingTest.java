@@ -15,5 +15,6 @@ public class MineBuildingTest {
     assertSame(out, mine.getResource());
     assertEquals(6, mine.getMiningLatency());
     assertEquals("myMine", mine.getName());
+    assertSame(recipe, mine.getMiningRecipe());
   }
 }
