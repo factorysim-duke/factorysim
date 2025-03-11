@@ -21,10 +21,10 @@ public class WorldBuilder {
      * @return the World object.
      */
     public static World buildWorld(ConfigData configData) {
-        nullCheck(configData, "ConfigData is null");
-        nullCheck(configData.buildings, "Buildings are null");
-        nullCheck(configData.types, "Types are null");
-        nullCheck(configData.recipes, "Recipes are null");
+        Utils.nullCheck(configData, "ConfigData is null");
+        Utils.nullCheck(configData.buildings, "Buildings are null");
+        Utils.nullCheck(configData.types, "Types are null");
+        Utils.nullCheck(configData.recipes, "Recipes are null");
 
         Map<String, Type> types = buildTypes(configData.types);
         Map<String, Recipe> recipes = buildRecipes(configData.recipes);
@@ -38,43 +38,67 @@ public class WorldBuilder {
         return world;
     }
 
-    private static void nameCheck(List<String> names) {
-        Set<String> nameSet = new HashSet<>(names);
-        if (nameSet.size() != names.size()) {
-            throw new IllegalArgumentException("Name must be unique, but is: " + names);
-        }
-        for (String name : names) {
-            if (name.contains("'")) {
-                throw new IllegalArgumentException(
-                        "Name cannot contain " + Utils.notAllowedInName + ", but is: " + name);
-            }
-        }
-    }
-
-    private static void nullCheck(Object o, String message) {
-        if (o == null) {
-            throw new IllegalArgumentException(message);
-        }
-    }
-
-    private static Map<String, Type> buildTypes(List<TypeDTO> typeDTOs) {
-        Map<String, Type> types = new HashMap<>();
-        List<String> names = new ArrayList<>();
-        for (TypeDTO typeDTO : typeDTOs) {
-            names.add(typeDTO.name);
-        }
-        nameCheck(names);
-        return types;
-    }
-
+    /**
+     * Builds the recipes from the RecipeDTOs and checks the validity of the data.
+     * 
+     * @param recipeDTOs is the RecipeDTOs to build the recipes from.
+     * @return the Map of recipes.
+     */
     private static Map<String, Recipe> buildRecipes(List<RecipeDTO> recipeDTOs) {
         Map<String, Recipe> recipes = new HashMap<>();
-        List<String> names = new ArrayList<>();
+        Set<String> usedNames = new HashSet<>();
+
         for (RecipeDTO recipeDTO : recipeDTOs) {
-            names.add(recipeDTO.output);
+            // Check if the output name is valid and unique
+            Utils.validNameAndUnique(recipeDTO.output, usedNames);
+            usedNames.add(recipeDTO.output);
+
+            // Check if the latency is valid
+            Utils.validLatency(recipeDTO.latency);
+
+            // Create the output item
+            Item output = new Item(recipeDTO.output);
+
+            // Create the ingredients map
+            HashMap<Item, Integer> ingredients = new HashMap<>();
+            for (Map.Entry<String, Integer> entry : recipeDTO.ingredients.entrySet()) {
+                Item ingredient = new Item(entry.getKey());
+                ingredients.put(ingredient, entry.getValue());
+            }
+
+            // Create the recipe
+            Recipe recipe = new Recipe(output, ingredients, recipeDTO.latency);
+            recipes.put(recipeDTO.output, recipe);
         }
-        nameCheck(names);
+        
+        // Check if all ingredients are defined as recipe outputs
+        for (Recipe r : recipes.values()) {
+            for (Item ingredient : r.getIngredients().keySet()) {
+                if (!recipes.containsKey(ingredient.getName())) {
+                    throw new IllegalArgumentException("Recipe '" + r.getOutput().getName() 
+                        + "' references ingredient '" + ingredient.getName() 
+                        + "', but that is not defined as a recipe output (#6).");
+                }
+            }
+          }
+
         return recipes;
+    }
+
+    /**
+     * Builds the types from the TypeDTOs and checks the validity of the data.
+     * 
+     * @param typeDTOs is the TypeDTOs to build the types from.
+     * @return the Map of types.
+     */
+    private static Map<String, Type> buildTypes(List<TypeDTO> typeDTOs) {
+        Map<String, Type> types = new HashMap<>();
+        Set<String> usedNames = new HashSet<>();
+        for (TypeDTO typeDTO : typeDTOs) {
+            Utils.validNameAndUnique(typeDTO.name, usedNames);
+            usedNames.add(typeDTO.name);
+        }
+        return types;
     }
 
     private static void typeCheck(List<String> types, Map<String, Type> typeMap) {
@@ -94,7 +118,6 @@ public class WorldBuilder {
             names.add(buildingDTO.name);
             types.add(buildingDTO.type);
         }
-        nameCheck(names);
         typeCheck(types, typeMap);
         return buildings;
     }
