@@ -171,6 +171,12 @@ public class WorldBuilder {
         return buildings;
     }
 
+    /**
+     * Validates the ingredients of the buildings.
+     * 
+     * @param buildings is the Map of buildings.
+     * @param types is the Map of types.
+     */
     private static void validateBuildingsIngredients(Map<String, Building> buildings, Map<String, Type> types) {
         for (Building building : buildings.values()) {
             if (building instanceof FactoryBuilding) {
