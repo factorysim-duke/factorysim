@@ -26,9 +26,10 @@ public class WorldBuilder {
         Utils.nullCheck(configData.types, "Types are null");
         Utils.nullCheck(configData.recipes, "Recipes are null");
 
-        Map<String, Type> types = buildTypes(configData.types);
         Map<String, Recipe> recipes = buildRecipes(configData.recipes);
-        Map<String, Building> buildings = buildBuildings(configData.buildings, types);
+        Map<String, Type> types = buildTypes(configData.types, recipes);
+        Map<String, Building> buildings = buildBuildings(configData.buildings, types, recipes);
+        validateBuildingsIngredients(buildings, types);
 
         World world = new World();
         world.types = new ArrayList<>(types.values());
@@ -77,7 +78,7 @@ public class WorldBuilder {
                 if (!recipes.containsKey(ingredient.getName())) {
                     throw new IllegalArgumentException("Recipe '" + r.getOutput().getName() 
                         + "' references ingredient '" + ingredient.getName() 
-                        + "', but that is not defined as a recipe output (#6).");
+                        + "', but that is not defined as a recipe output (violates #6).");
                 }
             }
           }
@@ -89,36 +90,119 @@ public class WorldBuilder {
      * Builds the types from the TypeDTOs and checks the validity of the data.
      * 
      * @param typeDTOs is the TypeDTOs to build the types from.
+     * @param recipes is the Map of recipes.
      * @return the Map of types.
      */
-    private static Map<String, Type> buildTypes(List<TypeDTO> typeDTOs) {
+    private static Map<String, Type> buildTypes(List<TypeDTO> typeDTOs, Map<String, Recipe> recipes) {
         Map<String, Type> types = new HashMap<>();
         Set<String> usedNames = new HashSet<>();
         for (TypeDTO typeDTO : typeDTOs) {
             Utils.validNameAndUnique(typeDTO.name, usedNames);
             usedNames.add(typeDTO.name);
+            List<Recipe> recipesList = new ArrayList<>();
+            for (String recipeName : typeDTO.recipes) {
+                Recipe recipe = recipes.get(recipeName);
+                Utils.nullCheck(recipe, "Recipe in type '" + typeDTO.name + "' is not defined (violates #5).");
+                if (recipe.getIngredients().isEmpty()) {
+                    throw new IllegalArgumentException("Recipe in type '" + typeDTO.name + "' has no ingredients (violates #7).");
+                }
+                recipesList.add(recipe);
+            }
+            Type type = new Type(typeDTO.name, recipesList);
+            types.put(typeDTO.name, type);
         }
         return types;
     }
 
-    private static void typeCheck(List<String> types, Map<String, Type> typeMap) {
-        for (String type : types) {
-            if (!typeMap.containsKey(type)) {
-                throw new IllegalArgumentException("Type is not defined: " + type);
+    /**
+     * Builds the buildings from the BuildingDTOs and checks the validity of the data.
+     * 
+     * @param buildingDTOs is the BuildingDTOs to build the buildings from.
+     * @param typeMap is the Map of types.
+     * @param recipeMap is the Map of recipes.
+     * @return the Map of buildings.
+     */
+    private static Map<String, Building> buildBuildings(List<BuildingDTO> buildingDTOs,
+            Map<String, Type> typeMap, Map<String, Recipe> recipeMap) {
+        Map<String, Building> buildings = new HashMap<>();
+        Set<String> usedNames = new HashSet<>();
+        for (BuildingDTO buildingDTO : buildingDTOs) {
+            Utils.validNameAndUnique(buildingDTO.name, usedNames);
+            usedNames.add(buildingDTO.name);
+
+            if (buildingDTO.mine != null) {
+                Recipe recipe = recipeMap.get(buildingDTO.mine);
+                Utils.nullCheck(recipe, "Mine building '" + buildingDTO.name + "' has no recipe (violates #8).");
+                if (recipe.getIngredients().isEmpty()) {
+                    throw new IllegalArgumentException("Mine building '" + buildingDTO.name + "' has no ingredients (violates #9).");
+                }
+                MineBuilding mineBuilding = new MineBuilding(recipe, buildingDTO.name);
+                buildings.put(buildingDTO.name, mineBuilding);
+            } else if (buildingDTO.type != null) {
+                if (!typeMap.containsKey(buildingDTO.type)) {
+                    throw new IllegalArgumentException("Type '" + buildingDTO.type + "' is not defined (violates #10).");
+                }
+                Type type = typeMap.get(buildingDTO.type);
+                FactoryBuilding factoryBuilding = new FactoryBuilding(type, buildingDTO.name, new ArrayList<>());
+                buildings.put(buildingDTO.name, factoryBuilding);
+            } else {
+                throw new IllegalArgumentException("Building '" + buildingDTO.name + "' has no mine or type.");
             }
         }
+
+        for (BuildingDTO buildingDTO : buildingDTOs) {
+            Building building = buildings.get(buildingDTO.name);
+            List<Building> sources = new ArrayList<>();
+            if (buildingDTO.sources != null) {
+                for (String source : buildingDTO.sources) {
+                    if (buildings.containsKey(source)) {
+                        sources.add(buildings.get(source));
+                    } else {
+                        throw new IllegalArgumentException("Source '" + source + "' is not defined (violates #3).");
+                    }
+                }
+            }
+            if (building instanceof MineBuilding && !sources.isEmpty()) {
+                throw new IllegalArgumentException("Mine building '" + buildingDTO.name + "' has sources (violates #4).");
+            }
+            building.updateSources(sources);
+        }
+        
+        return buildings;
     }
 
-    private static Map<String, Building> buildBuildings(List<BuildingDTO> buildingDTOs,
-            Map<String, Type> typeMap) {
-        Map<String, Building> buildings = new HashMap<>();
-        List<String> names = new ArrayList<>();
-        List<String> types = new ArrayList<>();
-        for (BuildingDTO buildingDTO : buildingDTOs) {
-            names.add(buildingDTO.name);
-            types.add(buildingDTO.type);
+    private static void validateBuildingsIngredients(Map<String, Building> buildings, Map<String, Type> types) {
+        for (Building building : buildings.values()) {
+            if (building instanceof FactoryBuilding) {
+                FactoryBuilding factoryBuilding = (FactoryBuilding) building;
+                Type type = types.get(factoryBuilding.getFactoryType().getName());
+                Set<Item> ingredients = new HashSet<>();
+                for (Recipe recipe : type.getRecipes()) {
+                    ingredients.addAll(recipe.getIngredients().keySet());
+                }
+                for (Item ingredient : ingredients) {
+                    boolean found = false;
+                    for (Building source : factoryBuilding.getSources()) {
+                        if (source instanceof MineBuilding && ((MineBuilding) source).canProduce(ingredient)) {
+                            found = true;
+                            break;
+                        }
+                        if (source instanceof FactoryBuilding && ((FactoryBuilding) source).canProduce(ingredient)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        throw new IllegalArgumentException("Factory building '" + factoryBuilding.getName() + "' has ingredient '" + ingredient.getName() + "' (violates #11).");
+                    }
+                }
+            }
+            if (building instanceof MineBuilding) {
+                MineBuilding mineBuilding = (MineBuilding) building;
+                if (mineBuilding.getMiningRecipe().getIngredients().isEmpty()) {
+                    throw new IllegalArgumentException("Mine building '" + mineBuilding.getName() + "' has no ingredients (violates #9).");
+                }
+            }
         }
-        typeCheck(types, typeMap);
-        return buildings;
     }
 }

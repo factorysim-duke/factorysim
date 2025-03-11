@@ -41,6 +41,15 @@ public class FactoryBuilding extends Building {
   }
 
   /**
+   * Gets the factory type of this factory.
+   * 
+   * @return the factory type of this factory.
+   */
+  public Type getFactoryType() {
+    return factoryType;
+  }
+
+  /**
    * Checks if this factory can produce a given item.
    * 
    * @param item is the item to be checked.
