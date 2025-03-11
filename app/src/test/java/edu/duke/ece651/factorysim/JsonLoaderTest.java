@@ -29,4 +29,11 @@ public class JsonLoaderTest {
       JsonLoader.loadConfigData(jsonFilePath);
     });
   }
+
+  @Test
+  public void test_JsonLoader_failure_fileNotFound() {
+    String nonExistentPath = "src/test/resources/inputs/NoSuchFile.json";
+    ConfigData configData = JsonLoader.loadConfigData(nonExistentPath);
+    assertNull(configData);
+  }
 }

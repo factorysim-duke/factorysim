@@ -1,7 +1,6 @@
 package edu.duke.ece651.factorysim;
 
 import java.util.ArrayList;
-import java.util.List;
 /**
  * Represents a mine building in the simulation.
  */

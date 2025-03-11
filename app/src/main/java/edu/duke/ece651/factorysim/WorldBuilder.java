@@ -133,6 +133,9 @@ public class WorldBuilder {
             if (buildingDTO.mine != null) {
                 Recipe recipe = recipeMap.get(buildingDTO.mine);
                 Utils.nullCheck(recipe, "Mine building '" + buildingDTO.name + "' has no recipe (violates #8).");
+                if (!buildingDTO.getSources().isEmpty()) {
+                    throw new IllegalArgumentException("Mine building '" + buildingDTO.name + "' has sources (violates #4).");
+                }
                 if (!recipe.getIngredients().isEmpty()) {
                     throw new IllegalArgumentException("Mine building '" + buildingDTO.name + "' should have no ingredients (violates #8).");
                 }
@@ -140,7 +143,11 @@ public class WorldBuilder {
                 buildings.put(buildingDTO.name, mineBuilding);
             } else if (buildingDTO.type != null) {
                 if (!typeMap.containsKey(buildingDTO.type)) {
-                    throw new IllegalArgumentException("Type '" + buildingDTO.type + "' is not defined (violates #10).");
+                    throw new IllegalArgumentException("Type '" + buildingDTO.type + "' is not defined (violates #2).");
+                }
+                // TODO: Can Factory building have no sources?
+                if (buildingDTO.getSources().isEmpty()) {
+                    throw new IllegalArgumentException("Factory building '" + buildingDTO.name + "' has no sources.");
                 }
                 Type type = typeMap.get(buildingDTO.type);
                 FactoryBuilding factoryBuilding = new FactoryBuilding(type, buildingDTO.name, new ArrayList<>());
@@ -153,17 +160,16 @@ public class WorldBuilder {
         for (BuildingDTO buildingDTO : buildingDTOs) {
             Building building = buildings.get(buildingDTO.name);
             List<Building> sources = new ArrayList<>();
-            if (buildingDTO.sources != null) {
-                for (String source : buildingDTO.sources) {
+            if (!buildingDTO.getSources().isEmpty()) {
+                for (String source : buildingDTO.getSources()) {
                     if (buildings.containsKey(source)) {
                         sources.add(buildings.get(source));
                     } else {
                         throw new IllegalArgumentException("Source '" + source + "' is not defined (violates #3).");
                     }
                 }
-            }
-            if (building instanceof MineBuilding && !sources.isEmpty()) {
-                throw new IllegalArgumentException("Mine building '" + buildingDTO.name + "' has sources (violates #4).");
+            } else {
+                continue;
             }
             building.updateSources(sources);
         }
@@ -199,14 +205,8 @@ public class WorldBuilder {
                         }
                     }
                     if (!found) {
-                        throw new IllegalArgumentException("Factory building '" + factoryBuilding.getName() + "' has ingredient '" + ingredient.getName() + "' (violates #11).");
+                        throw new IllegalArgumentException("Factory building '" + factoryBuilding.getName() + "' has ingredient '" + ingredient.getName() + "' (violates #9).");
                     }
-                }
-            }
-            if (building instanceof MineBuilding) {
-                MineBuilding mineBuilding = (MineBuilding) building;
-                if (!mineBuilding.getMiningRecipe().getIngredients().isEmpty()) {
-                    throw new IllegalArgumentException("Mine building '" + mineBuilding.getName() + "' has no ingredients (violates #9).");
                 }
             }
         }
