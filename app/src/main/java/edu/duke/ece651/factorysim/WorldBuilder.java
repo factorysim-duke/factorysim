@@ -133,8 +133,8 @@ public class WorldBuilder {
             if (buildingDTO.mine != null) {
                 Recipe recipe = recipeMap.get(buildingDTO.mine);
                 Utils.nullCheck(recipe, "Mine building '" + buildingDTO.name + "' has no recipe (violates #8).");
-                if (recipe.getIngredients().isEmpty()) {
-                    throw new IllegalArgumentException("Mine building '" + buildingDTO.name + "' has no ingredients (violates #9).");
+                if (!recipe.getIngredients().isEmpty()) {
+                    throw new IllegalArgumentException("Mine building '" + buildingDTO.name + "' should have no ingredients (violates #8).");
                 }
                 MineBuilding mineBuilding = new MineBuilding(recipe, buildingDTO.name);
                 buildings.put(buildingDTO.name, mineBuilding);
@@ -205,7 +205,7 @@ public class WorldBuilder {
             }
             if (building instanceof MineBuilding) {
                 MineBuilding mineBuilding = (MineBuilding) building;
-                if (mineBuilding.getMiningRecipe().getIngredients().isEmpty()) {
+                if (!mineBuilding.getMiningRecipe().getIngredients().isEmpty()) {
                     throw new IllegalArgumentException("Mine building '" + mineBuilding.getName() + "' has no ingredients (violates #9).");
                 }
             }

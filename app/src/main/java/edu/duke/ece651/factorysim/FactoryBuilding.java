@@ -58,8 +58,8 @@ public class FactoryBuilding extends Building {
   boolean canProduce(Item item) {
     List<Recipe> recipes = factoryType.getRecipes();
     for (int i = 0; i < recipes.size(); i++) {
-      if (recipes.get(i).getOutput().getName() == item.getName()) {
-        return true;
+      if (recipes.get(i).getOutput().getName().equals(item.getName())) {
+          return true;
       }
     }
     return false;

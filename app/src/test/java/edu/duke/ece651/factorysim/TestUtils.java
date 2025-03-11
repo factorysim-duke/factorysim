@@ -1,6 +1,10 @@
 package edu.duke.ece651.factorysim;
 
 import java.util.HashMap;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import com.google.gson.Gson;
 
 public class TestUtils {
   /**
@@ -22,5 +26,20 @@ public class TestUtils {
       ans.put(item, i + 1);
     }
     return ans;
+  }
+
+  /**
+   * Loads the config data from the given file path.
+   * 
+   * @param filePath is the path to the config data file.
+   * @return the config data.
+   */
+  public static ConfigData loadConfigData(String filePath) {
+    try {
+      String json = new String(Files.readAllBytes(Paths.get(filePath)));
+      return new Gson().fromJson(json, ConfigData.class);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to load config data from " + filePath, e);
+    }
   }
 }

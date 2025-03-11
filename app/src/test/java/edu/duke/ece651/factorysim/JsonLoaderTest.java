@@ -17,8 +17,9 @@ public class JsonLoaderTest {
 
   @Test
   public void test_JasonLoader_failure_null() {
-    ConfigData configData = JsonLoader.loadConfigData("null.json");
-    assertNull(configData);
+    assertThrows(NullPointerException.class, () -> {
+      JsonLoader.loadConfigData(null);
+    });
   }
 
   @Test
