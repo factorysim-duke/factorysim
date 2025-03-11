@@ -80,7 +80,7 @@ public class WorldBuilderTest {
 
   @Test
   public void test_WorldBuilder_failure_factoryMissingOneSource() {
-    ConfigData configDataFactoryMissingOneSource = TestUtils.loadConfigData("src/test/resources/inputs/FactoryMissingoneSource.json");
+    ConfigData configDataFactoryMissingOneSource = TestUtils.loadConfigData("src/test/resources/inputs/FactoryMissingOneSource.json");
     assertThrows(IllegalArgumentException.class, () -> {
       WorldBuilder.buildWorld(configDataFactoryMissingOneSource);
     });
