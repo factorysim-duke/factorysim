@@ -8,6 +8,16 @@ package edu.duke.ece651.factorysim;
  */
 public class Simulation {
     /**
+     * Request an item from a building by specifying two names.
+     *
+     * @param item the name of the item to request.
+     * @param from the name of the building to request from.
+     */
+    public void request(String item, String from) {
+        // TODO
+    }
+
+    /**
      * This causes the simulation to run for `n` time-steps.
      *
      * @param n the number of steps for the simulation to run.
