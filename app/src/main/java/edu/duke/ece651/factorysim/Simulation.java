@@ -1,4 +1,4 @@
-﻿package edu.duke.ece651.factorysim;
+package edu.duke.ece651.factorysim;
 
 /**
  * Controls the buildings, time, etc. of the overall simulation.
