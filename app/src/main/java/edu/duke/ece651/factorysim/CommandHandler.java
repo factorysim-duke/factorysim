@@ -66,19 +66,6 @@ public class CommandHandler {
     }
 
     /**
-     * Read a line from the input stream `s` and execute it.
-     *
-     * @param s input stream to read a line as a line of command from.
-     * @throws IllegalArgumentException when command is illegal.
-     * @throws IOException when IO error when reading from the stream `s`.
-     */
-    public void execute(InputStream s) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(s))) {
-            execute(reader.readLine());
-        }
-    }
-
-    /**
      * Parse a line of command into an array of arguments.<br/>
      * Example:<br/>
      * parse<br/>
