@@ -31,7 +31,7 @@ public class Simulation {
    */
   public void step(int n) {
     if (n < 1 || n == Integer.MAX_VALUE) {
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException("The number of step must be positive and not too large.");
     }
     for (int i = 0; i < n; i++) {
       currentTime++;
