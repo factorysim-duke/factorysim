@@ -1,0 +1,8 @@
+0>
+0>
+5>
+Building cannot produce item
+5>
+Building not found
+5>
+Simulation completed at time-step 5

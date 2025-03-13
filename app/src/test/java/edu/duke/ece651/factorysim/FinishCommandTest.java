@@ -7,7 +7,7 @@ public class FinishCommandTest {
     @Test
     public void test_execute() {
         FinishCommand finish = new FinishCommand();
-        Simulation sim = new Simulation();
+        Simulation sim = new Simulation("src/test/resources/inputs/doors1.json");
 
         // Invalid inputs
         assertThrows(IllegalArgumentException.class, () -> { execute(finish, sim, "step", "1"); });

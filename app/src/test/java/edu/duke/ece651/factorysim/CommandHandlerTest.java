@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CommandHandlerTest {
     @Test
     public void test_execute() {
-        Simulation sim = new Simulation();
+        Simulation sim = new Simulation("src/test/resources/inputs/doors1.json");
         CommandHandler commandHandler = new CommandHandler(sim);
 
         // Invalid commands
@@ -16,7 +16,7 @@ public class CommandHandlerTest {
         assertThrows(IllegalArgumentException.class, () -> { commandHandler.execute("unknown 1 2 'A B C'"); });
 
         // Valid commands
-        assertDoesNotThrow(() -> { commandHandler.execute("request 'bolt' from 'best doors and bolts in town'"); });
+        assertDoesNotThrow(() -> { commandHandler.execute("request 'door' from 'D'"); });
         assertDoesNotThrow(() -> { commandHandler.execute("step 3"); });
         assertDoesNotThrow(() -> { commandHandler.execute("finish"); });
     }

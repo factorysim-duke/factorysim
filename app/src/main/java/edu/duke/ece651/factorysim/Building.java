@@ -1,7 +1,9 @@
 package edu.duke.ece651.factorysim;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 /**
  * Represents a building in the simulation.
@@ -10,6 +12,8 @@ public abstract class Building {
   private final String name;
   private final List<Building> sources;
   private HashMap<Item, Integer> storage;
+  private Queue<Request> requestQueue;
+  private boolean isProcessing = false;
 
   /**
    * Constructs a basic building with empty storage.
@@ -27,6 +31,7 @@ public abstract class Building {
     this.name = name;
     this.sources = sources;
     this.storage = new HashMap<>();
+    this.requestQueue = new LinkedList<>();
   }
 
   /**
@@ -123,4 +128,40 @@ public abstract class Building {
   public void deliverTo(Building destination, Item item, int quantity) {
     destination.addToStorage(item, quantity);
   }
+
+  /**
+   * Add a new request to the request queue.
+   *
+   * @param request The request to be added.
+   */
+  public void addRequest(Request request) {
+    requestQueue.offer(request);
+  }
+
+  /**
+   * Checks if the factory/building has finished processing all requests.
+   *
+   * @return true if there are no active requests and nothing is being processed, false otherwise.
+   */
+  public boolean isFinished(){
+    return !isProcessing && requestQueue.isEmpty();
+  }
+
+    /**
+     * Steps the building forward in time.
+     */
+  public void step() {
+    // do nothing by default
+  requestQueue.poll();
+  }
+
+    /**
+     * Checks if this building can produce a given item.
+     *
+     * @param item is the item to be checked.
+     * @return true if this building can produce this item, false otherwise.
+     */
+  public abstract boolean canProduce(Item item);
+
+
 }
