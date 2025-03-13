@@ -1,0 +1,6 @@
+
+step 1
+request 'a' from 'D'
+request 'door' from 'do'
+step 4
+finish

@@ -1,0 +1,9 @@
+0>
+0>
+1>
+The recipe for item a does not exist.
+1>
+The building do does not exist.
+1>
+5>
+Simulation completed at time-step 5
