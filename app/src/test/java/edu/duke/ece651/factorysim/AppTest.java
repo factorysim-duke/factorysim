@@ -6,11 +6,47 @@ package edu.duke.ece651.factorysim;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-class AppTest {
-    @Test
-    void testAppHasAGreeting() {
-        String greeting = new App().getGreeting();
-        assertEquals("Hello world", greeting);
-    }
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
 
+import java.io.*;
+
+class AppTest {
+
+    @Test
+    @ResourceLock(value = Resources.SYSTEM_OUT, mode = ResourceAccessMode.READ_WRITE)
+    void test_main()throws IOException{
+        ByteArrayOutputStream bytes=new ByteArrayOutputStream();
+        PrintStream out=new PrintStream(bytes,true);
+
+        InputStream input = getClass().getClassLoader().getResourceAsStream("inputs/input.txt");
+        assertNotNull(input);
+
+        InputStream expectedStream = getClass().getClassLoader().getResourceAsStream("outputs/output.txt");
+        assertNotNull(expectedStream);
+        InputStream oldIn = System.in;
+        PrintStream oldOut = System.out;
+
+        try {
+            System.setIn(input);
+            System.setOut(out);
+            String filePath = "src/test/resources/inputs/doors1.json";
+            App.actualMain(filePath, new BufferedReader(new InputStreamReader(System.in)));
+        }
+        finally {
+            //replace back
+            System.setIn(oldIn);
+            System.setOut(oldOut);
+        }
+        //output.txt as expected
+        String expected = new String(expectedStream.readAllBytes()).replace("\r\n", "\n");
+
+        //actual output
+        String actual = bytes.toString().replace("\r\n", "\n");
+        assertEquals(expected, actual);
+        expectedStream.close();
+        input.close();
+
+    }
 }

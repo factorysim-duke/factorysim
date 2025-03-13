@@ -7,7 +7,7 @@ public class RequestCommandTest {
     @Test
     public void test_execute() {
         RequestCommand request = new RequestCommand();
-        Simulation sim = new Simulation();
+        Simulation sim = new Simulation("src/test/resources/inputs/doors1.json");
 
         // Invalid inputs
         assertThrows(IllegalArgumentException.class, () -> { execute(request, sim, "step", "3"); });

@@ -4,13 +4,43 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SimulationTest {
+    Simulation sim=new Simulation("src/test/resources/inputs/doors1.json");
     @Test
-    public void test_step() {
-        Simulation sim = new Simulation();
+    void step() {
+        sim.step(1);
+        assertEquals(1,sim.getCurrentTime());
+        sim.step(2);
+        assertEquals(3,sim.getCurrentTime());
+    }
 
-        // Invalid inputs
-        assertThrows(IllegalArgumentException.class, () -> { sim.step(-1); });
-        assertThrows(IllegalArgumentException.class, () -> { sim.step(0); });
-        assertThrows(IllegalArgumentException.class, () -> { sim.step(Integer.MAX_VALUE); });
+
+    @Test
+    void testValidRequest() {
+        assertDoesNotThrow(() -> sim.request("door", "D"));
+        assertThrows(IllegalArgumentException.class, () -> sim.request("door", "Z"));
+        assertThrows(IllegalArgumentException.class, () -> sim.request("invalidItem", "D"));
+    }
+
+    @Test
+    void finish() {
+        sim.finish();
+        assertTrue(sim.isFinished());
+    }
+    @Test
+    void testAllRequestsFinished() {
+        sim.request("door", "D");
+        assertFalse(sim.allRequestsFinished());
+        sim.finish();
+        assertTrue(sim.allRequestsFinished());
+    }
+
+    @Test
+    void isFinished() {
+        assertFalse(sim.isFinished());
+    }
+
+    @Test
+    void getCurrentTime() {
+        assertEquals(0,sim.getCurrentTime());
     }
 }

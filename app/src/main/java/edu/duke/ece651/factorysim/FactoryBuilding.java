@@ -55,7 +55,7 @@ public class FactoryBuilding extends Building {
    * @param item is the item to be checked.
    * @return true if this factory can produce this item, false otherwise.
    */
-  boolean canProduce(Item item) {
+  public boolean canProduce(Item item) {
     List<Recipe> recipes = factoryType.getRecipes();
     for (int i = 0; i < recipes.size(); i++) {
       if (recipes.get(i).getOutput().getName().equals(item.getName())) {

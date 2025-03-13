@@ -50,4 +50,6 @@ public class Recipe {
   public int getLatency() {
     return latency;
   }
+
+
 }
