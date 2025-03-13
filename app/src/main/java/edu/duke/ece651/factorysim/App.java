@@ -35,7 +35,7 @@ public class App {
             while(!sim.isFinished()){
                 System.out.println(sim.getCurrentTime() + ">");
                 String line = inputReader.readLine();
-                if(line == null||line.trim().isEmpty()){
+                if(line.trim().isEmpty()){
                     continue;
                 }
                 try{
