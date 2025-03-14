@@ -12,6 +12,7 @@ public class Request {
   private final Building producer;
   private final Building deliverTo;
   private boolean isUserRequest;
+  private int remainingSteps;
 
   /**
    * Constructs a request.
@@ -31,6 +32,7 @@ public class Request {
     this.producer = producer;
     this.deliverTo = deliverTo;
     this.isUserRequest = isUserRequest;
+    this.remainingSteps = recipe.getLatency();
   }
 
   /**
@@ -82,5 +84,21 @@ public class Request {
    */
   public boolean isUserRequest() {
     return isUserRequest;
+  }
+
+  /**
+   * Process the request by one step. Returns whether the request if completed.
+   *
+   * @return true if the request is completed, false otherwise.
+   */
+  public boolean process() {
+    // Return true if request is already finished processing
+    if (remainingSteps <= 0) {
+        return true;
+    }
+
+    // Consume one step; return true if request is finished, false otherwise
+    remainingSteps--;
+    return remainingSteps <= 0;
   }
 }
