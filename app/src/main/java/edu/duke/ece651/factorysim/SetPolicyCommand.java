@@ -49,8 +49,13 @@ public class SetPolicyCommand implements Command {
         }
 
         // Check if the target is valid
-        if (!Utils.isInList(target, VALID_SPECIAL_TARGETS) && !isQuoted(target)) {
+        if (!Utils.isInList(target, VALID_SPECIAL_TARGETS) && !Utils.isQuoted(target)) {
             throw new IllegalArgumentException("TARGET must be a building name, '*', or 'default'");
+        }
+
+        // Check if the target is quoted
+        if (Utils.isQuoted(target)) {
+            target = Utils.removeQuotes(target);
         }
 
         sim.setPolicy(type, policy, target);
