@@ -141,27 +141,26 @@ public abstract class Building {
   /**
    * Checks if the factory/building has finished processing all requests.
    *
-   * @return true if there are no active requests and nothing is being processed, false otherwise.
+   * @return true if there are no active requests and nothing is being processed,
+   *         false otherwise.
    */
-  public boolean isFinished(){
+  public boolean isFinished() {
     return !isProcessing && requestQueue.isEmpty();
   }
 
-    /**
-     * Steps the building forward in time.
-     */
+  /**
+   * Steps the building forward in time.
+   */
   public void step() {
     // do nothing by default
-  requestQueue.poll();
+    requestQueue.poll();
   }
 
-    /**
-     * Checks if this building can produce a given item.
-     *
-     * @param item is the item to be checked.
-     * @return true if this building can produce this item, false otherwise.
-     */
+  /**
+   * Checks if this building can produce a given item.
+   *
+   * @param item is the item to be checked.
+   * @return true if this building can produce this item, false otherwise.
+   */
   public abstract boolean canProduce(Item item);
-
-
 }
