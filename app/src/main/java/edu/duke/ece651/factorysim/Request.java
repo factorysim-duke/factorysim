@@ -11,7 +11,6 @@ public class Request {
   private final Recipe recipe;
   private final Building producer;
   private final Building deliverTo;
-  private boolean isUserRequest;
   private int remainingSteps;
 
   /**
@@ -22,16 +21,14 @@ public class Request {
    * @param recipe        is the recipe for the requested item.
    * @param producer      is the producer building for the requested item (and
    *                      recipe).
-   * @param deliverTo     is the target building to receive the requested item.
-   * @param isUserRequest is the boolean to tell if this request is made by user.
+   * @param deliverTo     is the target building to receive the requested item. If it's null, this is a user request.
    */
-  public Request(int orderNum, Item item, Recipe recipe, Building producer, Building deliverTo, boolean isUserRequest) {
+  public Request(int orderNum, Item item, Recipe recipe, Building producer, Building deliverTo) {
     this.orderNum = orderNum;
     this.item = item;
     this.recipe = recipe;
     this.producer = producer;
     this.deliverTo = deliverTo;
-    this.isUserRequest = isUserRequest;
     this.remainingSteps = recipe.getLatency();
   }
 
@@ -72,7 +69,7 @@ public class Request {
    *         building, null if the request is made by user.
    */
   public Building getDeliverTo() {
-    if (isUserRequest) {
+    if (isUserRequest()) {
       return null;
     } else {
       return deliverTo;
@@ -83,7 +80,7 @@ public class Request {
    * @return true if the request is made by user, false if the request is issued by another building wanting the item.
    */
   public boolean isUserRequest() {
-    return isUserRequest;
+    return deliverTo == null;
   }
 
   /**

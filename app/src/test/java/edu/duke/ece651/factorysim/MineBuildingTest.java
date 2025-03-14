@@ -29,7 +29,7 @@ public class MineBuildingTest {
     assertFalse(mine.isProcessing());
 
     // Add request
-    Request request = new Request(1, wood, woodRecipe, mine, factory, false);
+    Request request = new Request(1, wood, woodRecipe, mine, factory);
     mine.addRequest(request);
 
     // Mine shouldn't be finished since there's a pending request

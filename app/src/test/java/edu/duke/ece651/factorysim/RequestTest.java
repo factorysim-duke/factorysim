@@ -21,7 +21,7 @@ class RequestTest {
 
     // user request wood from mine
     int orderNum1 = 1;
-    Request request1 = new Request(orderNum1, wood, woodRecipe, mine, null, true);
+    Request request1 = new Request(orderNum1, wood, woodRecipe, mine, null);
     assertEquals(1, request1.getOrderNum());
     assertSame(woodRecipe, request1.getRecipe());
     assertSame(wood, request1.getItem());
@@ -31,7 +31,7 @@ class RequestTest {
 
     // factory request wood from mine
     int orderNum2 = 2;
-    Request request2 = new Request(orderNum2, door, doorRecipe, mine, factory, false);
+    Request request2 = new Request(orderNum2, door, doorRecipe, mine, factory);
     assertEquals(2, request2.getOrderNum());
     assertSame(doorRecipe, request2.getRecipe());
     assertSame(door, request2.getItem());
@@ -46,7 +46,7 @@ class RequestTest {
     Recipe woodRecipe = TestUtils.makeTestRecipe("wood", 3, 2);
     Building mine = new MineBuilding(woodRecipe, "woodMine");
 
-    Request r = new Request(1, wood, woodRecipe, mine, null, true);
+    Request r = new Request(1, wood, woodRecipe, mine, null);
     assertFalse(r.process()); // remainingSteps = 2
     assertFalse(r.isCompleted());
 

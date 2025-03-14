@@ -75,7 +75,7 @@ public class Simulation {
     }
     // if all is valid, add the request
     nextOrderNum += 1;
-    Request userRequest = new Request(nextOrderNum, item, recipe, producer, null, true);
+    Request userRequest = new Request(nextOrderNum, item, recipe, producer, null);
     producer.addRequest(userRequest);
   }
 
