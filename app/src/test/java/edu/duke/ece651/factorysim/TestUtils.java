@@ -29,6 +29,22 @@ public class TestUtils {
   }
 
   /**
+   * Conveniently generates a recipe for testing.
+   * 
+   * @param itemName         is the String name of the recipe's output item.
+   * @param latency          is the latency for the recipe.
+   * @param numOfIngredients is the number of ingredients you want in the
+   *                         ingredients hashmap (in the form of {("a", 1), ("b", 2)...} as described in makeTestIngredients())
+   * @return the recipe used for tesing.
+   */
+  public static Recipe makeTestRecipe(String itemName, int latency, int numOfIngredients) {
+    HashMap<Item, Integer> ingredients = makeTestIngredientMap(numOfIngredients);
+    Item item = new Item(itemName);
+    Recipe ans = new Recipe(item, ingredients, latency);
+    return ans;
+  }
+
+  /**
    * Loads the config data from the given file path.
    * 
    * @param filePath is the path to the config data file.

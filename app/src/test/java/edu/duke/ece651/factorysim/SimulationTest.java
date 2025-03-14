@@ -16,9 +16,9 @@ public class SimulationTest {
 
     @Test
     void testValidRequest() {
-        assertDoesNotThrow(() -> sim.request("door", "D"));
-        assertThrows(IllegalArgumentException.class, () -> sim.request("door", "Z"));
-        assertThrows(IllegalArgumentException.class, () -> sim.request("invalidItem", "D"));
+        assertDoesNotThrow(() -> sim.makeUserRequest("door", "D"));
+        assertThrows(IllegalArgumentException.class, () -> sim.makeUserRequest("door", "Z"));
+        assertThrows(IllegalArgumentException.class, () -> sim.makeUserRequest("invalidItem", "D"));
     }
 
     @Test
@@ -28,7 +28,7 @@ public class SimulationTest {
     }
     @Test
     void testAllRequestsFinished() {
-        sim.request("door", "D");
+        sim.makeUserRequest("door", "D");
         assertFalse(sim.allRequestsFinished());
         sim.finish();
         assertTrue(sim.allRequestsFinished());

@@ -1,6 +1,7 @@
 package edu.duke.ece651.factorysim;
 
 import java.util.ArrayList;
+
 /**
  * Represents a mine building in the simulation.
  */
@@ -12,16 +13,29 @@ public class MineBuilding extends Building {
   /**
    * Constructs a basic mine with empty storage and no ingredient source
    * buildings.
+   *
+   * @param miningRecipe  is the recipe for this mine.
+   * @param name          is the name of the building.
+   * @param requestPolicy is the injected request policy instance.
+   * @throws IllegalArgumentException if the name is not valid.
+   */
+  public MineBuilding(Recipe miningRecipe, String name, RequestPolicy requestPolicy) {
+    super(name, new ArrayList<>(), requestPolicy);
+    this.miningRecipe = miningRecipe;
+    this.resource = miningRecipe.getOutput();
+    this.miningLatency = miningRecipe.getLatency();
+  }
+
+  /**
+   * Constructs a basic mine with empty storage and no ingredient source
+   * buildings. It uses default ready request policy.
    * 
    * @param miningRecipe is the recipe for this mine.
    * @param name         is the name of the building.
    * @throws IllegalArgumentException if the name is not valid.
    */
   public MineBuilding(Recipe miningRecipe, String name) {
-    super(name, new ArrayList<Building>());
-    this.miningRecipe = miningRecipe;
-    this.resource = miningRecipe.getOutput();
-    this.miningLatency = miningRecipe.getLatency();
+    this(miningRecipe, name, new ReadyRequestPolicy());
   }
 
   /**

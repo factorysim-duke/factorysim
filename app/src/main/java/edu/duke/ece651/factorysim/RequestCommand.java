@@ -33,7 +33,7 @@ public class RequestCommand implements Command {
         throwIfNotQuoted(args[3], "Invalid 'request' command: 4th argument must be a quoted name");
 
         // Operate on the simulation
-        sim.request(removeQuotes(args[1]), removeQuotes(args[3]));
+        sim.makeUserRequest(removeQuotes(args[1]), removeQuotes(args[3]));
     }
 
     static void throwIfNotQuoted(String s, String message) {

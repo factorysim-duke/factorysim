@@ -1,19 +1,20 @@
 package edu.duke.ece651.factorysim;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 /**
  * Represents a building in the simulation.
  */
 public abstract class Building {
   private final String name;
+
   private final List<Building> sources;
+
   private HashMap<Item, Integer> storage;
-  private Queue<Request> requestQueue;
-  private boolean isProcessing = false;
+
+  private Request currentRequest = null;
+  private List<Request> pendingRequests;
+  private RequestPolicy requestPolicy;
 
   /**
    * Constructs a basic building with empty storage.
@@ -21,17 +22,35 @@ public abstract class Building {
    * @param name    is the name of the building.
    * @param sources is the list of buildings where this building can get
    *                ingredients from.
+   * @param requestPolicy is the injected request policy instance for
+   *                      selecting a new request to process.
    * @throws IllegalArgumentException if the name is not valid.
    */
-  public Building(String name, List<Building> sources) {
+  protected Building(String name, List<Building> sources, RequestPolicy requestPolicy) {
     if (Utils.isNameValid(name) == false) {
       throw new IllegalArgumentException(
           "Building name cannot contain " + Utils.notAllowedInName + ", but is: " + name);
     }
     this.name = name;
+
     this.sources = sources;
+
     this.storage = new HashMap<>();
-    this.requestQueue = new LinkedList<>();
+
+    this.pendingRequests = new LinkedList<>();
+    this.requestPolicy = requestPolicy;
+  }
+
+  /**
+   * Constructs a basic building with empty storage and default ready request policy.
+   *
+   * @param name    is the name of the building.
+   * @param sources is the list of buildings where this building can get
+   *                ingredients from.
+   * @throws IllegalArgumentException if the name is not valid.
+   */
+  protected Building(String name, List<Building> sources) {
+    this(name, sources, new ReadyRequestPolicy());
   }
 
   /**
@@ -135,7 +154,16 @@ public abstract class Building {
    * @param request The request to be added.
    */
   public void addRequest(Request request) {
-    requestQueue.offer(request);
+    pendingRequests.addFirst(request);
+  }
+
+  /**
+   * Checks if the building is processing a request currently.
+   *
+   * @return true if the building is currently processing a request, false otherwise.
+   */
+  public boolean isProcessing() {
+    return currentRequest != null; // If there's a current request, it means the building is processing it
   }
 
   /**
@@ -143,25 +171,52 @@ public abstract class Building {
    *
    * @return true if there are no active requests and nothing is being processed, false otherwise.
    */
-  public boolean isFinished(){
-    return !isProcessing && requestQueue.isEmpty();
+  public boolean isFinished() {
+    // Building is "finished" when there's no current request processing AND there's no pending requests
+    return !isProcessing() && pendingRequests.isEmpty();
   }
 
-    /**
-     * Steps the building forward in time.
-     */
+  /**
+   * Steps the building forward in time.
+   */
   public void step() {
-    // do nothing by default
-  requestQueue.poll();
+    processRequest();
   }
 
-    /**
-     * Checks if this building can produce a given item.
-     *
-     * @param item is the item to be checked.
-     * @return true if this building can produce this item, false otherwise.
-     */
+  /**
+   * Request processing routine.
+   * If there's no current request, fetch one using the current policy, then process it by one step.
+   * Otherwise, just keep processing the existing current request.<br/>
+   * NOTE: This method is called by `step` and should not be invoked manually somewhere else.
+   */
+  void processRequest() {
+    // Fetch a new request if there's no current request
+    if (currentRequest == null) {
+      currentRequest = requestPolicy.popRequest(this, pendingRequests);
+
+      // Do nothing if no request was fetched
+      if (currentRequest == null) {
+          return;
+      }
+    }
+
+    // Process current request by one step
+    if (currentRequest.process()) {
+      // Deliver item on request completion if it's not a user request and there's a destination
+      if (!currentRequest.isUserRequest()) {
+        deliverTo(currentRequest.getDeliverTo(), currentRequest.getItem(), 1);
+      }
+
+      // Current request is completed, setting it to null to indicate no request processing for the next step
+      currentRequest = null;
+    }
+  }
+
+  /**
+   * Checks if this building can produce a given item.
+   *
+   * @param item is the item to be checked.
+   * @return true if this building can produce this item, false otherwise.
+   */
   public abstract boolean canProduce(Item item);
-
-
 }
