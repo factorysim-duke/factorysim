@@ -26,7 +26,7 @@ public abstract class Building {
    *                      selecting a new request to process.
    * @throws IllegalArgumentException if the name is not valid.
    */
-  public Building(String name, List<Building> sources, RequestPolicy requestPolicy) {
+  protected Building(String name, List<Building> sources, RequestPolicy requestPolicy) {
     if (Utils.isNameValid(name) == false) {
       throw new IllegalArgumentException(
           "Building name cannot contain " + Utils.notAllowedInName + ", but is: " + name);
@@ -49,7 +49,7 @@ public abstract class Building {
    *                ingredients from.
    * @throws IllegalArgumentException if the name is not valid.
    */
-  public Building(String name, List<Building> sources) {
+  protected Building(String name, List<Building> sources) {
     this(name, sources, new ReadyRequestPolicy());
   }
 
