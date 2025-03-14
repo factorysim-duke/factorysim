@@ -93,12 +93,21 @@ public class Request {
    */
   public boolean process() {
     // Return true if request is already finished processing
-    if (remainingSteps <= 0) {
+    if (isCompleted()) {
         return true;
     }
 
-    // Consume one step; return true if request is finished, false otherwise
+    // Consume one step, then return the request status
     remainingSteps--;
+    return isCompleted();
+  }
+
+  /**
+   * Whether the request has been processed completely.
+   *
+   * @return true if the request is completed, false otherwise.
+   */
+  public boolean isCompleted() {
     return remainingSteps <= 0;
   }
 }

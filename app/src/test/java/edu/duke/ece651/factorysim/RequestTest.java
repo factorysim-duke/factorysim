@@ -41,15 +41,22 @@ class RequestTest {
   }
 
   @Test
-  public void test_process() {
+  public void test_process_isCompleted() {
     Item wood = new Item("wood");
     Recipe woodRecipe = TestUtils.makeTestRecipe("wood", 3, 2);
     Building mine = new MineBuilding(woodRecipe, "woodMine");
 
-    Request r1 = new Request(1, wood, woodRecipe, mine, null, true);
-    assertFalse(r1.process()); // remainingSteps = 2
-    assertFalse(r1.process()); // remainingSteps = 1
-    assertTrue(r1.process()); // remainingSteps = 0
-    assertTrue(r1.process()); // remainingSteps = 0
+    Request r = new Request(1, wood, woodRecipe, mine, null, true);
+    assertFalse(r.process()); // remainingSteps = 2
+    assertFalse(r.isCompleted());
+
+    assertFalse(r.process()); // remainingSteps = 1
+    assertFalse(r.isCompleted());
+
+    assertTrue(r.process()); // remainingSteps = 0
+    assertTrue(r.isCompleted());
+
+    assertTrue(r.process()); // remainingSteps = 0
+    assertTrue(r.isCompleted());
   }
 }
