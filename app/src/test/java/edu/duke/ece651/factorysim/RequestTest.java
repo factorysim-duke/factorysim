@@ -1,11 +1,8 @@
 package edu.duke.ece651.factorysim;
 
+import java.util.*;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 class RequestTest {
   @Test
@@ -42,5 +39,17 @@ class RequestTest {
     assertSame(factory, request2.getDeliverTo());
     assertFalse(request2.isUserRequest());
   }
-  
+
+  @Test
+  public void test_process() {
+    Item wood = new Item("wood");
+    Recipe woodRecipe = TestUtils.makeTestRecipe("wood", 3, 2);
+    Building mine = new MineBuilding(woodRecipe, "woodMine");
+
+    Request r1 = new Request(1, wood, woodRecipe, mine, null, true);
+    assertFalse(r1.process()); // remainingSteps = 2
+    assertFalse(r1.process()); // remainingSteps = 1
+    assertTrue(r1.process()); // remainingSteps = 0
+    assertTrue(r1.process()); // remainingSteps = 0
+  }
 }
