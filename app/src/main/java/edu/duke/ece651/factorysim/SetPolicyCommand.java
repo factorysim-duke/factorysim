@@ -7,8 +7,9 @@ import java.util.Arrays;
  */
 public class SetPolicyCommand implements Command {
     private static final String [] VALID_TYPES = {"request", "source"};
-    private static final String [] VALID_POLICIES = {"fifo", "sjf", "qlen"};
-    private static final String [] VALID_TARGETS = {"*", "default"};
+    private static final String [] VALID_REQUEST_POLICIES = {"fifo", "sjf", "ready", "default"};
+    private static final String [] VALID_SOURCE_POLICIES = {"default", "qlen", "simplelat", "recursivelat"};
+    private static final String [] VALID_SPECIAL_TARGETS = {"*", "default"};
     /**
      * Returns the name of the command.
      * @return the name of the command, "set"
@@ -40,13 +41,16 @@ public class SetPolicyCommand implements Command {
         }
 
         // Check if the policy is valid
-        if (!Utils.isInList(policy, VALID_POLICIES)) {
+        if (type.equals("request") && !Utils.isInList(policy, VALID_REQUEST_POLICIES)) {
             throw new IllegalArgumentException("POLICY must be either 'fifo', 'sjf', or 'qlen'");
+        }
+        if (type.equals("source") && !Utils.isInList(policy, VALID_SOURCE_POLICIES)) {
+            throw new IllegalArgumentException("POLICY must be either 'default', 'qlen', 'simplelat', or 'recursivelat'");
         }
 
         // Check if the target is valid
-        if (!Utils.isInList(target, VALID_TARGETS)) {
-            throw new IllegalArgumentException("TARGET must be either a building name, '*', or 'default'");
+        if (!Utils.isInList(target, VALID_SPECIAL_TARGETS) && !isQuoted(target)) {
+            throw new IllegalArgumentException("TARGET must be a building name, '*', or 'default'");
         }
 
         sim.setPolicy(type, policy, target);

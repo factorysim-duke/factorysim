@@ -81,4 +81,26 @@ public class Utils {
   public static String removeQuotes(String s) {
     return s.substring(1, s.length() - 1);
   }
+
+  /**
+   * Checks if the string is quoted.
+   * 
+   * @param s is the string to check.
+   * @return true if the string is quoted, false otherwise. 
+   */
+  public static boolean isQuoted(String s) {
+    return s.length() > 1 && s.charAt(0) == '\'' && s.charAt(s.length() - 1) == '\'';
+  }
+
+  /**
+   * Throws an exception if the string is not quoted.
+   * 
+   * @param s is the string to check.
+   * @param message is the message to throw if the string is not quoted.
+   */
+  public static void throwIfNotQuoted(String s, String message) {
+    if (!isQuoted(s)) {
+      throw new IllegalArgumentException(message);
+    }
+  }
 }
