@@ -203,7 +203,7 @@ public abstract class Building {
     // Process current request by one step
     if (currentRequest.process()) {
       // Deliver item on request completion if it's not a user request and there's a destination
-      if (!currentRequest.isUserRequest() && currentRequest.getDeliverTo() != null) {
+      if (!currentRequest.isUserRequest()) {
         deliverTo(currentRequest.getDeliverTo(), currentRequest.getItem(), 1);
       }
 
