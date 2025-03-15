@@ -75,4 +75,18 @@ public class UtilsTest {
       assertEquals("   ", Utils.removeQuotes("'   '"));
       assertEquals("", Utils.removeQuotes("''"));
   }
+
+  @Test
+  public void test_isQuoted() {
+    assertTrue(Utils.isQuoted("'sjf'"));
+    assertTrue(Utils.isQuoted("'door handle'"));
+    assertTrue(Utils.isQuoted("'   '"));
+    assertTrue(Utils.isQuoted("''"));
+  }
+
+  @Test
+  public void test_isInList() {
+    assertTrue(Utils.isInList("sjf", new String[] {"sjf", "fifo", "ready"}));
+    assertFalse(Utils.isInList("sjf", new String[] {"fifo", "ready"}));
+  }
 }
