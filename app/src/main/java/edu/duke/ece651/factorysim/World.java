@@ -46,4 +46,19 @@ public class World {
     }
     return null;
   }
+
+  /**
+   * Checks if the world has a building with the given name.
+   * 
+   * @param name the name of the building to check
+   * @return true if the building exists, false otherwise
+   */
+  public boolean hasBuilding(String name) {
+    for (Building building : buildings) {
+      if (building.getName().equals(name)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
