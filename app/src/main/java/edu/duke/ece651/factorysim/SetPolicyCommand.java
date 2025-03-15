@@ -6,7 +6,7 @@ package edu.duke.ece651.factorysim;
 public class SetPolicyCommand implements Command {
   private static final String[] VALID_TYPES = { "request", "source" };
   private static final String[] VALID_REQUEST_POLICIES = { "'fifo'", "'sjf'", "'ready'", "default" };
-//   private static final String[] VALID_SOURCE_POLICIES = { "'default'", "'qlen'", "'simplelat'", "'recursivelat'" };
+  // private static final String[] VALID_SOURCE_POLICIES = { "'default'", "'qlen'", "'simplelat'", "'recursivelat'" };
   private static final String[] VALID_SPECIAL_TARGETS = { "*", "default" };
 
   /**

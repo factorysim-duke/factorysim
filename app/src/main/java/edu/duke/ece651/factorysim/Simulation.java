@@ -94,6 +94,9 @@ public class Simulation {
 
   /**
    * Applies a policy to a specific building after checking its existence.
+   * 
+   * @param policyInstance the policy to apply.
+   * @param buildingName   the name of the building to apply the policy to.
    */
   private void applyPolicyToBuilding(RequestPolicy policyInstance, String buildingName) {
     if (!world.hasBuilding(buildingName)) {

@@ -17,7 +17,7 @@ public class RequestPolicyFactory {
       case "ready":
         return new ReadyRequestPolicy();
       case "sjf":
-        return new ShortestJobFirstPolicy();
+        return new SjfRequestPolicy();
       default:
         throw new IllegalArgumentException("Unknown request policy: " + policyName);
     }

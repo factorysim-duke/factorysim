@@ -1,6 +1,7 @@
 package edu.duke.ece651.factorysim;
 
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -70,6 +71,20 @@ public class TestUtils {
     @Override
     public RequestPolicy getRequestPolicy(String building) {
         return new FifoRequestPolicy(); 
+    }
+  }
+
+  /**
+   * Mock building for testing.
+   */
+  public static class MockBuilding extends Building {
+    public MockBuilding(String name) {
+        super(name, new ArrayList<>(), new MockSimulation());
+    }
+
+    @Override
+    public boolean canProduce(Item item) {
+        return true;
     }
   }
 }
