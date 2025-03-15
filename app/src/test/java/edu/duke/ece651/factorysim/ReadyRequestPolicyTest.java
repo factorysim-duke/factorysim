@@ -10,7 +10,7 @@ public class ReadyRequestPolicyTest {
     RequestPolicy requestPolicy = new ReadyRequestPolicy();
 
     Recipe steelRecipe = TestUtils.makeTestRecipe("steel", 3, 2);
-    MineBuilding steelMine = new MineBuilding(steelRecipe, "steel mine", requestPolicy);
+    MineBuilding steelMine = new MineBuilding(steelRecipe, "steel mine", new TestUtils.MockSimulation());
 
     // Doable request
     Item steel = new Item("steel");

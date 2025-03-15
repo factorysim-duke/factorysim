@@ -32,7 +32,7 @@ public class FactoryBuildingTest {
     Item out1 = new Item("out1");
     Item out2 = new Item("out2");
     Type factoryType = makeTestFactoryType();
-    FactoryBuilding factory = new FactoryBuilding(factoryType, "myFactory", new ArrayList<>());
+    FactoryBuilding factory = new FactoryBuilding(factoryType, "myFactory", new ArrayList<>(), new TestUtils.MockSimulation());
 
     assertEquals(30, factory.getRemainingLatency());
     assertEquals("myFactory", factory.getName());
@@ -45,9 +45,9 @@ public class FactoryBuildingTest {
   @Test
   public void test_invalid_name() {
     Type factoryType = makeTestFactoryType();
-    assertThrows(IllegalArgumentException.class, () -> new FactoryBuilding(factoryType, "'factory", new ArrayList<>()));
+    assertThrows(IllegalArgumentException.class, () -> new FactoryBuilding(factoryType, "'factory", new ArrayList<>(), new TestUtils.MockSimulation()));
     assertThrows(IllegalArgumentException.class,
-        () -> new FactoryBuilding(factoryType, "Fac tory'", new ArrayList<>()));
+        () -> new FactoryBuilding(factoryType, "Fac tory'", new ArrayList<>(), new TestUtils.MockSimulation()));
   }
 
   @Test
@@ -58,16 +58,16 @@ public class FactoryBuildingTest {
     Recipe recipeA = new Recipe(a, new HashMap<>(), 1);
     Recipe recipeB = new Recipe(b, new HashMap<>(), 3);
     Recipe recipeC = new Recipe(c, new HashMap<>(), 5);
-    MineBuilding mineA = new MineBuilding(recipeA, "mineA");
-    MineBuilding mineB = new MineBuilding(recipeB, "mineB");
-    MineBuilding mineC = new MineBuilding(recipeC, "mineC");
+    MineBuilding mineA = new MineBuilding(recipeA, "mineA", new TestUtils.MockSimulation());
+    MineBuilding mineB = new MineBuilding(recipeB, "mineB", new TestUtils.MockSimulation());
+    MineBuilding mineC = new MineBuilding(recipeC, "mineC", new TestUtils.MockSimulation());
 
     Type factoryType = makeTestFactoryType();
     ArrayList<Building> sources = new ArrayList<>();
     sources.add(mineA);
     sources.add(mineB);
     sources.add(mineC);
-    FactoryBuilding factory = new FactoryBuilding(factoryType, "myFactory", sources);
+    FactoryBuilding factory = new FactoryBuilding(factoryType, "myFactory", sources, new TestUtils.MockSimulation());
 
     List<Building> factorySources = factory.getSources();
     assertEquals(3, factorySources.size());

@@ -58,4 +58,18 @@ public class TestUtils {
       throw new RuntimeException("Failed to load config data from " + filePath, e);
     }
   }
+
+  /**
+   * Mock simulation for testing.
+   */
+  public static class MockSimulation extends Simulation {
+    public MockSimulation() {
+        super("src/test/resources/inputs/doors1.json"); 
+    }
+  
+    @Override
+    public RequestPolicy getRequestPolicy(String building) {
+        return new FifoRequestPolicy(); 
+    }
+  }
 }

@@ -49,4 +49,30 @@ public class UtilsTest {
     assertDoesNotThrow(() -> Utils.validLatency(1));
     assertDoesNotThrow(() -> Utils.validLatency(Integer.MAX_VALUE));
   }
+
+  @Test
+  public void test_throwIfNotQuoted() {
+      // Valid inputs
+      assertDoesNotThrow(() -> { Utils.throwIfNotQuoted("'fifo'", ""); });
+      assertDoesNotThrow(() -> { Utils.throwIfNotQuoted("'door handle'", ""); });
+      assertDoesNotThrow(() -> { Utils.throwIfNotQuoted("''", ""); });
+
+      // Invalid inputs
+      assertThrows(IllegalArgumentException.class,
+              () -> { Utils.throwIfNotQuoted("'", ""); });
+      assertThrows(IllegalArgumentException.class,
+              () -> { Utils.throwIfNotQuoted("'door", ""); });
+      assertThrows(IllegalArgumentException.class,
+              () -> { Utils.throwIfNotQuoted("request", ""); });
+      assertThrows(IllegalArgumentException.class,
+              () -> { Utils.throwIfNotQuoted("", ""); });
+  }
+
+  @Test
+  public void test_removeQuotes() {
+      assertEquals("sjf", Utils.removeQuotes("'sjf'"));
+      assertEquals("door handle", Utils.removeQuotes("'door handle'"));
+      assertEquals("   ", Utils.removeQuotes("'   '"));
+      assertEquals("", Utils.removeQuotes("''"));
+  }
 }

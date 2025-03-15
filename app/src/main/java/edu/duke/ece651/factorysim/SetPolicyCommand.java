@@ -44,9 +44,9 @@ public class SetPolicyCommand implements Command {
         if (type.equals("request") && !Utils.isInList(policy, VALID_REQUEST_POLICIES)) {
             throw new IllegalArgumentException("POLICY must be either 'fifo', 'sjf', or 'qlen'");
         }
-        if (type.equals("source") && !Utils.isInList(policy, VALID_SOURCE_POLICIES)) {
-            throw new IllegalArgumentException("POLICY must be either 'default', 'qlen', 'simplelat', or 'recursivelat'");
-        }
+        // if (type.equals("source") && !Utils.isInList(policy, VALID_SOURCE_POLICIES)) {
+        //     throw new IllegalArgumentException("POLICY must be either 'default', 'qlen', 'simplelat', or 'recursivelat'");
+        // }
 
         // Check if the target is valid
         if (!Utils.isInList(target, VALID_SPECIAL_TARGETS) && !Utils.isQuoted(target)) {

@@ -9,7 +9,7 @@ public class MineBuildingTest {
   public void test_constructor_and_getters() {
     Item out = new Item("out");
     Recipe recipe = new Recipe(out, new HashMap<>(), 6);
-    MineBuilding mine = new MineBuilding(recipe, "myMine");
+    MineBuilding mine = new MineBuilding(recipe, "myMine", new TestUtils.MockSimulation());
     assertSame(out, mine.getResource());
     assertEquals(6, mine.getMiningLatency());
     assertEquals("myMine", mine.getName());
@@ -20,10 +20,10 @@ public class MineBuildingTest {
   public void test_processRequest() {
     Item wood = new Item("wood");
     Recipe woodRecipe = TestUtils.makeTestRecipe("wood", 3, 2);
-    MineBuilding mine = new MineBuilding(woodRecipe, "woodMine");
+    MineBuilding mine = new MineBuilding(woodRecipe, "woodMine", new TestUtils.MockSimulation());
 
     FactoryBuilding factory = new FactoryBuilding(new Type("Chair Factory",
-            new ArrayList<>()), "Chair Factory", List.of(mine));
+            new ArrayList<>()), "Chair Factory", List.of(mine), new TestUtils.MockSimulation());
 
     // Mine shouldn't be processing any request now
     assertFalse(mine.isProcessing());
