@@ -32,9 +32,9 @@ public class WorldBuilder {
         validateBuildingsIngredients(buildings, types);
 
         World world = new World();
-        world.types = new ArrayList<>(types.values());
-        world.recipes = new ArrayList<>(recipes.values());
-        world.buildings = new ArrayList<>(buildings.values());
+        world.setTypes(new ArrayList<>(types.values()));
+        world.setRecipes(new ArrayList<>(recipes.values()));
+        world.setBuildings(new ArrayList<>(buildings.values()));
 
         return world;
     }

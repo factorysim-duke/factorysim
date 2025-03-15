@@ -3,9 +3,9 @@ package edu.duke.ece651.factorysim;
 import java.util.List;
 
 public class World {
-  public List<Building> buildings;
-  public List<Type> types;
-  public List<Recipe> recipes;
+  private List<Building> buildings;
+  private List<Type> types;
+  private List<Recipe> recipes;
 
   public List<Building> getBuildings() {
     return buildings;
@@ -17,6 +17,18 @@ public class World {
 
   public List<Recipe> getRecipes() {
     return recipes;
+  }
+
+  public void setBuildings(List<Building> buildings) {
+    this.buildings = buildings;
+  }
+
+  public void setTypes(List<Type> types) {
+    this.types = types;
+  }
+
+  public void setRecipes(List<Recipe> recipes) {
+    this.recipes = recipes;
   }
 
   /**
