@@ -1,0 +1,5 @@
+request 'door' from 'D'
+step 5
+request 'invalid_item' from 'D'
+request 'door' from 'invalid_factory'
+finish

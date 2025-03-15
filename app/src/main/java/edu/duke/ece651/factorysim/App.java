@@ -65,7 +65,7 @@ public class App {
    * @throws IOException if an input error occurs.
    */
   public static void main(String[] args) throws IOException {
-    String filePath = "app/src/main/resources/doors1.json";
+    String filePath = "src/main/resources/doors1.json";
     BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
     actualMain(filePath, inputReader);
   }
