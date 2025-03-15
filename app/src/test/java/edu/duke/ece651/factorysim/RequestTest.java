@@ -9,7 +9,7 @@ class RequestTest {
   public void test_constructor_and_getters() {
     Item wood = new Item("wood");
     Recipe woodRecipe = TestUtils.makeTestRecipe("wood", 1, 2); // ingredients should be {(a: 1), (b: 2)}
-    Building mine = new MineBuilding(woodRecipe, "woodMine");
+    Building mine = new MineBuilding(woodRecipe, "woodMine", new TestUtils.MockSimulation());
     List<Building> sources = new ArrayList<>();
     sources.add(mine);
     Item door = new Item("door");
@@ -17,7 +17,7 @@ class RequestTest {
     List<Recipe> recipes = new ArrayList<>();
     recipes.add(doorRecipe);
     Type type = new Type("door", recipes);
-    Building factory = new FactoryBuilding(type, "doorFactory", sources);
+    Building factory = new FactoryBuilding(type, "doorFactory", sources, new TestUtils.MockSimulation());
 
     // user request wood from mine
     int orderNum1 = 1;
@@ -44,7 +44,7 @@ class RequestTest {
   public void test_process_isCompleted() {
     Item wood = new Item("wood");
     Recipe woodRecipe = TestUtils.makeTestRecipe("wood", 3, 2);
-    Building mine = new MineBuilding(woodRecipe, "woodMine");
+    Building mine = new MineBuilding(woodRecipe, "woodMine", new TestUtils.MockSimulation());
 
     Request r = new Request(1, wood, woodRecipe, mine, null);
     assertFalse(r.process()); // remainingSteps = 2

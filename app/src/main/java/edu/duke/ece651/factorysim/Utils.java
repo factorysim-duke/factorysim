@@ -1,6 +1,7 @@
 package edu.duke.ece651.factorysim;
 
 import java.util.Set;
+import java.util.Arrays;
 
 /**
  * Provides some useful functions for global use.
@@ -57,6 +58,49 @@ public class Utils {
   public static void validLatency(int latency) {
     if (latency < 1) {
       throw new IllegalArgumentException("Latency must be non-negative: " + latency);
+    }
+  }
+
+  /**
+   * Checks if a string is in a string list.
+   * 
+   * @param s is the string to check.
+   * @param list is the list to check.
+   * @return true if the string is in the list, false otherwise.
+   */
+  public static boolean isInList(String s, String[] list) {
+    return Arrays.asList(list).contains(s);
+  }
+
+  /**
+   * Removes the quotes from the string.
+   * 
+   * @param s is the string to remove the quotes from.
+   * @return the string without the quotes.
+   */
+  public static String removeQuotes(String s) {
+    return s.substring(1, s.length() - 1);
+  }
+
+  /**
+   * Checks if the string is quoted.
+   * 
+   * @param s is the string to check.
+   * @return true if the string is quoted, false otherwise. 
+   */
+  public static boolean isQuoted(String s) {
+    return s.length() > 1 && s.charAt(0) == '\'' && s.charAt(s.length() - 1) == '\'';
+  }
+
+  /**
+   * Throws an exception if the string is not quoted.
+   * 
+   * @param s is the string to check.
+   * @param message is the message to throw if the string is not quoted.
+   */
+  public static void throwIfNotQuoted(String s, String message) {
+    if (!isQuoted(s)) {
+      throw new IllegalArgumentException(message);
     }
   }
 }

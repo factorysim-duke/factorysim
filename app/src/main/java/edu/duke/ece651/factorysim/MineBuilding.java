@@ -16,26 +16,14 @@ public class MineBuilding extends Building {
    *
    * @param miningRecipe  is the recipe for this mine.
    * @param name          is the name of the building.
-   * @param requestPolicy is the injected request policy instance.
+   * @param simulation    is the injected simulation instance.
    * @throws IllegalArgumentException if the name is not valid.
    */
-  public MineBuilding(Recipe miningRecipe, String name, RequestPolicy requestPolicy) {
-    super(name, new ArrayList<>(), requestPolicy);
+  public MineBuilding(Recipe miningRecipe, String name, Simulation simulation) {
+    super(name, new ArrayList<>(), simulation);
     this.miningRecipe = miningRecipe;
     this.resource = miningRecipe.getOutput();
     this.miningLatency = miningRecipe.getLatency();
-  }
-
-  /**
-   * Constructs a basic mine with empty storage and no ingredient source
-   * buildings. It uses default ready request policy.
-   * 
-   * @param miningRecipe is the recipe for this mine.
-   * @param name         is the name of the building.
-   * @throws IllegalArgumentException if the name is not valid.
-   */
-  public MineBuilding(Recipe miningRecipe, String name) {
-    this(miningRecipe, name, new ReadyRequestPolicy());
   }
 
   /**

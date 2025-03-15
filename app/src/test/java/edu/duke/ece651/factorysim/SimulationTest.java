@@ -19,6 +19,7 @@ public class SimulationTest {
         assertDoesNotThrow(() -> sim.makeUserRequest("door", "D"));
         assertThrows(IllegalArgumentException.class, () -> sim.makeUserRequest("door", "Z"));
         assertThrows(IllegalArgumentException.class, () -> sim.makeUserRequest("invalidItem", "D"));
+        assertThrows(IllegalArgumentException.class, () -> sim.makeUserRequest("hinge", "D"));
     }
 
     @Test

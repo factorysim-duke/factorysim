@@ -8,6 +8,11 @@ import java.util.*;
  */
 public class Simulation {
   private final World world;
+  private final Map<String, RequestPolicy> requestPolicies = new HashMap<>();
+  // private final Map<String, String> sourcePolicies = new HashMap<>();
+  private RequestPolicy defaultRequestPolicy = new FifoRequestPolicy();
+  // private SourcePolicy defaultSourcePolicy = new QLenSourcePolicy();
+
   private int currentTime;
   private boolean finished = false;
   private int nextOrderNum = 0;
@@ -20,7 +25,93 @@ public class Simulation {
   public Simulation(String jsonFilePath) {
     this.currentTime = 0;
     ConfigData configData = JsonLoader.loadConfigData(jsonFilePath);
-    this.world = WorldBuilder.buildWorld(configData);
+    this.world = WorldBuilder.buildWorld(configData, this);
+  }
+
+  /**
+   * Sets the policy for the given type and target.
+   * 
+   * @param type   the type of policy to set
+   * @param policy the policy to set
+   * @param target the target to set the policy for
+   */
+  public void setPolicy(String type, String policy, String target) {
+    if (!type.equals("request")) {
+      throw new UnsupportedOperationException("Source policy is not implemented yet.");
+    }
+
+    if (policy.equals("default")) {
+      resetPolicy(target);
+      return;
+    }
+
+    // Get or create the policy instance
+    RequestPolicy policyInstance = RequestPolicyFactory.createPolicy(policy);
+
+    switch (target) {
+      case "*":
+        applyPolicyToAllBuildings(policyInstance);
+        break;
+      case "default":
+        defaultRequestPolicy = policyInstance;
+        break;
+      default:
+        applyPolicyToBuilding(policyInstance, target);
+        break;
+    }
+  }
+
+  /**
+   * Resets the policy for the given target.
+   * 
+   * @param target the target to reset the policy for
+   */
+  private void resetPolicy(String target) {
+    if (target.equals("*")) {
+      // Reset all policies
+      requestPolicies.clear();
+    } else if (target.equals("default")) {
+      throw new IllegalArgumentException("Cannot set 'default' policy on 'default'");
+    } else {
+      if (!world.hasBuilding(target)) {
+        throw new IllegalArgumentException("Building '" + target + "' does not exist.");
+      }
+      // Remove custom policy, revert to default
+      requestPolicies.remove(target);
+    }
+  }
+
+  /**
+   * Applies a policy to all buildings.
+   * 
+   * @param policyInstance the policy to apply.
+   */
+  private void applyPolicyToAllBuildings(RequestPolicy policyInstance) {
+    for (Building building : world.getBuildings()) {
+      requestPolicies.put(building.getName(), policyInstance);
+    }
+  }
+
+  /**
+   * Applies a policy to a specific building after checking its existence.
+   */
+  private void applyPolicyToBuilding(RequestPolicy policyInstance, String buildingName) {
+    if (!world.hasBuilding(buildingName)) {
+      throw new IllegalArgumentException("Building '" + buildingName + "' does not exist.");
+    }
+    requestPolicies.put(buildingName, policyInstance);
+  }
+
+  /**
+   * Gets the request policy for the given building.
+   * If the building is not in the request policies, the default request policy is
+   * returned.
+   * 
+   * @param building the building to get the policy for.
+   * @return the request policy for the given building.
+   */
+  public RequestPolicy getRequestPolicy(String building) {
+    return requestPolicies.getOrDefault(building, defaultRequestPolicy);
   }
 
   /**

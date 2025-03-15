@@ -32,27 +32,13 @@ public class FactoryBuilding extends Building {
    * @param name          is the name of the building.
    * @param sources       is the list of buildings where this factory can get
    *                      ingredients from.
-   * @param requestPolicy is the injected request policy instance.
+   * @param simulation    is the injected simulation instance.
    * @throws IllegalArgumentException if the name is not valid.
    */
-  public FactoryBuilding(Type factoryType, String name, List<Building> sources, RequestPolicy requestPolicy) {
-    super(name, sources, requestPolicy);
+  public FactoryBuilding(Type factoryType, String name, List<Building> sources, Simulation simulation) {
+    super(name, sources, simulation);
     this.factoryType = factoryType;
     this.remainingLatency = calculateDefaultLatency(factoryType);
-  }
-
-  /**
-   * Constructs a basic factory with empty storage and latency being the sum of
-   * those in all recipes. It uses the default ready request policy.
-   *
-   * @param factoryType is the type of factory.
-   * @param name        is the name of the building.
-   * @param sources     is the list of buildings where this factory can get
-   *                    ingredients from.
-   * @throws IllegalArgumentException if the name is not valid.
-   */
-  public FactoryBuilding(Type factoryType, String name, List<Building> sources) {
-    this(factoryType, name, sources, new ReadyRequestPolicy());
   }
 
   /**
