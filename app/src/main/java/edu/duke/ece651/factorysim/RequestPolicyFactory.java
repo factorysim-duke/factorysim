@@ -16,8 +16,8 @@ public class RequestPolicyFactory {
         return new FifoRequestPolicy();
       case "ready":
         return new ReadyRequestPolicy();
-    //   case "sjf":
-    //     return new ShortestJobFirstPolicy();
+      case "sjf":
+        return new ShortestJobFirstPolicy();
       default:
         throw new IllegalArgumentException("Unknown request policy: " + policyName);
     }
