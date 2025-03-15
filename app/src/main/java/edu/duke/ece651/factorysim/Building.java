@@ -7,11 +7,10 @@ import java.util.*;
  */
 public abstract class Building {
   private final String name;
-
   private final List<Building> sources;
+  private final Simulation simulation;
 
   private HashMap<Item, Integer> storage;
-
   private Request currentRequest = null;
   private List<Request> pendingRequests;
   private RequestPolicy requestPolicy;
@@ -26,31 +25,18 @@ public abstract class Building {
    *                      selecting a new request to process.
    * @throws IllegalArgumentException if the name is not valid.
    */
-  protected Building(String name, List<Building> sources, RequestPolicy requestPolicy) {
+  protected Building(String name, List<Building> sources, Simulation simulation) {
     if (Utils.isNameValid(name) == false) {
       throw new IllegalArgumentException(
           "Building name cannot contain " + Utils.notAllowedInName + ", but is: " + name);
     }
     this.name = name;
-
     this.sources = sources;
-
+    this.simulation = simulation;
     this.storage = new HashMap<>();
-
     this.pendingRequests = new LinkedList<>();
-    this.requestPolicy = requestPolicy;
-  }
-
-  /**
-   * Constructs a basic building with empty storage and default ready request policy.
-   *
-   * @param name    is the name of the building.
-   * @param sources is the list of buildings where this building can get
-   *                ingredients from.
-   * @throws IllegalArgumentException if the name is not valid.
-   */
-  protected Building(String name, List<Building> sources) {
-    this(name, sources, new ReadyRequestPolicy());
+    this.requestPolicy = simulation.getRequestPolicy(name);
+    // this.resourcePolicy = simulation.getResourcePolicy(name);
   }
 
   /**
@@ -179,8 +165,10 @@ public abstract class Building {
 
   /**
    * Steps the building forward in time.
+   * Updates the request policy for the building.
    */
   public void step() {
+    requestPolicy = simulation.getRequestPolicy(name);
     processRequest();
   }
 
@@ -226,4 +214,5 @@ public abstract class Building {
    * @return true if this building can produce this item, false otherwise.
    */
   public abstract boolean canProduce(Item item);
+  
 }

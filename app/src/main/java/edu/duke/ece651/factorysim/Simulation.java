@@ -8,6 +8,11 @@ import java.util.*;
  */
 public class Simulation {
   private final World world;
+  private final Map<String, RequestPolicy> requestPolicies = new HashMap<>();
+  // private final Map<String, String> sourcePolicies = new HashMap<>();
+  private RequestPolicy defaultRequestPolicy = new FifoRequestPolicy();
+  // private SourcePolicy defaultSourcePolicy = new QLenSourcePolicy();
+
   private int currentTime;
   private boolean finished = false;
   private int nextOrderNum = 0;
@@ -20,8 +25,43 @@ public class Simulation {
   public Simulation(String jsonFilePath) {
     this.currentTime = 0;
     ConfigData configData = JsonLoader.loadConfigData(jsonFilePath);
-    this.world = WorldBuilder.buildWorld(configData);
+    this.world = WorldBuilder.buildWorld(configData, this);
   }
+
+  /**
+   * Sets the policy for the given type and target.
+   * 
+   * @param type   the type of policy to set.
+   * @param policy the policy to set.
+   * @param target the target to set the policy for.
+   */
+  public void setPolicy (String type, String policy, String target) {
+    if (type.equals("request")) {
+      RequestPolicy policyInstance = RequestPolicyFactory.createPolicy(policy);
+      if (target.equals("*")) {
+        requestPolicies.replaceAll((k, v) -> policyInstance);
+      } else if (target.equals("default")) {
+        defaultRequestPolicy = policyInstance;
+      } else {
+        requestPolicies.put(target, policyInstance);
+      }
+    } else if (type.equals("source")) {
+      // TODO: Implement source policy
+      throw new UnsupportedOperationException("Source policy is not implemented yet.");
+    }
+  }
+
+  /**
+   * Gets the request policy for the given building.
+   * If the building is not in the request policies, the default request policy is returned.
+   * 
+   * @param building the building to get the policy for.
+   * @return the request policy for the given building.
+   */
+  public RequestPolicy getRequestPolicy(String building) {
+    return requestPolicies.getOrDefault(building, defaultRequestPolicy);
+  }
+
 
   /**
    * Working on the simulation for n steps.

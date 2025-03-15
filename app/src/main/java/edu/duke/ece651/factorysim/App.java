@@ -7,7 +7,6 @@
 package edu.duke.ece651.factorysim;
 
 import java.io.*;
-import java.util.Scanner;
 
 public class App {
   private final Simulation sim;

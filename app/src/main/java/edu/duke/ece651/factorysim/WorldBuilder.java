@@ -20,7 +20,7 @@ public class WorldBuilder {
      * @param configData is the ConfigData to build the world from.
      * @return the World object.
      */
-    public static World buildWorld(ConfigData configData) {
+    public static World buildWorld(ConfigData configData, Simulation simulation) {
         Utils.nullCheck(configData, "ConfigData is null");
         Utils.nullCheck(configData.buildings, "Buildings are null");
         Utils.nullCheck(configData.types, "Types are null");
@@ -28,7 +28,7 @@ public class WorldBuilder {
 
         Map<String, Recipe> recipes = buildRecipes(configData.recipes);
         Map<String, Type> types = buildTypes(configData.types, recipes);
-        Map<String, Building> buildings = buildBuildings(configData.buildings, types, recipes);
+        Map<String, Building> buildings = buildBuildings(configData.buildings, types, recipes, simulation);
         validateBuildingsIngredients(buildings, types);
 
         World world = new World();
@@ -123,7 +123,7 @@ public class WorldBuilder {
      * @return the Map of buildings.
      */
     private static Map<String, Building> buildBuildings(List<BuildingDTO> buildingDTOs,
-            Map<String, Type> typeMap, Map<String, Recipe> recipeMap) {
+            Map<String, Type> typeMap, Map<String, Recipe> recipeMap, Simulation simulation) {
         Map<String, Building> buildings = new HashMap<>();
         Set<String> usedNames = new HashSet<>();
         for (BuildingDTO buildingDTO : buildingDTOs) {
@@ -139,7 +139,7 @@ public class WorldBuilder {
                 if (!recipe.getIngredients().isEmpty()) {
                     throw new IllegalArgumentException("Mine building '" + buildingDTO.name + "' should have no ingredients (violates #8).");
                 }
-                MineBuilding mineBuilding = new MineBuilding(recipe, buildingDTO.name);
+                MineBuilding mineBuilding = new MineBuilding(recipe, buildingDTO.name, simulation);
                 buildings.put(buildingDTO.name, mineBuilding);
             } else if (buildingDTO.type != null) {
                 if (!typeMap.containsKey(buildingDTO.type)) {
@@ -150,7 +150,7 @@ public class WorldBuilder {
                     throw new IllegalArgumentException("Factory building '" + buildingDTO.name + "' has no sources.");
                 }
                 Type type = typeMap.get(buildingDTO.type);
-                FactoryBuilding factoryBuilding = new FactoryBuilding(type, buildingDTO.name, new ArrayList<>());
+                FactoryBuilding factoryBuilding = new FactoryBuilding(type, buildingDTO.name, new ArrayList<>(), simulation);
                 buildings.put(buildingDTO.name, factoryBuilding);
             } else {
                 throw new IllegalArgumentException("Building '" + buildingDTO.name + "' has no mine or type.");
