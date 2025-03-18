@@ -45,4 +45,9 @@ public class SimulationTest {
   public void test_get_current_time() {
     assertEquals(0, sim.getCurrentTime());
   }
+
+  @Test
+  public void test_set_invalid_policy() {
+    assertThrows(IllegalArgumentException.class, () -> sim.setPolicy("invalidPolicyType", "fifo", "*"));
+  }
 }
