@@ -7,7 +7,7 @@ public class SimulationTest {
   Simulation sim = new Simulation("src/test/resources/inputs/doors1.json");
 
   @Test
-  void step() {
+  public void test_step() {
     sim.step(1);
     assertEquals(1, sim.getCurrentTime());
     sim.step(2);
@@ -15,7 +15,7 @@ public class SimulationTest {
   }
 
   @Test
-  void testValidRequest() {
+  public void test_valid_request() {
     assertDoesNotThrow(() -> sim.makeUserRequest("door", "D"));
     assertThrows(IllegalArgumentException.class, () -> sim.makeUserRequest("door", "Z"));
     assertThrows(IllegalArgumentException.class, () -> sim.makeUserRequest("invalidItem", "D"));
@@ -23,13 +23,13 @@ public class SimulationTest {
   }
 
   @Test
-  void finish() {
+  public void test_finish() {
     sim.finish();
     assertTrue(sim.isFinished());
   }
 
   @Test
-  void testAllRequestsFinished() {
+  public void test_all_requests_finished() {
     sim.makeUserRequest("door", "D");
     assertFalse(sim.allRequestsFinished());
     sim.finish();
@@ -37,12 +37,12 @@ public class SimulationTest {
   }
 
   @Test
-  void isFinished() {
+  public void test_is_finished() {
     assertFalse(sim.isFinished());
   }
 
   @Test
-  void getCurrentTime() {
+  public void test_get_current_time() {
     assertEquals(0, sim.getCurrentTime());
   }
 }
