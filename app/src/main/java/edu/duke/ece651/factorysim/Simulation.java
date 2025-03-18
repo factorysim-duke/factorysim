@@ -1,4 +1,3 @@
-
 package edu.duke.ece651.factorysim;
 
 import java.util.*;
@@ -9,9 +8,9 @@ import java.util.*;
 public class Simulation {
   private final World world;
   private final Map<String, RequestPolicy> requestPolicies = new HashMap<>();
-  // private final Map<String, String> sourcePolicies = new HashMap<>();
+  private final Map<String, SourcePolicy> sourcePolicies = new HashMap<>();
   private RequestPolicy defaultRequestPolicy = new FifoRequestPolicy();
-  // private SourcePolicy defaultSourcePolicy = new QLenSourcePolicy();
+  private SourcePolicy defaultSourcePolicy = new QLenSourcePolicy();
 
   private int currentTime;
   private boolean finished = false;
@@ -31,13 +30,12 @@ public class Simulation {
   /**
    * Sets the policy for the given type and target.
    * 
-   * @param type   the type of policy to set
    * @param policy the policy to set
    * @param target the target to set the policy for
    */
   public void setPolicy(String type, String policy, String target) {
-    if (!type.equals("request")) {
-      throw new UnsupportedOperationException("Source policy is not implemented yet.");
+    if (!type.equals("request") && !type.equals("source")) {
+      throw new IllegalArgumentException("Policy type must be request or source, but is " + type);
     }
 
     if (policy.equals("default")) {
@@ -45,15 +43,25 @@ public class Simulation {
       return;
     }
 
+    Policy policyInstance = null;
     // Get or create the policy instance
-    RequestPolicy policyInstance = RequestPolicyFactory.createPolicy(policy);
-
+    if (type.equals("request")) {
+      policyInstance = RequestPolicyFactory.createPolicy(policy);
+    } else {
+      policyInstance = SourcePolicyFactory.createPolicy(policy);
+    }
     switch (target) {
       case "*":
         applyPolicyToAllBuildings(policyInstance);
         break;
       case "default":
-        defaultRequestPolicy = policyInstance;
+        if (type.equals("request")) {
+          RequestPolicy requestPolicy = (RequestPolicy) policyInstance;
+          defaultRequestPolicy = requestPolicy;
+        } else {
+          SourcePolicy sourcePolicy = (SourcePolicy) policyInstance;
+          defaultSourcePolicy = sourcePolicy;
+        }
         break;
       default:
         applyPolicyToBuilding(policyInstance, target);
@@ -70,6 +78,7 @@ public class Simulation {
     if (target.equals("*")) {
       // Reset all policies
       requestPolicies.clear();
+      sourcePolicies.clear();
     } else if (target.equals("default")) {
       throw new IllegalArgumentException("Cannot set 'default' policy on 'default'");
     } else {
@@ -78,31 +87,44 @@ public class Simulation {
       }
       // Remove custom policy, revert to default
       requestPolicies.remove(target);
+      sourcePolicies.remove(target);
     }
   }
 
   /**
-   * Applies a policy to all buildings.
+   * Applies a request policy to all buildings.
    * 
    * @param policyInstance the policy to apply.
    */
-  private void applyPolicyToAllBuildings(RequestPolicy policyInstance) {
+  private void applyPolicyToAllBuildings(Policy policyInstance) {
     for (Building building : world.getBuildings()) {
-      requestPolicies.put(building.getName(), policyInstance);
+      if (policyInstance.getPolicyTypeName() == "request") {
+        RequestPolicy requestPolicy = (RequestPolicy) policyInstance;
+        requestPolicies.put(building.getName(), requestPolicy);
+      } else {
+        SourcePolicy sourcePolicy = (SourcePolicy) policyInstance;
+        sourcePolicies.put(building.getName(), sourcePolicy);
+      }
     }
   }
 
   /**
-   * Applies a policy to a specific building after checking its existence.
+   * Applies a request policy to a specific building after checking its existence.
    * 
    * @param policyInstance the policy to apply.
    * @param buildingName   the name of the building to apply the policy to.
    */
-  private void applyPolicyToBuilding(RequestPolicy policyInstance, String buildingName) {
+  private void applyPolicyToBuilding(Policy policyInstance, String buildingName) {
     if (!world.hasBuilding(buildingName)) {
       throw new IllegalArgumentException("Building '" + buildingName + "' does not exist.");
     }
-    requestPolicies.put(buildingName, policyInstance);
+    if (policyInstance.getPolicyTypeName() == "request") {
+      RequestPolicy requestPolicy = (RequestPolicy) policyInstance;
+      requestPolicies.put(buildingName, requestPolicy);
+    } else {
+      SourcePolicy sourcePolicy = (SourcePolicy) policyInstance;
+      sourcePolicies.put(buildingName, sourcePolicy);
+    }
   }
 
   /**
@@ -117,6 +139,18 @@ public class Simulation {
     return requestPolicies.getOrDefault(building, defaultRequestPolicy);
   }
 
+  /**
+   * Gets the source policy for the given building.
+   * If the building is not in the source policies, the default source policy is
+   * returned.
+   * 
+   * @param building the building to get the policy for.
+   * @return the source policy for the given building.
+   */
+  public SourcePolicy getSourcePolicy(String building) {
+    return sourcePolicies.getOrDefault(building, defaultSourcePolicy);
+  }
+  
   /**
    * Working on the simulation for n steps.
    *

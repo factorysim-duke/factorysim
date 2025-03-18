@@ -14,7 +14,8 @@ public abstract class Building {
   private Request currentRequest = null;
   private List<Request> pendingRequests;
   private RequestPolicy requestPolicy;
-
+  private SourcePolicy sourcePolicy;
+  
   /**
    * Constructs a basic building with empty storage.
    * 
@@ -36,7 +37,7 @@ public abstract class Building {
     this.storage = new HashMap<>();
     this.pendingRequests = new LinkedList<>();
     this.requestPolicy = simulation.getRequestPolicy(name);
-    // this.resourcePolicy = simulation.getResourcePolicy(name);
+    this.sourcePolicy = simulation.getSourcePolicy(name);
   }
 
   /**
@@ -171,6 +172,7 @@ public abstract class Building {
    */
   public void step() {
     requestPolicy = simulation.getRequestPolicy(name);
+    sourcePolicy = simulation.getSourcePolicy(name);
     processRequest();
   }
 

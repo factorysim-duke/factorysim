@@ -6,7 +6,7 @@ package edu.duke.ece651.factorysim;
 public class SetPolicyCommand implements Command {
   private static final String[] VALID_TYPES = { "request", "source" };
   private static final String[] VALID_REQUEST_POLICIES = { "'fifo'", "'sjf'", "'ready'", "default" };
-  // private static final String[] VALID_SOURCE_POLICIES = { "'default'", "'qlen'", "'simplelat'", "'recursivelat'" };
+  private static final String[] VALID_SOURCE_POLICIES = { "default", "'qlen'", "'simplelat'", "'recursivelat'" };
   private static final String[] VALID_SPECIAL_TARGETS = { "*", "default" };
 
   /**
@@ -46,11 +46,10 @@ public class SetPolicyCommand implements Command {
       throw new IllegalArgumentException(
           "POLICY must be either 'fifo', 'sjf', 'ready', or default, but was '" + policy + "'");
     }
-    // if (type.equals("source") && !Utils.isInList(policy, VALID_SOURCE_POLICIES))
-    // {
-    // throw new IllegalArgumentException("POLICY must be either 'default', 'qlen',
-    // 'simplelat', or 'recursivelat'");
-    // }
+    if (type.equals("source") && !Utils.isInList(policy, VALID_SOURCE_POLICIES)) {
+      throw new IllegalArgumentException(
+          "POLICY must be either default, 'qlen', 'simplelat', or 'recursivelat', but was '" + policy + "'");
+    }
 
     // Check if the target is valid
     if (!Utils.isInList(target, VALID_SPECIAL_TARGETS) && !Utils.isQuoted(target)) {

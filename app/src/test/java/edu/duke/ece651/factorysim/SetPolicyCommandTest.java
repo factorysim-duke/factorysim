@@ -8,11 +8,17 @@ public class SetPolicyCommandTest {
   SetPolicyCommand command = new SetPolicyCommand();
 
   @Test
-  public void test_execute() {
+  public void test_execute_request() {
     command.execute(new String[] { "set", "policy", "request", "'fifo'", "on", "'D'" }, new TestUtils.MockSimulation());
     assertEquals(command.getClass(), SetPolicyCommand.class);
   }
 
+  @Test
+  public void test_execute_source() {
+    command.execute(new String[] { "set", "policy", "source", "'qlen'", "on", "'D'" }, new TestUtils.MockSimulation());
+    assertEquals(command.getClass(), SetPolicyCommand.class);
+  }
+  
   @Test
   public void test_invalid_syntax() {
     assertThrows(IllegalArgumentException.class, () -> command
@@ -33,12 +39,19 @@ public class SetPolicyCommandTest {
   }
 
   @Test
-  public void test_unquoted_policy() {
+  public void test_unquoted_policy_request() {
     command.execute(new String[] { "set", "policy", "request", "default", "on", "'D'" },
         new TestUtils.MockSimulation());
     assertEquals(command.getClass(), SetPolicyCommand.class);
   }
 
+  @Test
+  public void test_unquoted_policy_source() {
+    command.execute(new String[] { "set", "policy", "source", "default", "on", "'D'" },
+        new TestUtils.MockSimulation());
+    assertEquals(command.getClass(), SetPolicyCommand.class);
+  }
+  
   @Test
   public void test_invalid_target() {
     assertThrows(IllegalArgumentException.class,
@@ -54,18 +67,24 @@ public class SetPolicyCommandTest {
   }
 
   @Test
-  public void test_unquoted_target() {
+  public void test_unquoted_target_request() {
     command.execute(new String[] { "set", "policy", "request", "'fifo'", "on", "*" }, new TestUtils.MockSimulation());
     assertEquals(command.getClass(), SetPolicyCommand.class);
   }
 
   @Test
-  public void test_fifo_on_default() {
+  public void test_unquoted_target_source() {
+    command.execute(new String[] { "set", "policy", "source", "'qlen'", "on", "*" }, new TestUtils.MockSimulation());
+    assertEquals(command.getClass(), SetPolicyCommand.class);
+  }
+  
+  @Test
+  public void test_fifo_on_default_request_policy() {
     command.execute(new String[] { "set", "policy", "request", "'fifo'", "on", "default" },
         new TestUtils.MockSimulation());
     assertEquals(command.getClass(), SetPolicyCommand.class);
   }
-
+  
   @Test
   public void test_default_policy_on_building() {
     assertThrows(IllegalArgumentException.class, () -> command.execute(new String[] { "set", "policy", "request", "default", "on", "'unknown'" },
@@ -90,10 +109,4 @@ public class SetPolicyCommandTest {
   public void test_quoted_target() {
     assertThrows(IllegalArgumentException.class, () -> command.execute(new String[] { "set", "policy", "request", "default", "on", "default" }, new TestUtils.MockSimulation()));
   }
-
-  @Test
-  public void test_other_type() {
-    assertThrows(UnsupportedOperationException.class, () -> command.execute(new String[] { "set", "policy", "source", "default", "on", "default" }, new TestUtils.MockSimulation()));
-  }
-
 }

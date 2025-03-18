@@ -3,9 +3,10 @@ package edu.duke.ece651.factorysim;
 import java.util.*;
 
 /**
- * Request policy that pops the first request that can be done with the current storage.
+ * Request policy that pops the first request that can be done with the current
+ * storage.
  */
-public class ReadyRequestPolicy implements RequestPolicy {
+public class ReadyRequestPolicy extends RequestPolicy {
   @Override
   public Request popRequest(Building producer, List<Request> requests) {
     Iterator<Request> iterator = requests.iterator();
