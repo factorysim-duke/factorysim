@@ -20,7 +20,7 @@ public class QLenSourcePolicy implements SourcePolicy {
     }
     Building bestSource = sources.get(0);
     int minRequestNum = bestSource.getNumOfPendingRequests();
-    for (Building source: sources) {
+    for (Building source : sources) {
       if (source.getNumOfPendingRequests() < minRequestNum) {
         minRequestNum = source.getNumOfPendingRequests();
         bestSource = source;
