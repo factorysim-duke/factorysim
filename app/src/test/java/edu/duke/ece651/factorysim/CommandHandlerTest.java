@@ -32,6 +32,8 @@ public class CommandHandlerTest {
         assert_parseCommand("step 3", List.of("step", "3"));
         assert_parseCommand("set policy request 'sjf' on 'door factory'",
                 List.of("set", "policy", "request", "'sjf'", "on", "'door factory'"));
+        assert_parseCommand("set policy source 'qlen' on 'door factory'",
+                List.of("set", "policy", "source", "'qlen'", "on", "'door factory'"));
 
         // Empty
         assert_parseCommand("", Collections.emptyList());

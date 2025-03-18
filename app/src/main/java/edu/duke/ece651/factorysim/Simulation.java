@@ -9,9 +9,9 @@ import java.util.*;
 public class Simulation {
   private final World world;
   private final Map<String, RequestPolicy> requestPolicies = new HashMap<>();
-  // private final Map<String, String> sourcePolicies = new HashMap<>();
+  private final Map<String, String> sourcePolicies = new HashMap<>();
   private RequestPolicy defaultRequestPolicy = new FifoRequestPolicy();
-  // private SourcePolicy defaultSourcePolicy = new QLenSourcePolicy();
+  private SourcePolicy defaultSourcePolicy = new QLenSourcePolicy();
 
   private int currentTime;
   private boolean finished = false;
@@ -70,6 +70,7 @@ public class Simulation {
     if (target.equals("*")) {
       // Reset all policies
       requestPolicies.clear();
+      sourcePolicies.clear();
     } else if (target.equals("default")) {
       throw new IllegalArgumentException("Cannot set 'default' policy on 'default'");
     } else {
@@ -78,27 +79,28 @@ public class Simulation {
       }
       // Remove custom policy, revert to default
       requestPolicies.remove(target);
+      sourcePolicies.remove(target);
     }
   }
 
   /**
-   * Applies a policy to all buildings.
+   * Applies a request policy to all buildings.
    * 
    * @param policyInstance the policy to apply.
    */
-  private void applyPolicyToAllBuildings(RequestPolicy policyInstance) {
+  private void applyRequestPolicyToAllBuildings(RequestPolicy policyInstance) {
     for (Building building : world.getBuildings()) {
       requestPolicies.put(building.getName(), policyInstance);
     }
   }
 
   /**
-   * Applies a policy to a specific building after checking its existence.
+   * Applies a request policy to a specific building after checking its existence.
    * 
    * @param policyInstance the policy to apply.
    * @param buildingName   the name of the building to apply the policy to.
    */
-  private void applyPolicyToBuilding(RequestPolicy policyInstance, String buildingName) {
+  private void applyRequestPolicyToBuilding(RequestPolicy policyInstance, String buildingName) {
     if (!world.hasBuilding(buildingName)) {
       throw new IllegalArgumentException("Building '" + buildingName + "' does not exist.");
     }

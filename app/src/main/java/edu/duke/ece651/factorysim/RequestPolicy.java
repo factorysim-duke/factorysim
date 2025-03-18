@@ -5,7 +5,7 @@ import java.util.*;
 /**
  * Defines a policy for selecting a request to pop.
  */
-public interface RequestPolicy {
+public interface RequestPolicy extends Policy{
   /**
    * Pops a request from the given list based on the policy.<br/>
    * Note that the method should pop and return the request by modifying the <code>requests</code> list.
