@@ -18,9 +18,9 @@ public abstract class Building {
   /**
    * Constructs a basic building with empty storage.
    * 
-   * @param name    is the name of the building.
-   * @param sources is the list of buildings where this building can get
-   *                ingredients from.
+   * @param name          is the name of the building.
+   * @param sources       is the list of buildings where this building can get
+   *                      ingredients from.
    * @param requestPolicy is the injected request policy instance for
    *                      selecting a new request to process.
    * @throws IllegalArgumentException if the name is not valid.
@@ -146,7 +146,8 @@ public abstract class Building {
   /**
    * Checks if the building is processing a request currently.
    *
-   * @return true if the building is currently processing a request, false otherwise.
+   * @return true if the building is currently processing a request, false
+   *         otherwise.
    */
   public boolean isProcessing() {
     return currentRequest != null; // If there's a current request, it means the building is processing it
@@ -158,8 +159,9 @@ public abstract class Building {
    * @return true if there are no active requests and nothing is being processed,
    *         false otherwise.
    */
-  public boolean isFinished()  {
-    // Building is "finished" when there's no current request processing AND there's no pending requests
+  public boolean isFinished() {
+    // Building is "finished" when there's no current request processing AND there's
+    // no pending requests
     return !isProcessing() && pendingRequests.isEmpty();
   }
 
@@ -174,9 +176,11 @@ public abstract class Building {
 
   /**
    * Request processing routine.
-   * If there's no current request, fetch one using the current policy, then process it by one step.
+   * If there's no current request, fetch one using the current policy, then
+   * process it by one step.
    * Otherwise, just keep processing the existing current request.<br/>
-   * NOTE: This method is called by `step` and should not be invoked manually somewhere else.
+   * NOTE: This method is called by `step` and should not be invoked manually
+   * somewhere else.
    */
   void processRequest() {
     // Fetch a new request if there's no current request
@@ -185,20 +189,46 @@ public abstract class Building {
 
       // Do nothing if no request was fetched
       if (currentRequest == null) {
-          return;
+        return;
       }
     }
 
     // Process current request by one step
     if (currentRequest.process()) {
-      // Deliver item on request completion if it's not a user request and there's a destination
+      // Deliver item on request completion if it's not a user request and there's a
+      // destination
       if (!currentRequest.isUserRequest()) {
         deliverTo(currentRequest.getDeliverTo(), currentRequest.getItem(), 1);
       }
 
-      // Current request is completed, setting it to null to indicate no request processing for the next step
+      // Current request is completed, setting it to null to indicate no request
+      // processing for the next step
       currentRequest = null;
     }
+  }
+
+  /**
+   * Gets the number of pending requests of this building.
+   * 
+   * @return the number of the pending requests.
+   */
+  public int getNumOfPendingRequests() {
+    return pendingRequests.size();
+  }
+
+  /**
+   * Gets the list of source buildings that can produce a given item.
+   * 
+   * @return the list of available source buildings.
+   */
+  public List<Building> getAvailableSourcesForItem(Item item) {
+    List<Building> availableSources = new ArrayList<>();
+    for (Building source : sources) {
+      if (source.canProduce(item)) {
+        availableSources.add(source);
+      }
+    }
+    return availableSources;
   }
 
   /**
@@ -214,5 +244,5 @@ public abstract class Building {
    * @return true if this building can produce this item, false otherwise.
    */
   public abstract boolean canProduce(Item item);
-  
+
 }
