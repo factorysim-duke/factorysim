@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Implements Queue Length (qlen) source policy.
  */
-public class QLenSourcePolicy implements SourcePolicy {
+public class QLenSourcePolicy extends SourcePolicy {
   /**
    * Selects a source to produce item according to the policy.
    * 
