@@ -27,10 +27,6 @@ public class VerboseCommand implements Command {
     }
 
     // Operate on the simulation
-    try {
-      sim.setVerbosity(n);
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Invalid 'verbose' command: bad verbosity range", e);
-    }
+    sim.setVerbosity(n);
   }
 }

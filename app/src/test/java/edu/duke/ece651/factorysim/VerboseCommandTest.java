@@ -19,14 +19,6 @@ public class VerboseCommandTest {
             () -> { execute(verbose, sim, "verbose", "0xFF"); });
     assertThrows(IllegalArgumentException.class,
             () -> { execute(verbose, sim, "varbose", "1"); });
-    // Note: the following tests is considered invalid because `Simulation` doesn't allow negative verbosity at the
-    //       time this test was written
-    assertThrows(IllegalArgumentException.class,
-            () -> { execute(verbose, sim, "verbose", "-1"); });
-    assertThrows(IllegalArgumentException.class,
-            () -> { execute(verbose, sim, "verbose", "-2"); });
-    assertThrows(IllegalArgumentException.class,
-            () -> { execute(verbose, sim, "verbose", "-3"); });
 
     // Valid inputs
     execute(verbose, sim, "verbose", "0");

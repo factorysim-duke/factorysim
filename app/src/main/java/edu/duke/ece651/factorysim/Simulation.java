@@ -26,7 +26,6 @@ public class Simulation {
    * @param jsonFilePath the path to the JSON file.
    * @param verbosity the initial verbosity.
    * @param logger the injected logger.
-   * @throws IllegalArgumentException when `verbosity` is not an allowed verbosity.
    */
   public Simulation(String jsonFilePath, int verbosity, Logger logger) {
     this.currentTime = 0;
@@ -34,7 +33,7 @@ public class Simulation {
     ConfigData configData = JsonLoader.loadConfigData(jsonFilePath);
     this.world = WorldBuilder.buildWorld(configData, this);
 
-    this.setVerbosity(verbosity);
+    this.verbosity = verbosity;
 
     this.logger = logger;
   }
@@ -301,15 +300,10 @@ public class Simulation {
 
   /**
    * Set the verbosity of the simulation.
-   * The verbosity must be >= 0.
    *
    * @param n new verbosity.
-   * @throws IllegalArgumentException when `n` is not a valid verbosity range.
    */
   public void setVerbosity(int n) {
-    if (n < 0) {
-      throw new IllegalArgumentException("Verbosity must be non-negative");
-    }
     this.verbosity = n;
   }
 
