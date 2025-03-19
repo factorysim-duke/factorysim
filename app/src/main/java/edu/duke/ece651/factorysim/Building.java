@@ -15,7 +15,7 @@ public abstract class Building {
   private List<Request> pendingRequests;
   private RequestPolicy requestPolicy;
   private SourcePolicy sourcePolicy;
-  
+
   /**
    * Constructs a basic building with empty storage.
    * 
@@ -168,12 +168,36 @@ public abstract class Building {
 
   /**
    * Steps the building forward in time.
-   * Updates the request policy for the building.
+   * Updates the request and source policy for the building.
    */
   public void step() {
     requestPolicy = simulation.getRequestPolicy(name);
     sourcePolicy = simulation.getSourcePolicy(name);
+
+    // if the building is processing a request, work on the current one
+    if (isProcessing()) {
+      boolean isRequestFinished = currentRequest.process();
+      if (isRequestFinished) {
+        // finishCurrentRequest();
+      }
+    }
+    // else, try to fetch the next one and work on it
+    else if (pendingRequests.isEmpty() == false) {
+
+    }
+
+    // TODO: after finish, refactor the usage of processRequest and remove this
     processRequest();
+  }
+
+  /**
+   * Checks if the things in storage are enough to produce the output of a recipe.
+   * 
+   * @param recipe is the recipe to be checked.
+   * @return true if the things in storage are enough, false otherwise.
+   */
+  public boolean hasAllIngredientsFor(Recipe recipe) {
+    return true;
   }
 
   /**
