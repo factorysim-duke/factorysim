@@ -18,30 +18,36 @@ public class Simulation {
 
   private int verbosity;
 
+  private final Logger logger;
+
   /**
    * Creates a simulation from a JSON configuration file.
    *
    * @param jsonFilePath the path to the JSON file.
    * @param verbosity the initial verbosity.
-   * @throws IllegalArgumentException when <code>verbosity</code> is not an allowed verbosity.
+   * @param logger the injected logger.
+   * @throws IllegalArgumentException when `verbosity` is not an allowed verbosity.
    */
-  public Simulation(String jsonFilePath, int verbosity) {
+  public Simulation(String jsonFilePath, int verbosity, Logger logger) {
     this.currentTime = 0;
+
     ConfigData configData = JsonLoader.loadConfigData(jsonFilePath);
     this.world = WorldBuilder.buildWorld(configData, this);
+
     this.setVerbosity(verbosity);
+
+    this.logger = logger;
   }
 
   /**
    * Creates a simulation from a JSON configuration file with initial verbosity 0.
+   * The default logger is a `StreamLogger` logging into stdout (`System.out`).
    *
    * @param jsonFilePath the path to the JSON file.
    */
   public Simulation(String jsonFilePath) {
-    this(jsonFilePath, 0);
+    this(jsonFilePath, 0, new StreamLogger(System.out));
   }
-
-
 
   /**
    * Sets the policy for the given type and target.
@@ -230,7 +236,7 @@ public class Simulation {
     while (!allRequestsFinished()) {
       step(1);
     }
-    System.out.println("Simulation completed at time-step " + currentTime);
+    logger.log("Simulation completed at time-step " + currentTime);
     finished = true;
   }
 
