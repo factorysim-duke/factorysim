@@ -174,6 +174,10 @@ public abstract class Building {
     requestPolicy = simulation.getRequestPolicy(name);
     sourcePolicy = simulation.getSourcePolicy(name);
 
+    processRequest();
+  }
+
+  public void processRequest() {
     // if the building is processing a request, work on the current one
     if (isProcessing()) {
       boolean isRequestFinished = currentRequest.process();
@@ -183,11 +187,15 @@ public abstract class Building {
     }
     // else, try to fetch the next one and work on it
     else if (pendingRequests.isEmpty() == false) {
-
+      Request selectedRequest = requestPolicy.popRequest(this, pendingRequests);
+      Recipe selectedRecipe = selectedRequest.getRecipe();
+      if (hasAllIngredientsFor(selectedRecipe)) {
+        consumeIngredientsFor(selectedRecipe);
+      } else {
+        HashMap<Item, Integer> missingIngredients = findMissingIngredients(selectedRecipe);
+        requestMissingIngredients(missingIngredients);
+      }
     }
-
-    // TODO: after finish, refactor the usage of processRequest and remove this
-    processRequest();
   }
 
   /**
@@ -296,8 +304,13 @@ public abstract class Building {
    * Otherwise, just keep processing the existing current request.<br/>
    * NOTE: This method is called by `step` and should not be invoked manually
    * somewhere else.
+   * 
+   **************************************************************************
+   * This method is deprecated. Only used for testing in early stages
+   * of project.
+   **************************************************************************
    */
-  void processRequest() {
+  void processRequestEasyVersion() {
     // Fetch a new request if there's no current request
     if (currentRequest == null) {
       currentRequest = requestPolicy.popRequest(this, pendingRequests);

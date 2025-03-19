@@ -17,7 +17,7 @@ public class MineBuildingTest {
   }
 
   @Test
-  public void test_processRequest() {
+  public void test_processRequestEasyVersion() {
     Item wood = new Item("wood");
     Recipe woodRecipe = TestUtils.makeTestRecipe("wood", 3, 2);
     MineBuilding mine = new MineBuilding(woodRecipe, "woodMine", new TestUtils.MockSimulation());
@@ -39,28 +39,28 @@ public class MineBuildingTest {
     assertFalse(request.isCompleted());
 
     // Process once
-    mine.processRequest(); // Request remaining steps = 2
+    mine.processRequestEasyVersion(); // Request remaining steps = 2
     assertFalse(request.isCompleted()); // Request should be incomplete
     assertTrue(mine.isProcessing()); // Mine should be processing the request
     assertFalse(mine.isFinished()); // Mine should not be finished since it's processing the request
 
     // Process once again
-    mine.processRequest(); // Request remaining steps = 1
+    mine.processRequestEasyVersion(); // Request remaining steps = 1
     assertFalse(request.isCompleted()); // Request should be incomplete
     assertTrue(mine.isProcessing()); // Mine should still be processing the request
     assertFalse(mine.isFinished()); // Mine should not be finished since it's processing the request
 
     // Process once again again
-    mine.processRequest(); // Request remaining steps = 0
+    mine.processRequestEasyVersion(); // Request remaining steps = 0
     assertTrue(request.isCompleted()); // Request should be completed now
     assertFalse(mine.isProcessing()); // Mine shouldn't be processing now
 
     // Mine should be finished now since there's no current and pending requests
     assertTrue(mine.isFinished());
 
-    // This `processRequest` should not change anything since there's no pending
+    // This `processRequestEasyVersion` should not change anything since there's no pending
     // requests
-    mine.processRequest();
+    mine.processRequestEasyVersion();
     assertTrue(request.isCompleted());
     assertFalse(mine.isProcessing());
   }
