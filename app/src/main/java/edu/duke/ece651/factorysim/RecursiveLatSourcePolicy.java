@@ -3,9 +3,9 @@ package edu.duke.ece651.factorysim;
 import java.util.List;
 
 /**
- * Implements simple latency (simplelat) source policy.
+ * Implements recursive latency (recursivelat) source policy.
  */
-public class SimpleLatSourcePolicy extends SourcePolicy {
+public class RecursiveLatSourcePolicy extends SourcePolicy {
   /**
    * Selects a source to produce item according to the policy.
    * 
@@ -19,14 +19,7 @@ public class SimpleLatSourcePolicy extends SourcePolicy {
       return null;
     }
     Building bestSource = sources.get(0);
-    int minRemainingLatencies = bestSource.sumRemainingLatencies();
-    for (Building source : sources) {
-      int newNum = source.sumRemainingLatencies();
-      if (newNum < minRemainingLatencies) {
-        minRemainingLatencies = newNum;
-        bestSource = source;
-      }
-    }
+    // build here
     return bestSource;
   }
 }
