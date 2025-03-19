@@ -221,6 +221,24 @@ public abstract class Building {
   }
 
   /**
+   * Finishes the current request by adjusting relavant statues.
+   */
+  public void finishCurrentRequest() {
+    // add the output item to storage
+    Item output = currentRequest.getItem();
+    addToStorage(output, 1);
+    // if the request is not user request (has deliverTo destination building),
+    // deliver the output item
+    if (currentRequest.isUserRequest() == false) {
+      Building destinationBuilding = currentRequest.getDeliverTo();
+      deliverTo(destinationBuilding, output, 1);
+      // update our own storage
+      takeFromStorage(output, 1);
+    }
+    currentRequest = null;
+  }
+
+  /**
    * Finds the missing ingredients item and corresponding quantity for a given
    * recipe, considering current building storage.
    * Precondition: hasAllIngredientsFor(recipe) == false, thus there must be some
