@@ -178,7 +178,7 @@ public abstract class Building {
     if (isProcessing()) {
       boolean isRequestFinished = currentRequest.process();
       if (isRequestFinished) {
-        // finishCurrentRequest();
+        finishCurrentRequest();
       }
     }
     // else, try to fetch the next one and work on it
