@@ -251,6 +251,10 @@ public abstract class Building {
       // update our own storage
       takeFromStorage(output, 1);
     }
+
+    // Indicate simulation a request is completed
+    simulation.onRequestCompleted(currentRequest);
+
     currentRequest = null;
   }
 

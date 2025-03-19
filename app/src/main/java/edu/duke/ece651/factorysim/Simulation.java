@@ -18,7 +18,7 @@ public class Simulation {
 
   private int verbosity;
 
-  private final Logger logger;
+  private Logger logger;
 
   /**
    * Creates a simulation from a JSON configuration file.
@@ -314,5 +314,27 @@ public class Simulation {
    */
   public int getVerbosity() {
     return verbosity;
+  }
+
+  public Logger getLogger() {
+    return this.logger;
+  }
+
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
+
+  /**
+   * Indicates a request was completed.
+   *
+   * @param completed the completed request instance.
+   */
+  public void onRequestCompleted(Request completed) {
+    if (verbosity >= 0) {
+      String sb = "[order complete] Order " + completed.getOrderNum() +
+              " completed (" + completed.getItem().getName() +
+              ") at time " + currentTime;
+      logger.log(sb);
+    }
   }
 }

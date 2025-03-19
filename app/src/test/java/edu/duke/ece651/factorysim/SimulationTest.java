@@ -1,6 +1,9 @@
 package edu.duke.ece651.factorysim;
 
 import org.junit.jupiter.api.Test;
+
+import java.io.ByteArrayOutputStream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SimulationTest {
@@ -49,5 +52,27 @@ public class SimulationTest {
   @Test
   public void test_set_invalid_policy() {
     assertThrows(IllegalArgumentException.class, () -> sim.setPolicy("invalidPolicyType", "fifo", "*"));
+  }
+
+  @Test
+  public void test_logger_getter_setter() {
+    Simulation sim = new TestUtils.MockSimulation();
+    Logger logger = new StreamLogger(System.out);
+    sim.setLogger(logger); // This is the default logger, but just to be safe in this test
+    assertSame(logger, sim.getLogger());
+  }
+
+  @Test
+  public void test_onRequestCompleted() {
+    Simulation sim = new TestUtils.MockSimulation();
+    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+    Logger logger = new StreamLogger(stream);
+    sim.setLogger(logger);
+
+    sim.onRequestCompleted(new Request(0, new Item("wood"),
+            TestUtils.makeTestRecipe("wood", 1, 2),
+            null, null));
+    assertEquals("[order complete] Order 0 completed (wood) at time 0" + System.lineSeparator(),
+            stream.toString());
   }
 }
