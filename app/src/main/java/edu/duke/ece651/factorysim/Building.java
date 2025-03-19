@@ -360,6 +360,23 @@ public abstract class Building {
   }
 
   /**
+   * Gets the sum of the remaining steps of all pending requests and the current
+   * request (if any).
+   * 
+   * @return the sum of all requests' remaining steps.
+   */
+  public int sumRemainingLatencies() {
+    int ans = 0;
+    for (Request request : pendingRequests) {
+      ans += request.getRemainingSteps();
+    }
+    if (isProcessing()) {
+      ans += currentRequest.getRemainingSteps();
+    }
+    return ans;
+  }
+
+  /**
    * Checks if this building can produce a given item.
    *
    * @param item is the item to be checked.
