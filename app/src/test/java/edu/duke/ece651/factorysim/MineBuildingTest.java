@@ -23,7 +23,7 @@ public class MineBuildingTest {
     MineBuilding mine = new MineBuilding(woodRecipe, "woodMine", new TestUtils.MockSimulation());
 
     FactoryBuilding factory = new FactoryBuilding(new Type("Chair Factory",
-            new ArrayList<>()), "Chair Factory", List.of(mine), new TestUtils.MockSimulation());
+        new ArrayList<>()), "Chair Factory", List.of(mine), new TestUtils.MockSimulation());
 
     // Mine shouldn't be processing any request now
     assertFalse(mine.isProcessing());
@@ -58,9 +58,28 @@ public class MineBuildingTest {
     // Mine should be finished now since there's no current and pending requests
     assertTrue(mine.isFinished());
 
-    // This `processRequest` should not change anything since there's no pending requests
+    // This `processRequest` should not change anything since there's no pending
+    // requests
     mine.processRequest();
     assertTrue(request.isCompleted());
     assertFalse(mine.isProcessing());
+  }
+
+  @Test
+  public void test_has_all_ingredients() {
+    Recipe testRecipe = TestUtils.makeTestRecipe("testItem", 1, 2); // the ingredients should be {("a", 1), ("b", 2)}
+    Building building = new TestUtils.MockBuilding("MockBuilding");
+    assertFalse(building.hasAllIngredientsFor(testRecipe));
+    Item a = new Item("a");
+    Item b = new Item("b");
+    Item c = new Item("c");
+    building.addToStorage(a, 2);
+    assertFalse(building.hasAllIngredientsFor(testRecipe));
+    building.addToStorage(b, 1);
+    assertFalse(building.hasAllIngredientsFor(testRecipe));
+    building.addToStorage(b, 1);
+    assertTrue(building.hasAllIngredientsFor(testRecipe));
+    building.addToStorage(c, 1);
+    assertTrue(building.hasAllIngredientsFor(testRecipe));
   }
 }

@@ -197,6 +197,14 @@ public abstract class Building {
    * @return true if the things in storage are enough, false otherwise.
    */
   public boolean hasAllIngredientsFor(Recipe recipe) {
+    for (Item item : recipe.getIngredients().keySet()) {
+      int numNeeded = recipe.getIngredients().get(item);
+      int numInStorage = getStorageNumberOf(item);
+      // num in storage will be -1 if item not exists in storage
+      if (numInStorage < numNeeded) {
+        return false;
+      }
+    }
     return true;
   }
 
