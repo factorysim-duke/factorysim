@@ -246,6 +246,32 @@ public abstract class Building {
   }
 
   /**
+   * Requests missing ingredients from sources.
+   * NOTE: this is where the source policy takes place.
+   * 
+   * @param missingIngredients is the hashmap for missing ingredeints.
+   * @throws IllegalArgumentException if the sources of the building are not
+   *                                  enough to give missing items.
+   */
+  public void requestMissingIngredients(HashMap<Item, Integer> missingIngredients) {
+    for (Item item : missingIngredients.keySet()) {
+      int numNeeded = missingIngredients.get(item);
+      List<Building> availableSources = getAvailableSourcesForItem(item);
+      Building selectedSource = sourcePolicy.selectSource(item, availableSources);
+      if (selectedSource == null) {
+        throw new IllegalArgumentException("No source can produce the item " + item.getName());
+      }
+      Recipe recipeNeeded = simulation.getRecipeForItem(item);
+      // create sub-requests for numNeeded times for this item
+      for (int i = 0; i < numNeeded; i++) {
+        int orderNum = simulation.getOrderNum(); // this function automatically proceed the next order num by 1
+        Request subRequest = new Request(orderNum, item, recipeNeeded, selectedSource, this);
+        selectedSource.addRequest(subRequest);
+      }
+    }
+  }
+
+  /**
    * Request processing routine.
    * If there's no current request, fetch one using the current policy, then
    * process it by one step.
