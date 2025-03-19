@@ -15,7 +15,7 @@ public abstract class Building {
   private List<Request> pendingRequests;
   private RequestPolicy requestPolicy;
   private SourcePolicy sourcePolicy;
-  
+
   /**
    * Constructs a basic building with empty storage.
    * 
@@ -168,12 +168,133 @@ public abstract class Building {
 
   /**
    * Steps the building forward in time.
-   * Updates the request policy for the building.
+   * Updates the request and source policy for the building.
    */
   public void step() {
     requestPolicy = simulation.getRequestPolicy(name);
     sourcePolicy = simulation.getSourcePolicy(name);
+
     processRequest();
+  }
+
+  public void processRequest() {
+    // if the building is processing a request, work on the current one
+    if (isProcessing()) {
+      boolean isRequestFinished = currentRequest.process();
+      if (isRequestFinished) {
+        finishCurrentRequest();
+      }
+    }
+    // else, try to fetch the next one and work on it
+    else if (pendingRequests.isEmpty() == false) {
+      Request selectedRequest = requestPolicy.popRequest(this, pendingRequests);
+      Recipe selectedRecipe = selectedRequest.getRecipe();
+      if (hasAllIngredientsFor(selectedRecipe)) {
+        consumeIngredientsFor(selectedRecipe);
+      } else {
+        HashMap<Item, Integer> missingIngredients = findMissingIngredients(selectedRecipe);
+        requestMissingIngredients(missingIngredients);
+      }
+    }
+  }
+
+  /**
+   * Checks if the things in storage are enough to produce the output of a recipe.
+   * 
+   * @param recipe is the recipe to be checked.
+   * @return true if the things in storage are enough, false otherwise.
+   */
+  public boolean hasAllIngredientsFor(Recipe recipe) {
+    for (Item item : recipe.getIngredients().keySet()) {
+      int numNeeded = recipe.getIngredients().get(item);
+      int numInStorage = getStorageNumberOf(item);
+      // num in storage will be -1 if item not exists in storage
+      if (numInStorage < numNeeded) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Consumes the ingredients in storage for a given recipe.
+   * Precondition: hasAllIngredientsFor(recipe) == true
+   * 
+   * @param recipe is the recipe to be consumed.
+   */
+  public void consumeIngredientsFor(Recipe recipe) {
+    for (Item item : recipe.getIngredients().keySet()) {
+      takeFromStorage(item, recipe.getIngredients().get(item));
+    }
+  }
+
+  /**
+   * Finishes the current request by adjusting relavant statues.
+   */
+  public void finishCurrentRequest() {
+    // add the output item to storage
+    Item output = currentRequest.getItem();
+    addToStorage(output, 1);
+    // if the request is not user request (has deliverTo destination building),
+    // deliver the output item
+    if (currentRequest.isUserRequest() == false) {
+      Building destinationBuilding = currentRequest.getDeliverTo();
+      deliverTo(destinationBuilding, output, 1);
+      // update our own storage
+      takeFromStorage(output, 1);
+    }
+    currentRequest = null;
+  }
+
+  /**
+   * Finds the missing ingredients item and corresponding quantity for a given
+   * recipe, considering current building storage.
+   * Precondition: hasAllIngredientsFor(recipe) == false, thus there must be some
+   * item whose number in storage is smaller than number needed in recipe
+   * 
+   * @return recipe is the recipe for reference.
+   * @return the hashmap for missing ingredients.
+   */
+  public HashMap<Item, Integer> findMissingIngredients(Recipe recipe) {
+    HashMap<Item, Integer> ans = new HashMap<>();
+    for (Item item : recipe.getIngredients().keySet()) {
+      if (storage.containsKey(item) == false) {
+        ans.put(item, recipe.getIngredients().get(item));
+      } else {
+        int numNeeded = recipe.getIngredients().get(item);
+        int numInStorage = storage.get(item);
+        if (numNeeded > numInStorage) {
+          ans.put(item, numNeeded - numInStorage);
+        }
+      }
+    }
+    return ans;
+  }
+
+  /**
+   * Requests missing ingredients from sources.
+   * NOTE: this is where the source policy takes place.
+   * 
+   * @param missingIngredients is the hashmap for missing ingredeints.
+   * @throws IllegalArgumentException if the sources of the building are not
+   *                                  enough to give missing items.
+   */
+  public void requestMissingIngredients(HashMap<Item, Integer> missingIngredients) {
+    for (Item item : missingIngredients.keySet()) {
+      int numNeeded = missingIngredients.get(item);
+      List<Building> availableSources = getAvailableSourcesForItem(item);
+      Building selectedSource = sourcePolicy.selectSource(item, availableSources);
+      if (selectedSource == null) {
+        throw new IllegalArgumentException("No source can produce the item " + item.getName());
+      }
+      Recipe recipeNeeded = simulation.getRecipeForItem(item);
+      // create sub-requests for numNeeded times for this item
+      for (int i = 0; i < numNeeded; i++) {
+        int orderNum = simulation.getOrderNum(); // this function automatically proceed the next order num by 1
+        Request subRequest = new Request(orderNum, item, recipeNeeded, selectedSource, this);
+        selectedSource.addRequest(subRequest);
+      }
+    }
   }
 
   /**
@@ -183,8 +304,13 @@ public abstract class Building {
    * Otherwise, just keep processing the existing current request.<br/>
    * NOTE: This method is called by `step` and should not be invoked manually
    * somewhere else.
+   * 
+   **************************************************************************
+   * This method is deprecated. Only used for testing in early stages
+   * of project.
+   **************************************************************************
    */
-  void processRequest() {
+  void processRequestEasyVersion() {
     // Fetch a new request if there's no current request
     if (currentRequest == null) {
       currentRequest = requestPolicy.popRequest(this, pendingRequests);

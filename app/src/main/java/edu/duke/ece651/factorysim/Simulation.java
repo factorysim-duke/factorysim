@@ -150,7 +150,7 @@ public class Simulation {
   public SourcePolicy getSourcePolicy(String building) {
     return sourcePolicies.getOrDefault(building, defaultSourcePolicy);
   }
-  
+
   /**
    * Working on the simulation for n steps.
    *
@@ -248,5 +248,32 @@ public class Simulation {
    */
   public int getCurrentTime() {
     return currentTime;
+  }
+
+  /**
+   * Gets the recipe for a given item in the simulation.
+   * 
+   * @param item is the requested item.
+   * @return the recipe for the item.
+   */
+  public Recipe getRecipeForItem(Item item) {
+    return world.getRecipeForItem(item);
+  }
+
+  /**
+   * Proceeds the order num by 1.
+   */
+  private void proceedOrderNum() {
+    nextOrderNum++;
+  }
+
+  /**
+   * Increases the order number by 1, then returns the order number.
+   * 
+   * @return the order number.
+   */
+  public int getOrderNum() {
+    proceedOrderNum();
+    return nextOrderNum;
   }
 }
