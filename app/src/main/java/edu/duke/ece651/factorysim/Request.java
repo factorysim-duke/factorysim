@@ -16,12 +16,13 @@ public class Request {
   /**
    * Constructs a request.
    * 
-   * @param orderNum      is the order number.
-   * @param item          is the item being requested.
-   * @param recipe        is the recipe for the requested item.
-   * @param producer      is the producer building for the requested item (and
-   *                      recipe).
-   * @param deliverTo     is the target building to receive the requested item. If it's null, this is a user request.
+   * @param orderNum  is the order number.
+   * @param item      is the item being requested.
+   * @param recipe    is the recipe for the requested item.
+   * @param producer  is the producer building for the requested item (and
+   *                  recipe).
+   * @param deliverTo is the target building to receive the requested item. If
+   *                  it's null, this is a user request.
    */
   public Request(int orderNum, Item item, Recipe recipe, Building producer, Building deliverTo) {
     this.orderNum = orderNum;
@@ -34,7 +35,8 @@ public class Request {
 
   /**
    * Gets the order number of this request.
-   *@return the order number of this request.
+   * 
+   * @return the order number of this request.
    */
   public int getOrderNum() {
     return orderNum;
@@ -42,21 +44,26 @@ public class Request {
 
   /**
    * Gets the requested item.
-   *@return the requested item.
+   * 
+   * @return the requested item.
    */
   public Item getItem() {
     return item;
   }
+
   /**
    * Gets the recipe for the requested item.
-   *@return the recipe for the requested item.
+   * 
+   * @return the recipe for the requested item.
    */
   public Recipe getRecipe() {
     return recipe;
   }
+
   /**
    * Gets the producer building to produce the requested item.
-   *@return the producer building.
+   * 
+   * @return the producer building.
    */
   public Building getProducer() {
     return producer;
@@ -75,9 +82,12 @@ public class Request {
       return deliverTo;
     }
   }
+
   /**
    * Tells if this request is made by user.
-   * @return true if the request is made by user, false if the request is issued by another building wanting the item.
+   * 
+   * @return true if the request is made by user, false if the request is issued
+   *         by another building wanting the item.
    */
   public boolean isUserRequest() {
     return deliverTo == null;
@@ -91,7 +101,7 @@ public class Request {
   public boolean process() {
     // Return true if request is already finished processing
     if (isCompleted()) {
-        return true;
+      return true;
     }
 
     // Consume one step, then return the request status
@@ -106,5 +116,14 @@ public class Request {
    */
   public boolean isCompleted() {
     return remainingSteps <= 0;
+  }
+
+  /**
+   * Gets the remaining steps of the request.
+   * 
+   * @return the remaining steps of finishing the request.
+   */
+  public int getRemainingSteps() {
+    return remainingSteps;
   }
 }

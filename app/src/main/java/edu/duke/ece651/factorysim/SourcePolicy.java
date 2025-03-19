@@ -15,7 +15,6 @@ public abstract class SourcePolicy implements Policy {
    */
   public abstract Building selectSource(Item item, List<Building> sources);
 
-  
   /**
    * Gets the policy type's name.
    * 

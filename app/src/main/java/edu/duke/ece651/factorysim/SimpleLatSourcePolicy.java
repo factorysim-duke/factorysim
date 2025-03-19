@@ -3,9 +3,9 @@ package edu.duke.ece651.factorysim;
 import java.util.List;
 
 /**
- * Implements Queue Length (qlen) source policy.
+ * Implements simple latency (simplelat) source policy.
  */
-public class QLenSourcePolicy extends SourcePolicy {
+public class SimpleLatSourcePolicy extends SourcePolicy {
   /**
    * Selects a source to produce item according to the policy.
    * 
@@ -19,14 +19,15 @@ public class QLenSourcePolicy extends SourcePolicy {
       return null;
     }
     Building bestSource = sources.get(0);
-    int minRequestNum = bestSource.getNumOfPendingRequests();
+    int minRemainingLatencies = bestSource.sumRemainingLatencies();
     for (Building source : sources) {
-      int newNum = source.getNumOfPendingRequests();
-      if (newNum < minRequestNum) {
-        minRequestNum = newNum;
+      int newNum = source.sumRemainingLatencies();
+      if (newNum < minRemainingLatencies) {
+        minRemainingLatencies = newNum;
         bestSource = source;
       }
     }
     return bestSource;
   }
+
 }
