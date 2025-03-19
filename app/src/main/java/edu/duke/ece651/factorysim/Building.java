@@ -177,7 +177,15 @@ public abstract class Building {
     processRequest();
   }
 
-  public void processRequest() {
+  /**
+   * Request processing routine.
+   * If there's no current request, fetch one using the current policy, then
+   * process it by one step.
+   * Otherwise, just keep processing the existing current request.<br/>
+   * NOTE: This method is called by `step` and should not be invoked manually
+   * somewhere else.
+   */
+  protected void processRequest() {
     // if the building is processing a request, work on the current one
     if (isProcessing()) {
       boolean isRequestFinished = currentRequest.process();
@@ -298,13 +306,9 @@ public abstract class Building {
   }
 
   /**
-   * Request processing routine.
-   * If there's no current request, fetch one using the current policy, then
-   * process it by one step.
-   * Otherwise, just keep processing the existing current request.<br/>
-   * NOTE: This method is called by `step` and should not be invoked manually
-   * somewhere else.
-   * 
+   * An easy version of request processing routine, assuming that all ingredients
+   * required by the request recipe are in the storage.
+   *
    **************************************************************************
    * This method is deprecated. Only used for testing in early stages
    * of project.
