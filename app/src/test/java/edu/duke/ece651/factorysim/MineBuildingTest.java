@@ -66,7 +66,7 @@ public class MineBuildingTest {
   }
 
   @Test
-  public void test_has_all_ingredients() {
+  public void test_has_all_ingredients_and_consume() {
     Recipe testRecipe = TestUtils.makeTestRecipe("testItem", 1, 2); // the ingredients should be {("a", 1), ("b", 2)}
     Building building = new TestUtils.MockBuilding("MockBuilding");
     assertFalse(building.hasAllIngredientsFor(testRecipe));
@@ -81,5 +81,11 @@ public class MineBuildingTest {
     assertTrue(building.hasAllIngredientsFor(testRecipe));
     building.addToStorage(c, 1);
     assertTrue(building.hasAllIngredientsFor(testRecipe));
+
+    building.consumeIngredientsFor(testRecipe);
+    assertFalse(building.hasAllIngredientsFor(testRecipe));
+    assertEquals(1, building.getStorageNumberOf(a));
+    assertEquals(-1, building.getStorageNumberOf(b));
+    assertEquals(1, building.getStorageNumberOf(c));
   }
 }

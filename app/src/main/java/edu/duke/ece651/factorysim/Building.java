@@ -209,6 +209,18 @@ public abstract class Building {
   }
 
   /**
+   * Consumes the ingredients in storage for a given recipe.
+   * Precondition: hasAllIngredientsFor(recipe) == true
+   * 
+   * @param recipe is the recipe to be consumed.
+   */
+  public void consumeIngredientsFor(Recipe recipe) {
+    for (Item item: recipe.getIngredients().keySet()) {
+      takeFromStorage(item, recipe.getIngredients().get(item));
+    }
+  }
+
+  /**
    * Request processing routine.
    * If there's no current request, fetch one using the current policy, then
    * process it by one step.
