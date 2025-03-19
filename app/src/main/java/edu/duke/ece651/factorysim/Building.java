@@ -215,9 +215,34 @@ public abstract class Building {
    * @param recipe is the recipe to be consumed.
    */
   public void consumeIngredientsFor(Recipe recipe) {
-    for (Item item: recipe.getIngredients().keySet()) {
+    for (Item item : recipe.getIngredients().keySet()) {
       takeFromStorage(item, recipe.getIngredients().get(item));
     }
+  }
+
+  /**
+   * Finds the missing ingredients item and corresponding quantity for a given
+   * recipe, considering current building storage.
+   * Precondition: hasAllIngredientsFor(recipe) == false, thus there must be some
+   * item whose number in storage is smaller than number needed in recipe
+   * 
+   * @return recipe is the recipe for reference.
+   * @return the hashmap for missing ingredients.
+   */
+  public HashMap<Item, Integer> findMissingIngredients(Recipe recipe) {
+    HashMap<Item, Integer> ans = new HashMap<>();
+    for (Item item : recipe.getIngredients().keySet()) {
+      if (storage.containsKey(item) == false) {
+        ans.put(item, recipe.getIngredients().get(item));
+      } else {
+        int numNeeded = recipe.getIngredients().get(item);
+        int numInStorage = storage.get(item);
+        if (numNeeded > numInStorage) {
+          ans.put(item, numNeeded - numInStorage);
+        }
+      }
+    }
+    return ans;
   }
 
   /**

@@ -87,5 +87,33 @@ public class MineBuildingTest {
     assertEquals(1, building.getStorageNumberOf(a));
     assertEquals(-1, building.getStorageNumberOf(b));
     assertEquals(1, building.getStorageNumberOf(c));
+
+    HashMap<Item, Integer> missingIngredients = building.findMissingIngredients(testRecipe);
+    assertTrue(missingIngredients.keySet().contains(b));
+    assertFalse(missingIngredients.keySet().contains(a));
+    assertFalse(missingIngredients.keySet().contains(c));
+    assertEquals(2, missingIngredients.get(b));
+  }
+
+  @Test
+  public void test_find_missing_ingredients() {
+    Recipe testRecipe = TestUtils.makeTestRecipe("testItem", 1, 4); // the ingredients should be {("a", 1), ("b", 2), ("c", 3), ("d", 4)}
+    Building building = new TestUtils.MockBuilding("MockBuilding");
+    assertFalse(building.hasAllIngredientsFor(testRecipe));
+    Item a = new Item("a");
+    Item b = new Item("b");
+    Item c = new Item("c");
+    Item d = new Item("d");
+    building.addToStorage(a, 1);
+    building.addToStorage(c, 4);
+    building.addToStorage(d, 3);
+    
+    HashMap<Item, Integer> missingIngredients = building.findMissingIngredients(testRecipe);
+    assertTrue(missingIngredients.keySet().contains(b));
+    assertFalse(missingIngredients.keySet().contains(a));
+    assertFalse(missingIngredients.keySet().contains(c));
+    assertTrue(missingIngredients.keySet().contains(d));
+    assertEquals(2, missingIngredients.get(b));
+    assertEquals(1, missingIngredients.get(d));
   }
 }
