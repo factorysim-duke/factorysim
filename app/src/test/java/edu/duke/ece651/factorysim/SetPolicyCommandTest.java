@@ -84,6 +84,13 @@ public class SetPolicyCommandTest {
         new TestUtils.MockSimulation());
     assertEquals(command.getClass(), SetPolicyCommand.class);
   }
+
+  @Test
+  public void test_qlen_on_default_source_policy() {
+    command.execute(new String[] { "set", "policy", "source", "'qlen'", "on", "default" },
+        new TestUtils.MockSimulation());
+    assertEquals(command.getClass(), SetPolicyCommand.class);
+  }
   
   @Test
   public void test_default_policy_on_building() {
