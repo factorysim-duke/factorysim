@@ -19,6 +19,7 @@ public class CommandHandlerTest {
         assertDoesNotThrow(() -> { commandHandler.execute("request 'door' from 'D'"); });
         assertDoesNotThrow(() -> { commandHandler.execute("step 3"); });
         assertDoesNotThrow(() -> { commandHandler.execute("finish"); });
+        assertDoesNotThrow(() -> { commandHandler.execute("verbose 0"); });
     }
 
     @Test
@@ -34,6 +35,8 @@ public class CommandHandlerTest {
                 List.of("set", "policy", "request", "'sjf'", "on", "'door factory'"));
         assert_parseCommand("set policy source 'qlen' on 'door factory'",
                 List.of("set", "policy", "source", "'qlen'", "on", "'door factory'"));
+        assert_parseCommand("verbose 0",
+                List.of("verbose", "0"));
 
         // Empty
         assert_parseCommand("", Collections.emptyList());
