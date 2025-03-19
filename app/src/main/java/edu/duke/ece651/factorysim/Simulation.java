@@ -16,16 +16,32 @@ public class Simulation {
   private boolean finished = false;
   private int nextOrderNum = 0;
 
+  private int verbosity;
+
   /**
    * Creates a simulation from a JSON configuration file.
    *
    * @param jsonFilePath the path to the JSON file.
+   * @param verbosity the initial verbosity.
+   * @throws IllegalArgumentException when <code>verbosity</code> is not an allowed verbosity.
    */
-  public Simulation(String jsonFilePath) {
+  public Simulation(String jsonFilePath, int verbosity) {
     this.currentTime = 0;
     ConfigData configData = JsonLoader.loadConfigData(jsonFilePath);
     this.world = WorldBuilder.buildWorld(configData, this);
+    this.setVerbosity(verbosity);
   }
+
+  /**
+   * Creates a simulation from a JSON configuration file with initial verbosity 0.
+   *
+   * @param jsonFilePath the path to the JSON file.
+   */
+  public Simulation(String jsonFilePath) {
+    this(jsonFilePath, 0);
+  }
+
+
 
   /**
    * Sets the policy for the given type and target.
@@ -275,5 +291,28 @@ public class Simulation {
   public int getOrderNum() {
     proceedOrderNum();
     return nextOrderNum;
+  }
+
+  /**
+   * Set the verbosity of the simulation.
+   * The verbosity must be >= 0.
+   *
+   * @param n new verbosity.
+   * @throws IllegalArgumentException when `n` is not a valid verbosity range.
+   */
+  public void setVerbosity(int n) {
+    if (n < 0) {
+      throw new IllegalArgumentException("Verbosity must be non-negative");
+    }
+    this.verbosity = n;
+  }
+
+  /**
+   * Get the current verbosity level.
+   *
+   * @return current verbosity level.
+   */
+  public int getVerbosity() {
+    return verbosity;
   }
 }
