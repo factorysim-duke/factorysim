@@ -326,6 +326,7 @@ public class Simulation {
 
   /**
    * Indicates a request was completed.
+   * If verbosity >= 0, log order completion details.
    *
    * @param completed the completed request instance.
    */
@@ -340,6 +341,14 @@ public class Simulation {
     logger.log(m);
   }
 
+  /**
+   * Indicates an ingredient has been assigned to a source.
+   * If verbosity >= 1, log ingredient assignment details.
+   *
+   * @param item is the ingredient item assigned.
+   * @param assigned is the assigned building for producing the ingredient (in other words, the producer).
+   * @param deliverTo is the building to deliver the ingredient to.
+   */
   public void onIngredientAssigned(Item item, Building assigned, Building deliverTo) {
     if (verbosity < 1) {
       return;
@@ -351,6 +360,14 @@ public class Simulation {
     logger.log(m);
   }
 
+  /**
+   * Indicates an ingredient has been delivered.
+   * If verbosity >= 1, log ingredient delivery details.
+   *
+   * @param item is the ingredient item delivered.
+   * @param to is the receiver of the delivery.
+   * @param from is the deliverer of the delivery.
+   */
   public void onIngredientDelivered(Item item, Building to, Building from) {
     if (verbosity < 1) {
       return;
