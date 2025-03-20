@@ -330,11 +330,45 @@ public class Simulation {
    * @param completed the completed request instance.
    */
   public void onRequestCompleted(Request completed) {
-    if (verbosity >= 0) {
-      String sb = "[order complete] Order " + completed.getOrderNum() +
-              " completed (" + completed.getItem().getName() +
-              ") at time " + currentTime;
-      logger.log(sb);
+    if (verbosity < 0) {
+      return;
+    }
+
+    String m = "[order complete] Order " + completed.getOrderNum() +
+               " completed (" + completed.getItem().getName() +
+               ") at time " + currentTime;
+    logger.log(m);
+  }
+
+  public void onIngredientAssigned(Item item, Building assigned, Building deliverTo) {
+    if (verbosity < 1) {
+      return;
+    }
+
+    String m = "[ingredient assignment]: " + item.getName() +
+               " assigned to " + assigned.getName() +
+               " to deliver to " + deliverTo.getName();
+    logger.log(m);
+  }
+
+  public void onIngredientDelivered(Item item, Building to, Building from) {
+    if (verbosity < 1) {
+      return;
+    }
+
+    // Log ingredient delivery info
+    String m = "[ingredient delivered]: " + item.getName() +
+               " to " + to.getName() +
+               " from " + from.getName() +
+               " on cycle " + getCurrentTime();
+    logger.log(m);
+
+    // Log ready ingredients (only when `to` is a factory since only factory have recipes)
+    if (to instanceof FactoryBuilding factory) {
+      List<Recipe> recipes = factory.getFactoryType().getRecipes();
+      for (int i = 0; i < recipes.size(); i++) {
+        logger.log("    " + i + ": " + item.getName() + " is ready");
+      }
     }
   }
 }
