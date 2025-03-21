@@ -223,8 +223,7 @@ public class Simulation {
       throw new IllegalArgumentException("The building " + buildingName + " cannot produce item " + itemName);
     }
     // if all is valid, add the request
-    nextOrderNum += 1;
-    Request userRequest = new Request(nextOrderNum, item, recipe, producer, null);
+    Request userRequest = new Request(getOrderNum(), item, recipe, producer, null);
     producer.addRequest(userRequest);
   }
 
@@ -282,20 +281,12 @@ public class Simulation {
   }
 
   /**
-   * Proceeds the order num by 1.
-   */
-  private void proceedOrderNum() {
-    nextOrderNum++;
-  }
-
-  /**
-   * Increases the order number by 1, then returns the order number.
+   * Returns the order number, then increases the order number by 1.
    * 
    * @return the order number.
    */
   public int getOrderNum() {
-    proceedOrderNum();
-    return nextOrderNum;
+    return nextOrderNum++;
   }
 
   /**
