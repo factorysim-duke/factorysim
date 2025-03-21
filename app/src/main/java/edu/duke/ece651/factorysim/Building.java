@@ -216,6 +216,9 @@ public abstract class Building {
       Recipe selectedRecipe = selectedRequest.getRecipe();
       if (hasAllIngredientsFor(selectedRecipe)) {
         consumeIngredientsFor(selectedRecipe);
+        currentRequest = selectedRequest;
+      } else {
+        addPendingRequest(selectedRequest);
       }
     }
   }
@@ -289,11 +292,10 @@ public abstract class Building {
 
       // update our own storage
       takeFromStorage(output, 1);
+    } else {
+      // indicate simulation a user request is completed
+      simulation.onRequestCompleted(currentRequest);
     }
-
-    // Indicate simulation a request is completed
-    simulation.onRequestCompleted(currentRequest);
-
     currentRequest = null;
   }
 
