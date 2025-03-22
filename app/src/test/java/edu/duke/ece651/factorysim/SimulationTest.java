@@ -1,9 +1,7 @@
 package edu.duke.ece651.factorysim;
 
+import java.io.*;
 import org.junit.jupiter.api.Test;
-
-import java.io.ByteArrayOutputStream;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SimulationTest {
