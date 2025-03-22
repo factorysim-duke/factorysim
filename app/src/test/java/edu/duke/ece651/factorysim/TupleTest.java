@@ -28,13 +28,16 @@ public class TupleTest {
     Tuple<String, Integer> t1 = new Tuple<>("key", 42);
     Tuple<String, Integer> t2 = new Tuple<>("key", 42);
     Tuple<String, Integer> t3 = new Tuple<>("key", 43);
-    Tuple<String, String> t4 = new Tuple<>("key", "value");
+    Tuple<String, Integer> t4 = new Tuple<>("notKey", 42);
+    Tuple<String, String> t5 = new Tuple<>("key", "42");
 
+    assertEquals(t1, t1);
+    assertNotEquals(t1, null);
+    assertNotEquals(t1, "string");
     assertEquals(t1, t2);
     assertNotEquals(t1, t3);
     assertNotEquals(t1, t4);
-    assertNotEquals(t1, null);
-    assertEquals(t1, t1);
+    assertNotEquals(t1, t5);
   }
 
   @Test
