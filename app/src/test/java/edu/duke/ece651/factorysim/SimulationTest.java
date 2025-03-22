@@ -75,4 +75,50 @@ public class SimulationTest {
     assertEquals("[order complete] Order 0 completed (wood) at time 0" + System.lineSeparator(),
             stream.toString());
   }
+
+  @Test
+  public void test_logging_verbosity_1() {
+    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+    Logger logger = new StreamLogger(stream);
+    Simulation sim = new Simulation("src/test/resources/inputs/doors1.json", 1, logger);
+
+    // 0> request 'door' from 'D'
+    sim.makeUserRequest("door", "D");
+    String expected = "[ingredient assignment]: wood assigned to W to deliver to D"    + System.lineSeparator() +
+                      "[ingredient assignment]: handle assigned to Ha to deliver to D" + System.lineSeparator() +
+                      "[ingredient assignment]: metal assigned to M to deliver to Ha"  + System.lineSeparator() +
+                      "[ingredient assignment]: hinge assigned to Hi to deliver to D"  + System.lineSeparator() +
+                      "[ingredient assignment]: metal assigned to M to deliver to Hi"  + System.lineSeparator() +
+                      "[ingredient assignment]: hinge assigned to Hi to deliver to D"  + System.lineSeparator() +
+                      "[ingredient assignment]: metal assigned to M to deliver to Hi"  + System.lineSeparator() +
+                      "[ingredient assignment]: hinge assigned to Hi to deliver to D"  + System.lineSeparator() +
+                      "[ingredient assignment]: metal assigned to M to deliver to Hi"  + System.lineSeparator();
+    assertEquals(expected, stream.toString());
+    stream.reset();
+
+    // 0> step 50
+    sim.step(50);
+    expected = "[ingredient delivered]: wood to D from W on cycle 1"    + System.lineSeparator() +
+               "[ingredient delivered]: metal to Hi from M on cycle 1"  + System.lineSeparator() +
+               "    0: hinge is ready"                                  + System.lineSeparator() +
+               "[ingredient delivered]: hinge to D from Hi on cycle 3"  + System.lineSeparator() +
+               "[ingredient delivered]: metal to Hi from M on cycle 3"  + System.lineSeparator() +
+               "    0: hinge is ready"                                  + System.lineSeparator() +
+               "[ingredient delivered]: hinge to D from Hi on cycle 5"  + System.lineSeparator() +
+               "[ingredient delivered]: metal to Hi from M on cycle 5"  + System.lineSeparator() +
+               "    0: hinge is ready"                                  + System.lineSeparator() +
+               "[ingredient delivered]: hinge to D from Hi on cycle 7"  + System.lineSeparator() +
+               "[ingredient delivered]: metal to Ha from M on cycle 7"  + System.lineSeparator() +
+               "    0: handle is ready"                                 + System.lineSeparator() +
+               "[ingredient delivered]: handle to D from Ha on cycle 13"+ System.lineSeparator() +
+               "    0: door is ready"                                   + System.lineSeparator() +
+               "[order complete] Order 0 completed (door) at time 26"   + System.lineSeparator();
+    assertEquals(expected, stream.toString());
+    stream.reset();
+
+    // 50> finish
+    sim.finish();
+    expected = "Simulation completed at time-step 50" + System.lineSeparator();
+    assertEquals(expected, stream.toString());
+  }
 }
