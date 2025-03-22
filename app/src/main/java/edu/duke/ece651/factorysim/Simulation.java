@@ -64,6 +64,7 @@ public class Simulation {
       return;
     }
 
+
     Policy policyInstance = null;
     // Get or create the policy instance
     if (type.equals("request")) {
@@ -183,10 +184,10 @@ public class Simulation {
       throw new IllegalArgumentException("The number of step must be positive and not too large.");
     }
     for (int i = 0; i < n; i++) {
-      currentTime++;
       for (Building building : world.getBuildings()) {
         building.step();
       }
+      currentTime++;
     }
   }
 
@@ -374,8 +375,11 @@ public class Simulation {
     // Log ready ingredients (only when `to` is a factory since only factory have recipes)
     if (to instanceof FactoryBuilding factory) {
       List<Recipe> recipes = factory.getFactoryType().getRecipes();
-      for (int i = 0; i < recipes.size(); i++) {
-        logger.log("    " + i + ": " + item.getName() + " is ready");
+      int i = 0;
+      for (Recipe recipe : recipes) {
+        if (factory.findMissingIngredients(recipe).isEmpty()) {
+          logger.log("    " + i++ + ": " + recipe.getOutput().getName() + " is ready");
+        }
       }
     }
   }
