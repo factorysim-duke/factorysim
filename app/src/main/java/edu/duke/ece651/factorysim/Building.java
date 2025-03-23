@@ -154,6 +154,9 @@ public abstract class Building {
    * @throws IllegalArgumentException when the building cannot process this request.
    */
   public void addRequest(Request request) {
+    // notify simulation of source selection
+    simulation.onSourceSelected(this, sourcePolicy, request.getRecipe());
+
     // Add request as a pending request
     addPendingRequest(request);
 

@@ -386,7 +386,7 @@ public class Simulation {
 
   /**
    * Indicates a recipe is selected when a request is selected to be processed next.
-   * If verbosity >= 2, log selection details and all request details.
+   * If verbosity >= 2, logs recipe selection details and all request details.
    *
    * @param building is the factory building that selected the recipe.
    * @param requestPolicy is the request policy used to select.
@@ -406,7 +406,7 @@ public class Simulation {
 
     // Log recipe selection
     logger.log("[recipe selection]: factory " + factory.getName() +
-               " has " + requestPolicy.getPolicyTypeName() +
+               " has " + requestPolicy.getName() +
                " on cycle " + currentTime);
 
     // Log each request's information
@@ -446,7 +446,32 @@ public class Simulation {
 
     // Log selected request
     if (selectedIndex != -1) {
-      logger.log("Selecting " + selectedIndex);
+      logger.log("    Selecting " + selectedIndex);
     }
+  }
+
+  /**
+   * Indicates a source has been selected.
+   * If verbosity >= 2, logs source selection details.
+   *
+   * @param building is the factory building that selected the source.
+   * @param sourcePolicy is the source policy used to select.
+   * @param recipe is the recipe of the item that needs ingredients sourcing.
+   */
+  public void onSourceSelected(Building building,
+                               SourcePolicy sourcePolicy,
+                               Recipe recipe) {
+    if (verbosity < 2) {
+      return;
+    }
+    if (!(building instanceof FactoryBuilding factory)) {
+      return; // Ignore calls from other types of building
+    }
+
+    // Log source selection
+    logger.log("[source selection]: " + factory.getName() +
+               " (" + sourcePolicy.getName() +
+               ") has request for " + recipe.getOutput().getName() +
+               " on " + currentTime);
   }
 }
