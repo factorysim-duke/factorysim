@@ -16,15 +16,36 @@ public class Simulation {
   private boolean finished = false;
   private int nextOrderNum = 0;
 
+  private int verbosity;
+
+  private Logger logger;
+
   /**
    * Creates a simulation from a JSON configuration file.
    *
    * @param jsonFilePath the path to the JSON file.
+   * @param verbosity the initial verbosity.
+   * @param logger the injected logger.
    */
-  public Simulation(String jsonFilePath) {
+  public Simulation(String jsonFilePath, int verbosity, Logger logger) {
     this.currentTime = 0;
+
     ConfigData configData = JsonLoader.loadConfigData(jsonFilePath);
     this.world = WorldBuilder.buildWorld(configData, this);
+
+    this.verbosity = verbosity;
+
+    this.logger = logger;
+  }
+
+  /**
+   * Creates a simulation from a JSON configuration file with initial verbosity 0.
+   * The default logger is a `StreamLogger` logging into stdout (`System.out`).
+   *
+   * @param jsonFilePath the path to the JSON file.
+   */
+  public Simulation(String jsonFilePath) {
+    this(jsonFilePath, 0, new StreamLogger(System.out));
   }
 
   /**
@@ -42,6 +63,7 @@ public class Simulation {
       resetPolicy(target);
       return;
     }
+
 
     Policy policyInstance = null;
     // Get or create the policy instance
@@ -162,10 +184,10 @@ public class Simulation {
       throw new IllegalArgumentException("The number of step must be positive and not too large.");
     }
     for (int i = 0; i < n; i++) {
-      currentTime++;
       for (Building building : world.getBuildings()) {
         building.step();
       }
+      currentTime++;
     }
   }
 
@@ -202,8 +224,7 @@ public class Simulation {
       throw new IllegalArgumentException("The building " + buildingName + " cannot produce item " + itemName);
     }
     // if all is valid, add the request
-    nextOrderNum += 1;
-    Request userRequest = new Request(nextOrderNum, item, recipe, producer, null);
+    Request userRequest = new Request(getOrderNum(), item, recipe, producer, null);
     producer.addRequest(userRequest);
   }
 
@@ -214,7 +235,7 @@ public class Simulation {
     while (!allRequestsFinished()) {
       step(1);
     }
-    System.out.println("Simulation completed at time-step " + currentTime);
+    logger.log("Simulation completed at time-step " + currentTime);
     finished = true;
   }
 
@@ -261,20 +282,234 @@ public class Simulation {
   }
 
   /**
-   * Proceeds the order num by 1.
-   */
-  private void proceedOrderNum() {
-    nextOrderNum++;
-  }
-
-  /**
-   * Increases the order number by 1, then returns the order number.
+   * Returns the order number, then increases the order number by 1.
    * 
    * @return the order number.
    */
   public int getOrderNum() {
-    proceedOrderNum();
-    return nextOrderNum;
+    return nextOrderNum++;
+  }
+
+  /**
+   * Set the verbosity of the simulation.
+   *
+   * @param n new verbosity.
+   */
+  public void setVerbosity(int n) {
+    this.verbosity = n;
+  }
+
+  /**
+   * Get the current verbosity level.
+   *
+   * @return current verbosity level.
+   */
+  public int getVerbosity() {
+    return verbosity;
+  }
+
+  public Logger getLogger() {
+    return this.logger;
+  }
+
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
+
+  /**
+   * Indicates a request was completed.
+   * If verbosity >= 0, log order completion details.
+   *
+   * @param completed the completed request instance.
+   */
+  public void onRequestCompleted(Request completed) {
+    if (verbosity < 0) {
+      return;
+    }
+
+    String m = "[order complete] Order " + completed.getOrderNum() +
+               " completed (" + completed.getItem().getName() +
+               ") at time " + currentTime;
+    logger.log(m);
+  }
+
+  /**
+   * Indicates an ingredient has been assigned to a source.
+   * If verbosity >= 1, log ingredient assignment details.
+   *
+   * @param item is the ingredient item assigned.
+   * @param assigned is the assigned building for producing the ingredient (in other words, the producer).
+   * @param deliverTo is the building to deliver the ingredient to.
+   */
+  public void onIngredientAssigned(Item item, Building assigned, Building deliverTo) {
+    if (verbosity < 1) {
+      return;
+    }
+
+    String m = "[ingredient assignment]: " + item.getName() +
+               " assigned to " + assigned.getName() +
+               " to deliver to " + deliverTo.getName();
+    logger.log(m);
+  }
+
+  /**
+   * Indicates an ingredient has been delivered.
+   * If verbosity >= 1, log ingredient delivery details.
+   *
+   * @param item is the ingredient item delivered.
+   * @param to is the receiver of the delivery.
+   * @param from is the deliverer of the delivery.
+   */
+  public void onIngredientDelivered(Item item, Building to, Building from) {
+    if (verbosity < 1) {
+      return;
+    }
+
+    // Log ingredient delivery info
+    String m = "[ingredient delivered]: " + item.getName() +
+               " to " + to.getName() +
+               " from " + from.getName() +
+               " on cycle " + getCurrentTime();
+    logger.log(m);
+
+    // Log ready ingredients (only when `to` is a factory since only factory have recipes)
+    if (to instanceof FactoryBuilding factory) {
+      List<Recipe> recipes = factory.getFactoryType().getRecipes();
+      int i = 0;
+      for (Recipe recipe : recipes) {
+        if (factory.findMissingIngredients(recipe).isEmpty()) {
+          logger.log("    " + i++ + ": " + recipe.getOutput().getName() + " is ready");
+        }
+      }
+    }
+  }
+
+  /**
+   * Indicates a recipe is selected when a request is selected to be processed next.
+   * If verbosity >= 2, logs recipe selection details and all request details.
+   *
+   * @param building is the factory building that selected the recipe.
+   * @param requestPolicy is the request policy used to select.
+   * @param requests is the list of pending requests (before removing the selected request).
+   * @param selectedRequest is the selected request instance.
+   */
+  public void onRecipeSelected(Building building,
+                               RequestPolicy requestPolicy,
+                               List<Request> requests,
+                               Request selectedRequest) {
+    if (verbosity < 2) {
+      return;
+    }
+    if (!(building instanceof FactoryBuilding factory)) {
+      return; // Ignore calls from other types of building
+    }
+
+    // Log recipe selection
+    logger.log("[recipe selection]: factory " + factory.getName() +
+               " has " + requestPolicy.getName() +
+               " on cycle " + currentTime);
+
+    // Log each request's information
+    int selectedIndex = 0;
+    for (int i = 0; i < requests.size(); i++) {
+      // Get selected index
+      if (requests.get(i) == selectedRequest) {
+        selectedIndex = i;
+      }
+
+      // Log request information
+      StringBuilder s = new StringBuilder("    " + i + ": ");
+      List<Tuple<Item, Integer>> missingIngredients = building.findMissingIngredients(selectedRequest.getRecipe());
+      if (missingIngredients.isEmpty()) {
+        s.append("ready");
+      } else {
+        s.append("not ready, waiting on {");
+        for (int j = 0; j < missingIngredients.size(); j++) {
+          Tuple<Item, Integer> ingredient = missingIngredients.get(j);
+
+          Item item = ingredient.first();
+          int count = ingredient.second();
+
+          if (count > 1) {
+            s.append(count).append("x ");
+          }
+          s.append(item.getName());
+
+          if (j != missingIngredients.size() - 1) {
+            s.append(", ");
+          }
+        }
+        s.append("}");
+      }
+      logger.log(s.toString());
+    }
+
+    // Log selected request
+    logger.log("    Selecting " + selectedIndex);
+  }
+
+  /**
+   * Indicates a source has been selected.
+   * If verbosity >= 2, logs source selection details.
+   *
+   * @param building is the factory building that selected the source.
+   * @param sourcePolicy is the source policy used to select.
+   * @param item is the item that's requested so sourcing happens.
+   */
+  public void onSourceSelected(Building building,
+                               SourcePolicy sourcePolicy,
+                               Item item) {
+    if (verbosity < 2) {
+      return;
+    }
+    if (!(building instanceof FactoryBuilding factory)) {
+      return; // Ignore calls from other types of building
+    }
+
+    // Log source selection
+    logger.log("[source selection]: " + factory.getName() +
+               " (" + sourcePolicy.getName() +
+               ") has request for " + item.getName() +
+               " on " + currentTime);
+  }
+
+  /**
+   * Indicates the source for an ingredient from a recipe has been selected.
+   * If verbosity >= 2, logs source selection details.
+   *
+   * @param building is the factory building that selected the source.
+   * @param item is the item being produced.
+   * @param index is the index of the ingredient.
+   * @param ingredient is the ingredient item.
+   * @param sources is a list of source buildings with their scores calculated by the source policy used.
+   * @param selectedSource is the selected source building.
+   */
+  public void onIngredientSourceSelected(Building building,
+                                         Item item,
+                                         int index,
+                                         Item ingredient,
+                                         List<Tuple<Building, Integer>> sources,
+                                         Building selectedSource) {
+    if (verbosity < 2) {
+      return;
+    }
+    if (!(building instanceof FactoryBuilding factory)) {
+      return; // Ignore calls from other types of building
+    }
+
+    // Log selection detail
+    logger.log("[" + factory.getName() + ":" + item.getName() + ":" + index +
+               "] For ingredient " + ingredient.getName());
+
+    // Log sources with scores
+    for (Tuple<Building, Integer> source : sources) {
+      Building sourceBuilding = source.first();
+      int score = source.second();
+      logger.log("    " + sourceBuilding.getName() + ": " + score);
+    }
+
+    // Log selected score
+    logger.log("    Selecting " + selectedSource.getName());
   }
 
   public void save(String fileName){

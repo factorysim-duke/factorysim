@@ -7,10 +7,15 @@ import java.util.List;
  */
 public class FifoRequestPolicy extends RequestPolicy {
   @Override
-  public Request popRequest(Building producer, List<Request> requests) {
+  public Request selectRequest(Building producer, List<Request> requests) {
     if (requests.isEmpty()) {
       return null;
     }
-    return requests.remove(0);
+    return requests.getFirst();
+  }
+
+  @Override
+  public String getName() {
+    return "fifo";
   }
 }

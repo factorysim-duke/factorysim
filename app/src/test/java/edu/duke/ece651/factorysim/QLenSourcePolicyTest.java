@@ -76,7 +76,7 @@ public class QLenSourcePolicyTest {
   @Test
   public void test_min_queue_length() {
     Item water = new Item("water");
-    waterMine1.addRequest(new Request(0, water, waterMine1.getMiningRecipe(), metalMine1, doorFactory));
+    waterMine1.addPendingRequest(new Request(0, water, waterMine1.getMiningRecipe(), metalMine1, doorFactory));
     List<Building> availableSources = doorFactory.getAvailableSourcesForItem(water);
     Building result = policy.selectSource(water, availableSources);
     assertSame(waterMine2, result);

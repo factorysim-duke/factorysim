@@ -1,5 +1,6 @@
 package edu.duke.ece651.factorysim;
 
+import java.util.LinkedHashMap;
 import java.util.HashMap;
 
 /**
@@ -7,18 +8,30 @@ import java.util.HashMap;
  */
 public class Recipe {
   private final Item output;
-  private final HashMap<Item, Integer> ingredients;
+  private final LinkedHashMap<Item, Integer> ingredients;
   private final int latency;
 
   /**
    * Constructs a recipe.
-   * 
+   *
    * @param output      is the item being created by the recipe.
    * @param ingredients is the hashmap of ingredients required by the recipe.
    * @param latency     is the integer value for how many time steps it takes for
    *                    a building to perform this recipe.
    */
   public Recipe(Item output, HashMap<Item, Integer> ingredients, int latency) {
+    this(output, new LinkedHashMap<>(ingredients), latency);
+  }
+
+  /**
+   * Constructs a recipe.
+   *
+   * @param output      is the item being created by the recipe.
+   * @param ingredients is the linked hashmap of ingredients required by the recipe.
+   * @param latency     is the integer value for how many time steps it takes for
+   *                    a building to perform this recipe.
+   */
+  public Recipe(Item output, LinkedHashMap<Item, Integer> ingredients, int latency) {
     this.output = output;
     this.ingredients = ingredients;
     this.latency = latency;
@@ -26,7 +39,7 @@ public class Recipe {
 
   /**
    * Gets the output of the recipe.
-   * 
+   *
    * @return the output item of the recipe.
    */
   public Item getOutput() {
@@ -35,10 +48,10 @@ public class Recipe {
 
   /**
    * Gets the ingredients of the recipe.
-   * 
+   *
    * @return the hashmap of ingredients of the recipe.
    */
-  public HashMap<Item, Integer> getIngredients() {
+  public LinkedHashMap<Item, Integer> getIngredients() {
     return ingredients;
   }
 

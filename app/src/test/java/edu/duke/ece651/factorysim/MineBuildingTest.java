@@ -30,7 +30,7 @@ public class MineBuildingTest {
 
     // Add request
     Request request = new Request(1, wood, woodRecipe, mine, factory);
-    mine.addRequest(request);
+    mine.addPendingRequest(request);
 
     // Mine shouldn't be finished since there's a pending request
     assertFalse(mine.isFinished());
@@ -88,7 +88,7 @@ public class MineBuildingTest {
     assertEquals(-1, building.getStorageNumberOf(b));
     assertEquals(1, building.getStorageNumberOf(c));
 
-    HashMap<Item, Integer> missingIngredients = building.findMissingIngredients(testRecipe);
+    HashMap<Item, Integer> missingIngredients = building.findMissingIngredientsAsHashMap(testRecipe);
     assertTrue(missingIngredients.keySet().contains(b));
     assertFalse(missingIngredients.keySet().contains(a));
     assertFalse(missingIngredients.keySet().contains(c));
@@ -108,13 +108,13 @@ public class MineBuildingTest {
     building.addToStorage(c, 4);
     building.addToStorage(d, 3);
     
-    HashMap<Item, Integer> missingIngredients = building.findMissingIngredients(testRecipe);
+    HashMap<Item, Integer> missingIngredients = building.findMissingIngredientsAsHashMap(testRecipe);
     assertTrue(missingIngredients.keySet().contains(b));
     assertFalse(missingIngredients.keySet().contains(a));
     assertFalse(missingIngredients.keySet().contains(c));
     assertTrue(missingIngredients.keySet().contains(d));
     assertEquals(2, missingIngredients.get(b));
     assertEquals(1, missingIngredients.get(d));
-    assertThrows(IllegalArgumentException.class, ()->building.requestMissingIngredients(missingIngredients));
+    assertThrows(IllegalArgumentException.class, ()->building.requestMissingIngredientsFromHashMap(missingIngredients));
   }
 }

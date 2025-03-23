@@ -1,11 +1,6 @@
 package edu.duke.ece651.factorysim;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.*;
 
 /**
  * WorldBuilder is a class for building the game world from the ConfigData.
@@ -16,7 +11,7 @@ public class WorldBuilder {
 
     /**
      * Builds the world from the ConfigData.
-     * 
+     *
      * @param configData is the ConfigData to build the world from.
      * @return the World object.
      */
@@ -41,7 +36,7 @@ public class WorldBuilder {
 
     /**
      * Builds the recipes from the RecipeDTOs and checks the validity of the data.
-     * 
+     *
      * @param recipeDTOs is the RecipeDTOs to build the recipes from.
      * @return the Map of recipes.
      */
@@ -61,7 +56,7 @@ public class WorldBuilder {
             Item output = new Item(recipeDTO.output);
 
             // Create the ingredients map
-            HashMap<Item, Integer> ingredients = new HashMap<>();
+            LinkedHashMap<Item, Integer> ingredients = new LinkedHashMap<>();
             for (Map.Entry<String, Integer> entry : recipeDTO.ingredients.entrySet()) {
                 Item ingredient = new Item(entry.getKey());
                 ingredients.put(ingredient, entry.getValue());

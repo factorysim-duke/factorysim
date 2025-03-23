@@ -72,8 +72,8 @@ public class SimpleLatSourcePolicyTest {
   @Test
   public void test_equal_latency() {
     Item metal = new Item("metal");
-    metalMine1.addRequest(new Request(0, metal, metalMine1.getMiningRecipe(), metalMine1, doorFactory));
-    metalMine2.addRequest(new Request(1, metal, metalMine2.getMiningRecipe(), metalMine2, doorFactory));
+    metalMine1.addPendingRequest(new Request(0, metal, metalMine1.getMiningRecipe(), metalMine1, doorFactory));
+    metalMine2.addPendingRequest(new Request(1, metal, metalMine2.getMiningRecipe(), metalMine2, doorFactory));
     List<Building> availableSources = doorFactory.getAvailableSourcesForItem(metal);
     Building result = policy.selectSource(metal, availableSources);
     assertSame(metalMine1, result);
@@ -83,12 +83,12 @@ public class SimpleLatSourcePolicyTest {
   public void test_min_latency() {
     Item water = new Item("water");
     // add 2 requests to water mine 1
-    waterMine1.addRequest(new Request(2, water, waterMine1.getMiningRecipe(), waterMine1, doorFactory));
-    waterMine1.addRequest(new Request(3, water, waterMine1.getMiningRecipe(), metalMine1, doorFactory));
+    waterMine1.addPendingRequest(new Request(2, water, waterMine1.getMiningRecipe(), waterMine1, doorFactory));
+    waterMine1.addPendingRequest(new Request(3, water, waterMine1.getMiningRecipe(), metalMine1, doorFactory));
     // add 1 request to water mine 2
-    waterMine2.addRequest(new Request(5, water, waterMine2.getMiningRecipe(), waterMine2, doorFactory));
+    waterMine2.addPendingRequest(new Request(5, water, waterMine2.getMiningRecipe(), waterMine2, doorFactory));
     // add 1 requests to water mine 3
-    waterMine3.addRequest(new Request(6, water, waterMine3.getMiningRecipe(), waterMine3, doorFactory));
+    waterMine3.addPendingRequest(new Request(6, water, waterMine3.getMiningRecipe(), waterMine3, doorFactory));
     List<Building> availableSources = doorFactory.getAvailableSourcesForItem(water);
     Building result = policy.selectSource(water, availableSources);
     assertSame(waterMine2, result);

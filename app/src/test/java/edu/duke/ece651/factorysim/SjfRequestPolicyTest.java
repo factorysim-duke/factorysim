@@ -20,25 +20,24 @@ public class SjfRequestPolicyTest {
   }
 
   @Test
-  public void testPopRequestEmptyList() {
-    Request result = policy.popRequest(producer, requests);
+  public void testSelectRequestEmptyList() {
+    Request result = policy.selectRequest(producer, requests);
     assertNull(result, "Should return null for empty request list");
   }
 
   @Test
-  public void testPopRequestSingleItem() {
+  public void testSelectRequestSingleItem() {
     Item output = new Item("TestItem");
     HashMap<Item, Integer> ingredients = new HashMap<>();
     Recipe recipe = new Recipe(output, ingredients, 5);
     Request request = new Request(1, output, recipe, producer, null);
     requests.add(request);
-    Request result = policy.popRequest(producer, requests);
+    Request result = policy.selectRequest(producer, requests);
     assertEquals(request, result);
-    assertTrue(requests.isEmpty());
   }
 
   @Test
-  public void testPopRequestMultipleItems() {
+  public void testSelectRequestMultipleItems() {
     Item item1 = new Item("Item1");
     Item item2 = new Item("Item2");
     Item item3 = new Item("Item3");
@@ -57,17 +56,16 @@ public class SjfRequestPolicyTest {
     requests.add(request2);
     requests.add(request3);
 
-    Request result = policy.popRequest(producer, requests);
+    Request result = policy.selectRequest(producer, requests);
 
     assertEquals(request2, result);
-    assertEquals(2, requests.size());
-    assertFalse(requests.contains(request2));
+    assertEquals(3, requests.size());
     assertTrue(requests.contains(request1));
     assertTrue(requests.contains(request3));
   }
 
   @Test
-  public void testPopRequestEqualLatencies() {
+  public void testSelectRequestEqualLatencies() {
     Item item1 = new Item("Item1");
     Item item2 = new Item("Item2");
 
@@ -83,11 +81,10 @@ public class SjfRequestPolicyTest {
     requests.add(request1);
     requests.add(request2);
 
-    Request result = policy.popRequest(producer, requests);
+    Request result = policy.selectRequest(producer, requests);
 
     assertEquals(request1, result);
-    assertEquals(1, requests.size());
-    assertFalse(requests.contains(request1));
+    assertEquals(2, requests.size());
     assertTrue(requests.contains(request2));
   }
 }
