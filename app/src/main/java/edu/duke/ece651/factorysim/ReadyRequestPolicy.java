@@ -18,4 +18,9 @@ public class ReadyRequestPolicy extends RequestPolicy {
     }
     return null;
   }
+
+  @Override
+  public String getName() {
+    return "ready";
+  }
 }

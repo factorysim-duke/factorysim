@@ -22,4 +22,9 @@ public class RecursiveLatSourcePolicy extends SourcePolicy {
     // build here
     return bestSource;
   }
+
+  @Override
+  public String getName() {
+    return "recursivelat";
+  }
 }

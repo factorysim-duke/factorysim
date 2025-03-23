@@ -29,4 +29,9 @@ public class SimpleLatSourcePolicy extends SourcePolicy {
     }
     return bestSource;
   }
+
+  @Override
+  public String getName() {
+    return "simplelat";
+  }
 }

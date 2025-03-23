@@ -29,4 +29,9 @@ public class QLenSourcePolicy extends SourcePolicy {
     }
     return bestSource;
   }
+
+  @Override
+  public String getName() {
+    return "qlen";
+  }
 }

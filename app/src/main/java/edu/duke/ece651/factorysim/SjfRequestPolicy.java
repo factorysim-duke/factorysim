@@ -19,4 +19,9 @@ public class SjfRequestPolicy extends RequestPolicy {
     }
     return shortestRequest;
   }
+
+  @Override
+  public String getName() {
+    return "sjf";
+  }
 }

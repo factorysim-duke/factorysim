@@ -13,4 +13,9 @@ public class FifoRequestPolicy extends RequestPolicy {
     }
     return requests.getFirst();
   }
+
+  @Override
+  public String getName() {
+    return "fifo";
+  }
 }
