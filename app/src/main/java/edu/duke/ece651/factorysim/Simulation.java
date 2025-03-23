@@ -456,11 +456,11 @@ public class Simulation {
    *
    * @param building is the factory building that selected the source.
    * @param sourcePolicy is the source policy used to select.
-   * @param recipe is the recipe of the item that needs ingredients sourcing.
+   * @param item is the item that's requested so sourcing happens.
    */
   public void onSourceSelected(Building building,
                                SourcePolicy sourcePolicy,
-                               Recipe recipe) {
+                               Item item) {
     if (verbosity < 2) {
       return;
     }
@@ -471,7 +471,45 @@ public class Simulation {
     // Log source selection
     logger.log("[source selection]: " + factory.getName() +
                " (" + sourcePolicy.getName() +
-               ") has request for " + recipe.getOutput().getName() +
+               ") has request for " + item.getName() +
                " on " + currentTime);
+  }
+
+  /**
+   *
+   *
+   * @param building
+   * @param item
+   * @param index
+   * @param ingredient
+   * @param sources
+   * @param selectedSource
+   */
+  public void onIngredientSourceSelected(Building building,
+                                         Item item,
+                                         int index,
+                                         Item ingredient,
+                                         List<Tuple<Building, Integer>> sources,
+                                         Building selectedSource) {
+    if (verbosity < 2) {
+      return;
+    }
+    if (!(building instanceof FactoryBuilding factory)) {
+      return; // Ignore calls from other types of building
+    }
+
+    // Log selection detail
+    logger.log("[" + factory.getName() + ":" + item.getName() + ":" + index +
+               "] For ingredient " + ingredient.getName());
+
+    // Log sources with scores
+    for (Tuple<Building, Integer> source : sources) {
+      Building sourceBuilding = source.first();
+      int score = source.second();
+      logger.log("    " + sourceBuilding.getName() + ": " + score);
+    }
+
+    // Log selected score
+    logger.log("    Selecting " + selectedSource.getName());
   }
 }

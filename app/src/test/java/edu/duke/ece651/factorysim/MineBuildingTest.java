@@ -115,6 +115,6 @@ public class MineBuildingTest {
     assertTrue(missingIngredients.keySet().contains(d));
     assertEquals(2, missingIngredients.get(b));
     assertEquals(1, missingIngredients.get(d));
-    assertThrows(IllegalArgumentException.class, ()->building.requestMissingIngredientsFromMap(missingIngredients));
+    assertThrows(IllegalArgumentException.class, ()->building.requestMissingIngredientsFromHashMap(missingIngredients));
   }
 }

@@ -155,14 +155,13 @@ public abstract class Building {
    */
   public void addRequest(Request request) {
     // notify simulation of source selection
-    simulation.onSourceSelected(this, sourcePolicy, request.getRecipe());
+    simulation.onSourceSelected(this, sourcePolicy, request.getItem());
 
     // Add request as a pending request
     addPendingRequest(request);
 
     // Send out requests for ingredients
-    List<Tuple<Item, Integer>> missingIngredients = findMissingIngredients(request.getRecipe());
-    requestMissingIngredients(missingIngredients);
+    requestMissingIngredients(request.getRecipe());
   }
 
   /**
@@ -333,20 +332,32 @@ public abstract class Building {
    * Requests missing ingredients from sources.
    * NOTE: this is where the source policy takes place.
    *
-   * @param missingIngredients is a list of missing ingredients.
+   * @param recipe is the recipe to check for missing ingredients.
    * @throws IllegalArgumentException if the sources of the building are not
    *                                  enough to give missing items.
    */
-  public void requestMissingIngredients(List<Tuple<Item, Integer>> missingIngredients) {
-    for (Tuple<Item, Integer> entry : missingIngredients) {
+  public void requestMissingIngredients(Recipe recipe) {
+    List<Tuple<Item, Integer>> missingIngredients = findMissingIngredients(recipe);
+    for (int index = 0; index < missingIngredients.size(); index++) {
+      Tuple<Item, Integer> entry = missingIngredients.get(index);
       Item item = entry.first();
       int numNeeded = entry.second();
+
+      List<Tuple<Building, Integer>> sourceWithScores = new ArrayList<>();
+
+      // use source policy to select a source
       List<Building> availableSources = getAvailableSourcesForItem(item);
-      Building selectedSource = sourcePolicy.selectSource(item, availableSources);
+      Building selectedSource = sourcePolicy.selectSource(item, availableSources,
+              (source, score) -> sourceWithScores.add(new Tuple<>(source, score)));
       if (selectedSource == null) {
         throw new IllegalArgumentException("No source can produce the item " + item.getName());
       }
       Recipe recipeNeeded = simulation.getRecipeForItem(item);
+
+      // notify simulation an ingredient source is selected
+      simulation.onIngredientSourceSelected(this, recipe.getOutput(), index,
+              recipeNeeded.getOutput(), sourceWithScores, selectedSource);
+
       // create sub-requests for numNeeded times for this item
       for (int i = 0; i < numNeeded; i++) {
         int orderNum = simulation.getOrderNum(); // this function automatically proceed the next order num by 1
@@ -363,7 +374,6 @@ public abstract class Building {
    * Precondition: hasAllIngredientsFor(recipe) == false, thus there must be some
    * item whose number in storage is smaller than number needed in recipe
    *
-   * @return recipe is the recipe for reference.
    * @return the hashmap for missing ingredients.
    */
   public HashMap<Item, Integer> findMissingIngredientsAsHashMap(Recipe recipe) {
@@ -383,12 +393,13 @@ public abstract class Building {
    * @throws IllegalArgumentException if the sources of the building are not
    *                                  enough to give missing items.
    */
-  public void requestMissingIngredientsFromMap(Map<Item, Integer> missingIngredients) {
+  // NOTE: this method is here to prevent existing tests from breaking
+  public void requestMissingIngredientsFromHashMap(HashMap<Item, Integer> missingIngredients) {
     List<Tuple<Item, Integer>> list = new ArrayList<>();
     for (Map.Entry<Item, Integer> ingredient : missingIngredients.entrySet()) {
       list.add(new Tuple<>(ingredient.getKey(), ingredient.getValue()));
     }
-    requestMissingIngredients(list);
+    requestMissingIngredients(new Recipe(new Item(""), missingIngredients, 0));
   }
 
 //  /**

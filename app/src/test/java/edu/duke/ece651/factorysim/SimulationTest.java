@@ -143,20 +143,56 @@ public class SimulationTest {
   public void test_logging_verbosity_2() {
     ByteArrayOutputStream stream = new ByteArrayOutputStream();
     Logger logger = new StreamLogger(stream);
-    Simulation sim = new Simulation("src/test/resources/inputs/doors1.json", 1, logger);
+    Simulation sim = new Simulation("src/test/resources/inputs/doors1.json", 2, logger);
 
     // 0> request 'door' from 'D'
     sim.makeUserRequest("door", "D");
-    String expected = "[ingredient assignment]: wood assigned to W to deliver to D"    + System.lineSeparator() +
+    String expected =
+            "[source selection]: D (qlen) has request for door on 0" + System.lineSeparator() +
+            "[D:door:0] For ingredient wood" + System.lineSeparator() +
+            "    W: 0" + System.lineSeparator() +
+            "    Selecting W" + System.lineSeparator() +
+            "[ingredient assignment]: wood assigned to W to deliver to D" + System.lineSeparator() +
+            "[D:door:1] For ingredient handle" + System.lineSeparator() +
+            "    Ha: 0" + System.lineSeparator() +
+            "    Selecting Ha" + System.lineSeparator() +
             "[ingredient assignment]: handle assigned to Ha to deliver to D" + System.lineSeparator() +
-            "[ingredient assignment]: metal assigned to M to deliver to Ha"  + System.lineSeparator() +
-            "[ingredient assignment]: hinge assigned to Hi to deliver to D"  + System.lineSeparator() +
-            "[ingredient assignment]: metal assigned to M to deliver to Hi"  + System.lineSeparator() +
-            "[ingredient assignment]: hinge assigned to Hi to deliver to D"  + System.lineSeparator() +
-            "[ingredient assignment]: metal assigned to M to deliver to Hi"  + System.lineSeparator() +
-            "[ingredient assignment]: hinge assigned to Hi to deliver to D"  + System.lineSeparator() +
-            "[ingredient assignment]: metal assigned to M to deliver to Hi"  + System.lineSeparator();
+            "[source selection]: Ha (qlen) has request for handle on 0" + System.lineSeparator() +
+            "[Ha:handle:0] For ingredient metal" + System.lineSeparator() +
+            "    M: 0" + System.lineSeparator() +
+            "    Selecting M" + System.lineSeparator() +
+            "[ingredient assignment]: metal assigned to M to deliver to Ha" + System.lineSeparator() +
+            "[D:door:2] For ingredient hinge" + System.lineSeparator() +
+            "    Hi: 0" + System.lineSeparator() +
+            "    Selecting Hi" + System.lineSeparator() +
+            "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
+            "[source selection]: Hi (qlen) has request for hinge on 0" + System.lineSeparator() +
+            "[Hi:hinge:0] For ingredient metal" + System.lineSeparator() +
+            "    M: 1" + System.lineSeparator() +
+            "    Selecting M" + System.lineSeparator() +
+            "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
+            "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
+            "[source selection]: Hi (qlen) has request for hinge on 0" + System.lineSeparator() +
+            "[Hi:hinge:0] For ingredient metal" + System.lineSeparator() +
+            "    M: 2" + System.lineSeparator() +
+            "    Selecting M" + System.lineSeparator() +
+            "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
+            "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
+            "[source selection]: Hi (qlen) has request for hinge on 0" + System.lineSeparator() +
+            "[Hi:hinge:0] For ingredient metal" + System.lineSeparator() +
+            "    M: 3" + System.lineSeparator() +
+            "    Selecting M" + System.lineSeparator() +
+            "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator();
     assertEquals(expected, stream.toString());
     stream.reset();
+
+    // 0> step 50
+    sim.step(50);
+    stream.reset(); // Logs nothing about verbosity 2, so just ignores for now
+
+    // 50> finish
+    sim.finish();
+    expected = "Simulation completed at time-step 50" + System.lineSeparator();
+    assertEquals(expected, stream.toString());
   }
 }
