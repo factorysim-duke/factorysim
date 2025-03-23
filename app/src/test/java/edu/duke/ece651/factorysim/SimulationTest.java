@@ -62,16 +62,35 @@ public class SimulationTest {
 
   @Test
   public void test_onRequestCompleted() {
-    Simulation sim = new TestUtils.MockSimulation();
     ByteArrayOutputStream stream = new ByteArrayOutputStream();
     Logger logger = new StreamLogger(stream);
-    sim.setLogger(logger);
+    Simulation sim = new Simulation("src/test/resources/inputs/doors1.json", 0, logger);
 
     sim.onRequestCompleted(new Request(0, new Item("wood"),
             TestUtils.makeTestRecipe("wood", 1, 2),
             null, null));
     assertEquals("[order complete] Order 0 completed (wood) at time 0" + System.lineSeparator(),
             stream.toString());
+    stream.reset();
+
+    sim.setVerbosity(-1);
+    sim.onRequestCompleted(new Request(0, new Item("wood"),
+            TestUtils.makeTestRecipe("wood", 1, 2),
+            null, null));
+    assertEquals("", stream.toString());
+  }
+
+  @Test
+  public void test_onIngredientDelivered() {
+    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+    Logger logger = new StreamLogger(stream);
+    Simulation sim = new Simulation("src/test/resources/inputs/doors1.json", 1, logger);
+
+    Item wood = new Item("wood");
+    MineBuilding woodMine = new MineBuilding(TestUtils.makeTestRecipe("wood", 1, 0), "W", sim);
+    sim.onIngredientDelivered(wood, woodMine, woodMine);
+
+    assertEquals("[ingredient delivered]: wood to W from W on cycle 0" + System.lineSeparator(), stream.toString());
   }
 
   @Test
