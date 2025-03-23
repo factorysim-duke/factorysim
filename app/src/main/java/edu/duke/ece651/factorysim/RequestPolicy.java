@@ -15,7 +15,7 @@ public abstract class RequestPolicy implements Policy {
    * @param requests the request list reference for modification.
    * @return the popped request based on the policy.
    */
-  public abstract Request popRequest(Building producer, List<Request> requests);
+  public abstract Request selectRequest(Building producer, List<Request> requests);
 
   /**
    * Gets the policy type's name.

@@ -138,4 +138,25 @@ public class SimulationTest {
     expected = "Simulation completed at time-step 50" + System.lineSeparator();
     assertEquals(expected, stream.toString());
   }
+
+  @Test
+  public void test_logging_verbosity_2() {
+    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+    Logger logger = new StreamLogger(stream);
+    Simulation sim = new Simulation("src/test/resources/inputs/doors1.json", 1, logger);
+
+    // 0> request 'door' from 'D'
+    sim.makeUserRequest("door", "D");
+    String expected = "[ingredient assignment]: wood assigned to W to deliver to D"    + System.lineSeparator() +
+            "[ingredient assignment]: handle assigned to Ha to deliver to D" + System.lineSeparator() +
+            "[ingredient assignment]: metal assigned to M to deliver to Ha"  + System.lineSeparator() +
+            "[ingredient assignment]: hinge assigned to Hi to deliver to D"  + System.lineSeparator() +
+            "[ingredient assignment]: metal assigned to M to deliver to Hi"  + System.lineSeparator() +
+            "[ingredient assignment]: hinge assigned to Hi to deliver to D"  + System.lineSeparator() +
+            "[ingredient assignment]: metal assigned to M to deliver to Hi"  + System.lineSeparator() +
+            "[ingredient assignment]: hinge assigned to Hi to deliver to D"  + System.lineSeparator() +
+            "[ingredient assignment]: metal assigned to M to deliver to Hi"  + System.lineSeparator();
+    assertEquals(expected, stream.toString());
+    stream.reset();
+  }
 }

@@ -383,4 +383,59 @@ public class Simulation {
       }
     }
   }
+
+  public void onRecipeSelected(Building building,
+                               RequestPolicy requestPolicy,
+                               List<Request> requests,
+                               Request selectedRequest) {
+    if (verbosity < 2) {
+      return;
+    }
+    if (!(building instanceof FactoryBuilding factory)) {
+      return; // Ignore calls from other types of building
+    }
+
+    // Log recipe selection
+    logger.log("[recipe selection]: factory " + factory.getName() +
+               " has " + requestPolicy.getPolicyTypeName() +
+               " on cycle " + currentTime);
+
+    // Log each request's information
+    int selectedIndex = -1;
+    for (int i = 0; i < requests.size(); i++) {
+      // Get selected index
+      if (selectedIndex == -1 && requests.get(i) == selectedRequest) {
+        selectedIndex = i;
+      }
+
+      // Log request information
+      StringBuilder s = new StringBuilder("    " + i + ": ");
+      List<Tuple<Item, Integer>> missingIngredients = building.findMissingIngredients(selectedRequest.getRecipe());
+      if (missingIngredients.isEmpty()) {
+        s.append("ready");
+      } else {
+        s.append("not ready, waiting on {");
+        for (Tuple<Item, Integer> ingredient : missingIngredients) {
+          Item item = ingredient.first();
+          int count = ingredient.second();
+
+          if (count > 1) {
+            s.append(count).append("x ");
+          }
+          s.append(item.getName());
+
+          if (i != requests.size() - 1) {
+            s.append(", ");
+          }
+        }
+        s.append("}");
+      }
+      logger.log(s.toString());
+    }
+
+    // Log selected request
+    if (selectedIndex != -1) {
+      logger.log("Selecting " + selectedIndex);
+    }
+  }
 }

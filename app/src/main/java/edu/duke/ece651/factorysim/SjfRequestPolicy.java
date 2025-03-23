@@ -7,17 +7,16 @@ import java.util.List;
  */
 public class SjfRequestPolicy extends RequestPolicy {
   @Override
-  public Request popRequest(Building producer, List<Request> requests) {
+  public Request selectRequest(Building producer, List<Request> requests) {
     if (requests.isEmpty()) {
       return null;
     }
-    Request shortestRequest = requests.get(0);
+    Request shortestRequest = requests.getFirst();
     for (Request request : requests) {
       if (request.getRecipe().getLatency() < shortestRequest.getRecipe().getLatency()) {
         shortestRequest = request;
       }
     }
-    requests.remove(shortestRequest);
     return shortestRequest;
   }
 }

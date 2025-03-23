@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ReadyRequestPolicyTest {
   @Test
-  public void test_popRequest() {
+  public void test_selectRequest() {
     RequestPolicy requestPolicy = new ReadyRequestPolicy();
 
     Recipe steelRecipe = TestUtils.makeTestRecipe("steel", 3, 2);
@@ -15,8 +15,7 @@ public class ReadyRequestPolicyTest {
     // Doable request
     Item steel = new Item("steel");
     List<Request> requests = new ArrayList<>(List.of(new Request(1, steel, steelRecipe, steelMine, null)));
-    requestPolicy.popRequest(steelMine, requests);
-    assertTrue(requests.isEmpty()); // Because `popRequest` popped the only doable request
+    requestPolicy.selectRequest(steelMine, requests);
 
     // Undoable request
     Item chair = new Item("chair");
@@ -24,7 +23,7 @@ public class ReadyRequestPolicyTest {
     ingredients.put(new Item("wood"), 3);
     Recipe chairRecipe = new Recipe(chair, ingredients, 1);
     requests = new ArrayList<>(List.of(new Request(1, chair, chairRecipe, steelMine, null)));
-    requestPolicy.popRequest(steelMine, requests);
+    requestPolicy.selectRequest(steelMine, requests);
     assertFalse(requests.isEmpty()); // Because `steelMine` cannot produce `chair` so no request was popped
   }
 }

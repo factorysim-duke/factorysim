@@ -213,13 +213,18 @@ public abstract class Building {
     }
     // else, try to fetch the next one and work on it
     else if (pendingRequests.isEmpty() == false) {
-      Request selectedRequest = requestPolicy.popRequest(this, pendingRequests);
+      // Select a request based on the current policy
+      Request selectedRequest = requestPolicy.selectRequest(this, pendingRequests);
       Recipe selectedRecipe = selectedRequest.getRecipe();
+
+      // Notify simulation a request has been selected
+      simulation.onRecipeSelected(this, requestPolicy, pendingRequests, selectedRequest);
+
+      // Start processing request of has all the ingredients for it
       if (hasAllIngredientsFor(selectedRecipe)) {
         consumeIngredientsFor(selectedRecipe);
+        pendingRequests.remove(selectedRequest);
         currentRequest = selectedRequest;
-      } else {
-        addPendingRequest(selectedRequest);
       }
     }
   }
@@ -449,7 +454,8 @@ public abstract class Building {
   void processRequestEasyVersion() {
     // Fetch a new request if there's no current request
     if (currentRequest == null) {
-      currentRequest = requestPolicy.popRequest(this, pendingRequests);
+      currentRequest = requestPolicy.selectRequest(this, pendingRequests);
+      pendingRequests.remove(currentRequest);
 
       // Do nothing if no request was fetched
       if (currentRequest == null) {
