@@ -1,6 +1,8 @@
 package edu.duke.ece651.factorysim;
 
 import java.io.*;
+import java.util.*;
+
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -91,6 +93,19 @@ public class SimulationTest {
     sim.onIngredientDelivered(wood, woodMine, woodMine);
 
     assertEquals("[ingredient delivered]: wood to W from W on cycle 0" + System.lineSeparator(), stream.toString());
+  }
+
+  @Test
+  public void test_onIngredientSourceSelected() {
+    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+    Logger logger = new StreamLogger(stream);
+    Simulation sim = new Simulation("src/test/resources/inputs/doors1.json", 2, logger);
+
+    Item wood = new Item("wood");
+    MineBuilding woodMine = new MineBuilding(TestUtils.makeTestRecipe("wood", 1, 0), "W", sim);
+    sim.onIngredientSourceSelected(woodMine, wood, 0, wood, Collections.emptyList(), woodMine);
+
+    assertEquals("", stream.toString()); // Nothing should be logged because building is not factory
   }
 
   @Test

@@ -410,10 +410,10 @@ public class Simulation {
                " on cycle " + currentTime);
 
     // Log each request's information
-    int selectedIndex = -1;
+    int selectedIndex = 0;
     for (int i = 0; i < requests.size(); i++) {
       // Get selected index
-      if (selectedIndex == -1 && requests.get(i) == selectedRequest) {
+      if (requests.get(i) == selectedRequest) {
         selectedIndex = i;
       }
 
@@ -445,9 +445,7 @@ public class Simulation {
     }
 
     // Log selected request
-    if (selectedIndex != -1) {
-      logger.log("    Selecting " + selectedIndex);
-    }
+    logger.log("    Selecting " + selectedIndex);
   }
 
   /**
