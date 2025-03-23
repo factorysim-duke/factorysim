@@ -476,14 +476,15 @@ public class Simulation {
   }
 
   /**
+   * Indicates the source for an ingredient from a recipe has been selected.
+   * If verbosity >= 2, logs source selection details.
    *
-   *
-   * @param building
-   * @param item
-   * @param index
-   * @param ingredient
-   * @param sources
-   * @param selectedSource
+   * @param building is the factory building that selected the source.
+   * @param item is the item being produced.
+   * @param index is the index of the ingredient.
+   * @param ingredient is the ingredient item.
+   * @param sources is a list of source buildings with their scores calculated by the source policy used.
+   * @param selectedSource is the selected source building.
    */
   public void onIngredientSourceSelected(Building building,
                                          Item item,
