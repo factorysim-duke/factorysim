@@ -533,6 +533,15 @@ public abstract class Building {
   }
 
   /**
+   * Gets the list of pending requests of this building.
+   * 
+   * @return the list of pending requests.
+   */
+  public List<Request> getPendingRequests() {
+    return pendingRequests;
+  }
+
+  /**
    * Checks if this building can produce a given item.
    *
    * @param item is the item to be checked.

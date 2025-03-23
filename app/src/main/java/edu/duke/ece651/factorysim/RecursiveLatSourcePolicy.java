@@ -28,7 +28,12 @@ public class RecursiveLatSourcePolicy extends SourcePolicy {
   private int calculateTotalEstimate(Building source) {
     Usage usage = new Usage();
     int total = 0;
-    // TODO: Implement calculation
+    String uniqueId = UUID.randomUUID().toString();
+    List<BuildingId> path = new ArrayList<>();
+    path.add(new BuildingId(source, uniqueId));
+    for (Request request : source.getPendingRequests()) {
+      total += estimate(request, source, usage, path);
+    }
     return total;
   }
 
