@@ -511,4 +511,11 @@ public class Simulation {
     // Log selected score
     logger.log("    Selecting " + selectedSource.getName());
   }
+
+  public void save(String fileName){
+    System.out.println("Saving " + fileName);
+  }
+  public void load(String fileName){
+    System.out.println("Loading " + fileName);
+  }
 }

@@ -20,6 +20,8 @@ public class CommandHandler {
         registerCommand(new FinishCommand());
         registerCommand(new SetPolicyCommand());
         registerCommand(new VerboseCommand());
+        registerCommand(new SaveCommand());
+        registerCommand(new LoadCommand());
     }
 
     /**
