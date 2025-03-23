@@ -15,9 +15,9 @@ public class SourcePolicyFactory {
       case "qlen":
         return new QLenSourcePolicy();
       case "simplelat":
-        // return new SimpleLatPolicy();
+        return new SimpleLatSourcePolicy();
       case "recursivelat":
-        // return new RecursiveLatPolicy();
+        return new RecursiveLatSourcePolicy();
       default:
         throw new IllegalArgumentException("Unknown source policy: " + policyName);
     }
