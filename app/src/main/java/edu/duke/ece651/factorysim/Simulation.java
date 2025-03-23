@@ -384,6 +384,15 @@ public class Simulation {
     }
   }
 
+  /**
+   * Indicates a recipe is selected when a request is selected to be processed next.
+   * If verbosity >= 2, log selection details and all request details.
+   *
+   * @param building is the factory building that selected the recipe.
+   * @param requestPolicy is the request policy used to select.
+   * @param requests is the list of pending requests (before removing the selected request).
+   * @param selectedRequest is the selected request instance.
+   */
   public void onRecipeSelected(Building building,
                                RequestPolicy requestPolicy,
                                List<Request> requests,
@@ -415,7 +424,9 @@ public class Simulation {
         s.append("ready");
       } else {
         s.append("not ready, waiting on {");
-        for (Tuple<Item, Integer> ingredient : missingIngredients) {
+        for (int j = 0; j < missingIngredients.size(); j++) {
+          Tuple<Item, Integer> ingredient = missingIngredients.get(j);
+
           Item item = ingredient.first();
           int count = ingredient.second();
 
@@ -424,7 +435,7 @@ public class Simulation {
           }
           s.append(item.getName());
 
-          if (i != requests.size() - 1) {
+          if (j != missingIngredients.size() - 1) {
             s.append(", ");
           }
         }
