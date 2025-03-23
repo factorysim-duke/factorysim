@@ -19,6 +19,8 @@ public class CommandHandler {
         registerCommand(new StepCommand());
         registerCommand(new FinishCommand());
         registerCommand(new SetPolicyCommand());
+        registerCommand(new SaveCommand());
+        registerCommand(new LoadCommand());
     }
 
     /**
