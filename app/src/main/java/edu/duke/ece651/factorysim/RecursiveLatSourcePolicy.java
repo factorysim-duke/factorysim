@@ -25,6 +25,12 @@ public class RecursiveLatSourcePolicy extends SourcePolicy {
     return 0; // TODO: Implement this
   }
 
+  /**
+   * Calculates the total estimate time of the source building.
+   * 
+   * @param source is the source building.
+   * @return the total estimate.
+   */
   private int calculateTotalEstimate(Building source) {
     Usage usage = new Usage();
     int total = 0;
@@ -67,6 +73,11 @@ public class RecursiveLatSourcePolicy extends SourcePolicy {
     return bestSource;
   }
 
+  /**
+   * Gets the name of the source policy (recursivelat).
+   * 
+   * @return the name of the source policy.
+   */
   @Override
   public String getName() {
     return "recursivelat";
