@@ -40,6 +40,25 @@ public abstract class Building {
   }
 
   /**
+   * Gets the simulation.
+   * 
+   * @return the simulation.
+   */
+  public Simulation getSimulation() {
+    return simulation;
+  }
+
+  /**
+   * Gets the recipe for a given item.
+   * 
+   * @param item is the item to get the recipe for.
+   * @return the recipe for the item.
+   */
+  public Recipe getRecipeForItem(Item item) {
+    return simulation.getRecipeForItem(item);
+  }
+
+  /**
    * Gets the name of the building.
    * 
    * @return name of the building.
@@ -172,6 +191,15 @@ public abstract class Building {
    */
   public boolean isProcessing() {
     return currentRequest != null; // If there's a current request, it means the building is processing it
+  }
+
+  /**
+   * Gets the current request of the building.
+   * 
+   * @return the current request.
+   */
+  public Request getCurrentRequest() {
+    return currentRequest;
   }
 
   /**
