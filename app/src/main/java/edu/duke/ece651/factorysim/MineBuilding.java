@@ -1,6 +1,10 @@
 package edu.duke.ece651.factorysim;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Represents a mine building in the simulation.
@@ -8,7 +12,7 @@ import java.util.ArrayList;
 public class MineBuilding extends Building {
   private final Recipe miningRecipe;
   private final Item resource; // got from miningRecipe
-  private final int miningLatency; // got from miningRecipe
+  private final int remainingLatency; // got from miningRecipe
 
   /**
    * Constructs a basic mine with empty storage and no ingredient source
@@ -23,7 +27,7 @@ public class MineBuilding extends Building {
     super(name, new ArrayList<>(), simulation);
     this.miningRecipe = miningRecipe;
     this.resource = miningRecipe.getOutput();
-    this.miningLatency = miningRecipe.getLatency();
+    this.remainingLatency = miningRecipe.getLatency();
   }
 
   /**
@@ -42,7 +46,7 @@ public class MineBuilding extends Building {
    * @return the mining latency of this mine.
    */
   public int getMiningLatency() {
-    return miningLatency;
+    return remainingLatency;
   }
 
   /**
@@ -65,5 +69,22 @@ public class MineBuilding extends Building {
       return true;
     }
     return false;
+  }
+
+  public JsonObject toJson(){
+    JsonObject json = new JsonObject();
+    json.addProperty("name", this.getName());
+    json.addProperty("mine", miningRecipe.getOutput().getName());
+    JsonArray sourcesArray=new JsonArray();
+    json.add("sources", sourcesArray);
+    JsonObject storage = new JsonObject();
+    if(!getStorage().isEmpty()){
+      for (Map.Entry<Item,Integer>entry:getStorage().entrySet()){
+        storage.addProperty(entry.getKey().getName(), entry.getValue());
+      }
+    }
+    json.add("storage", storage);
+//    json.addProperty("remainingLatency", remainingLatency);
+    return json;
   }
 }

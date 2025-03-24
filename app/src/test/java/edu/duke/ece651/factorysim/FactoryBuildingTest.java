@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
 
 public class FactoryBuildingTest {
@@ -100,4 +101,49 @@ public class FactoryBuildingTest {
     assertThrows(IllegalArgumentException.class, () -> factory.takeFromStorage(c, 2));
     assertThrows(IllegalArgumentException.class, () -> factory.takeFromStorage(a, 1));
   }
+
+  @Test
+  public void test_toJson() {
+    Item door = new Item("door");
+    Recipe doorRecipe = TestUtils.makeTestRecipe("door", 2, 5);
+    Type factoryType = new Type("DoorFactory", List.of(doorRecipe));
+
+    MineBuilding woodMine = new MineBuilding(TestUtils.makeTestRecipe("wood", 0, 1), "woodMine", new TestUtils.MockSimulation());
+    MineBuilding metalMine = new MineBuilding(TestUtils.makeTestRecipe("metal", 0, 1), "metalMine", new TestUtils.MockSimulation());
+
+    FactoryBuilding doorFactory = new FactoryBuilding(factoryType, "doorFactory", List.of(woodMine, metalMine), new TestUtils.MockSimulation());
+    doorFactory.addToStorage(door, 3);
+
+    JsonObject json = doorFactory.toJson();
+    assertEquals("doorFactory", json.get("name").getAsString());
+    assertEquals("DoorFactory", json.get("type").getAsString());
+    assertEquals(2, json.getAsJsonArray("sources").size());
+    assertEquals("woodMine", json.getAsJsonArray("sources").get(0).getAsString());
+    assertEquals("metalMine", json.getAsJsonArray("sources").get(1).getAsString());
+    assertEquals(3, json.getAsJsonObject("storage").get("door").getAsInt());
+  }
+
+  @Test
+  public void test_request_in_building() {
+    Item door = new Item("door");
+    Recipe doorRecipe = TestUtils.makeTestRecipe("door", 2, 5);
+    Type factoryType = new Type("DoorFactory", List.of(doorRecipe));
+
+    MineBuilding woodMine = new MineBuilding(TestUtils.makeTestRecipe("wood", 0, 1), "woodMine", new TestUtils.MockSimulation());
+    MineBuilding metalMine = new MineBuilding(TestUtils.makeTestRecipe("metal", 0, 1), "metalMine", new TestUtils.MockSimulation());
+
+    FactoryBuilding doorFactory = new FactoryBuilding(factoryType, "doorFactory", List.of(woodMine, metalMine), new TestUtils.MockSimulation());
+
+    Request request1 = new Request(1, door, doorRecipe, doorFactory, null);
+    Request request2 = new Request(2, door, doorRecipe, doorFactory, null);
+
+    doorFactory.getPendingRequest().add(request1);
+    doorFactory.getPendingRequest().add(request2);
+    doorFactory.processRequestEasyVersion();
+
+    assertEquals(1, doorFactory.getPendingRequest().size());
+    assertSame(request1, doorFactory.getCurrentRequest());
+  }
+
+
 }

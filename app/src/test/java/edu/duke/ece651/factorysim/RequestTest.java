@@ -1,6 +1,8 @@
 package edu.duke.ece651.factorysim;
 
 import java.util.*;
+
+import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -47,6 +49,7 @@ class RequestTest {
     Building mine = new MineBuilding(woodRecipe, "woodMine", new TestUtils.MockSimulation());
 
     Request r = new Request(1, wood, woodRecipe, mine, null);
+    assertEquals(r.getStatus(),"pending");
     assertFalse(r.process()); // remainingSteps = 2
     assertFalse(r.isCompleted());
 
@@ -58,5 +61,56 @@ class RequestTest {
 
     assertTrue(r.process()); // remainingSteps = 0
     assertTrue(r.isCompleted());
+
+    int orderNum = 1;
+    Request request = new Request(orderNum, wood, woodRecipe, mine, null);
+
+    assertEquals(request.getStatus(), "pending");
+
+    request.setStatus("current");
+    assertEquals("current", request.getStatus());
+
+    request.setStatus("completed");
+    assertEquals("completed", request.getStatus());
   }
+
+  @Test
+  public void test_toJson() {
+    Item wood = new Item("wood");
+    Recipe woodRecipe = TestUtils.makeTestRecipe("wood", 1, 2);
+    Building mine = new MineBuilding(woodRecipe, "woodMine", new TestUtils.MockSimulation());
+
+    Request request = new Request(1, wood, woodRecipe, mine, null);
+
+    JsonObject json = request.toJson();
+
+    assertEquals(1, json.get("orderNum").getAsInt());
+    assertEquals("wood", json.get("item").getAsString());
+    assertEquals("wood", json.get("recipe").getAsString());
+    assertEquals("woodMine", json.get("producer").getAsString());
+    assertEquals("null", json.get("deliverTo").getAsString());
+    assertEquals(request.getRemainingSteps(), json.get("remainingSteps").getAsInt());
+    assertEquals(request.getStatus(), json.get("status").getAsString());
+  }
+
+  @Test
+  public void test_toJson_withDeliverTo() {
+    Item door = new Item("door");
+    Recipe doorRecipe = TestUtils.makeTestRecipe("door", 12, 3);
+    Building mine = new MineBuilding(doorRecipe, "woodMine", new TestUtils.MockSimulation());
+    Building factory = new FactoryBuilding(new Type("door", List.of(doorRecipe)), "doorFactory", List.of(mine), new TestUtils.MockSimulation());
+
+    Request request = new Request(2, door, doorRecipe, mine, factory);
+
+    JsonObject json = request.toJson();
+
+    assertEquals(2, json.get("orderNum").getAsInt());
+    assertEquals("door", json.get("item").getAsString());
+    assertEquals("door", json.get("recipe").getAsString());
+    assertEquals("woodMine", json.get("producer").getAsString());
+    assertEquals("doorFactory", json.get("deliverTo").getAsString());
+    assertEquals(request.getRemainingSteps(), json.get("remainingSteps").getAsInt());
+    assertEquals(request.getStatus(), json.get("status").getAsString());
+  }
+
 }
