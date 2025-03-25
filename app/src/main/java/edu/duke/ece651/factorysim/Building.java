@@ -1,5 +1,8 @@
 package edu.duke.ece651.factorysim;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,7 +41,9 @@ public abstract class Building {
     this.requestPolicy = simulation.getRequestPolicy(name);
     this.sourcePolicy = simulation.getSourcePolicy(name);
   }
-
+public Map<Item, Integer> getStorage() {
+    return storage;
+}
   /**
    * Gets the simulation.
    * 
@@ -85,6 +90,7 @@ public abstract class Building {
     sources.clear();
     sources.addAll(newSources);
   }
+
 
   /**
    * Gets the current storage number of an item.
@@ -497,12 +503,14 @@ public abstract class Building {
     // Fetch a new request if there's no current request
     if (currentRequest == null) {
       currentRequest = requestPolicy.selectRequest(this, pendingRequests);
+
       pendingRequests.remove(currentRequest);
 
       // Do nothing if no request was fetched
       if (currentRequest == null) {
         return;
       }
+      currentRequest.setStatus("current");
     }
 
     // Process current request by one step
@@ -576,4 +584,15 @@ public abstract class Building {
    * @return true if this building can produce this item, false otherwise.
    */
   public abstract boolean canProduce(Item item);
+
+
+  public abstract JsonObject toJson();
+
+  public List<Request> getPendingRequest() {
+    return pendingRequests;
+  }
+  public Request getCurrentRequest() {
+    return currentRequest;
+  }
+
 }

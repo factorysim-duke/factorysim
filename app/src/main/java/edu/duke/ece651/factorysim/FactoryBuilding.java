@@ -1,6 +1,12 @@
 package edu.duke.ece651.factorysim;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a factory building in the simulation.
@@ -74,4 +80,25 @@ public class FactoryBuilding extends Building {
   public int getRemainingLatency() {
     return remainingLatency;
   }
+
+ public JsonObject toJson(){
+  JsonObject json = new JsonObject();
+  json.addProperty("name", this.getName());
+  json.addProperty("type", factoryType.getName());
+   JsonArray sourcesArray=new JsonArray();
+   for (Building source : this.getSources()) {
+     sourcesArray.add(source.getName());
+   }
+   json.add("sources", sourcesArray);
+
+   JsonObject storage = new JsonObject();
+   if(!getStorage().isEmpty()){
+       for (Map.Entry<Item,Integer>entry:getStorage().entrySet()){
+           storage.addProperty(entry.getKey().getName(), entry.getValue());
+       }
+   }
+   json.add("storage", storage);
+//    json.addProperty("remainingLatency", remainingLatency);
+    return json;
+ }
 }

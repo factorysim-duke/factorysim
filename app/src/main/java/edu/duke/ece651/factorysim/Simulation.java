@@ -1,5 +1,8 @@
 package edu.duke.ece651.factorysim;
 
+import com.google.gson.*;
+
+import java.io.*;
 import java.util.*;
 
 /**
@@ -512,10 +515,98 @@ public class Simulation {
     logger.log("    Selecting " + selectedSource.getName());
   }
 
-  public void save(String fileName){
-    System.out.println("Saving " + fileName);
+  /**
+   * Saves the current simulation state to a file.
+   *
+   * @param fileName the name of the file to save to.
+   */
+  public void save(String fileName) {
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    try (FileWriter writer = new FileWriter(fileName)) {
+      JsonObject state = new JsonObject();
+
+
+      state.addProperty("currentTime", currentTime);
+      state.addProperty("finished", finished);
+      state.addProperty("nextOrderNum", nextOrderNum);
+      state.addProperty("verbosity", verbosity);
+
+      JsonArray typesArray = new JsonArray();
+      for (Type type : world.getTypes()) {
+        typesArray.add(type.toJson());
+      }
+      state.add("types", typesArray);
+
+      JsonArray buildingsArray = new JsonArray();
+      for (Building building : world.getBuildings()) {
+        buildingsArray.add(building.toJson());
+      }
+      state.add("buildings", buildingsArray);
+
+      JsonArray recipesArray = new JsonArray();
+      for (Recipe recipe : world.getRecipes()) {
+        recipesArray.add(recipe.toJson());
+      }
+      state.add("recipes", recipesArray);
+
+      JsonArray requestArray = new JsonArray();
+      for (Building building : world.getBuildings()) {
+        if (building.getCurrentRequest() != null) {
+          requestArray.add(building.getCurrentRequest().toJson());
+        }
+        if (building.getPendingRequest() != null && !building.getPendingRequest().isEmpty()) {
+          building.getPendingRequest().forEach(request -> requestArray.add(request.toJson()));
+        }
+      }
+      state.add("requests", requestArray);
+
+      gson.toJson(state, writer);
+      System.out.println("Simulation saved to " + fileName);
+    } catch (IOException e) {
+      System.err.println("Failed to save simulation: " + e.getMessage());
+    }
   }
-  public void load(String fileName){
+
+  public void load(String fileName) {
     System.out.println("Loading " + fileName);
+    Gson gson = new Gson();
+    try (Reader reader = new FileReader(fileName)) {
+      JsonObject state = gson.fromJson(reader, JsonObject.class);
+
+      currentTime = state.get("currentTime").getAsInt();
+      finished = state.get("finished").getAsBoolean();
+      nextOrderNum = state.get("nextOrderNum").getAsInt();
+      verbosity = state.get("verbosity").getAsInt();
+
+//      read from building
+//      List<Building> buildings = new ArrayList<>();
+//      JsonArray buildingsArray = state.getAsJsonArray("buildings");
+//      for (JsonElement element : buildingsArray) {
+//        buildings.add(Building.fromJson(element.getAsJsonObject()));
+//      }
+//
+//      List<Type> types = new ArrayList<>();
+//      JsonArray typesArray = state.getAsJsonArray("types");
+//      for (JsonElement element : typesArray) {
+//        types.add(Type.fromJson(element.getAsJsonObject()));
+//      }
+//
+//      List<Recipe> recipes = new ArrayList<>();
+//      JsonArray recipesArray = state.getAsJsonArray("recipes");
+//      for (JsonElement element : recipesArray) {
+//        recipes.add(Recipe.fromJson(element.getAsJsonObject()));
+//      }
+//
+//
+//      world.setBuildings(buildings);
+//      world.setTypes(types);
+//      world.setRecipes(recipes);
+
+      System.out.println("Simulation loaded from " + fileName);
+    } catch (IOException | JsonSyntaxException e) {
+      System.err.println("Failed to load simulation: " + e.getMessage());
+    }
   }
+
+
 }

@@ -3,7 +3,9 @@ package edu.duke.ece651.factorysim;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashMap;
+import java.util.Map;
 
+import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
 
 public class RecipeTest {
@@ -37,5 +39,24 @@ public class RecipeTest {
     // test output and latency
     assertSame(door, doorRecipe.getOutput());
     assertEquals(12, doorRecipe.getLatency());
+  }
+
+  @Test
+  public void test_toJSON() {
+    Item wood = new Item("wood");
+    Item metal = new Item("metal");
+    Item hinge = new Item("hinge");
+    HashMap<Item, Integer> ingredients = new HashMap<>();
+    ingredients.put(wood, 1);
+    ingredients.put(metal, 2);
+
+    Recipe recipe=new Recipe(hinge,  ingredients,5);
+    JsonObject json = recipe.toJson();
+    assertEquals("hinge",json.get("output").getAsString());
+
+    JsonObject ingredientsJson = json.getAsJsonObject("ingredients");
+    assertEquals(2,ingredientsJson.get("metal").getAsInt());
+    assertEquals(1,ingredientsJson.get("wood").getAsInt());
+    assertEquals(5,json.get("latency").getAsInt());
   }
 }

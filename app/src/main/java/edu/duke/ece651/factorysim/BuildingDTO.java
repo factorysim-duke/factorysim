@@ -1,5 +1,6 @@
 package edu.duke.ece651.factorysim;
 
+import java.util.HashMap;
 import java.util.List;
 
 /*

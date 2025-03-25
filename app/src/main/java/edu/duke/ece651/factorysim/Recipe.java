@@ -1,7 +1,12 @@
 package edu.duke.ece651.factorysim;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import java.util.LinkedHashMap;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents a recipe in the simulation.
@@ -64,5 +69,20 @@ public class Recipe {
     return latency;
   }
 
-
+  /**
+   * Converts the Recipe object to a JSON representation.
+   *
+   * @return a JsonObject representing the recipe.
+   */
+  public JsonObject toJson() {
+    JsonObject json=new JsonObject();
+    json.addProperty("output", output.getName());
+    JsonObject ingredientsJson = new JsonObject();
+    for (Map.Entry<Item,Integer> entry:ingredients.entrySet()) {
+      ingredientsJson.addProperty(entry.getKey().getName(),entry.getValue());
+    }
+    json.add("ingredients", ingredientsJson);
+    json.addProperty("latency", latency);
+    return json;
+  }
 }

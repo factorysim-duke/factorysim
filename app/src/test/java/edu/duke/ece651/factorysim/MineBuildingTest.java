@@ -1,6 +1,9 @@
 package edu.duke.ece651.factorysim;
 
 import java.util.*;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -117,4 +120,33 @@ public class MineBuildingTest {
     assertEquals(1, missingIngredients.get(d));
     assertThrows(IllegalArgumentException.class, ()->building.requestMissingIngredientsFromHashMap(missingIngredients));
   }
+
+  @Test
+  public void test_toJson_emptyStorage() {
+    Item iron = new Item("iron");
+    Recipe miningRecipe = TestUtils.makeTestRecipe("iron", 0, 1);
+    MineBuilding ironMine = new MineBuilding(miningRecipe, "ironMine", new TestUtils.MockSimulation());
+
+    JsonObject json = ironMine.toJson();
+
+    assertEquals("ironMine", json.get("name").getAsString());
+    assertEquals("iron", json.get("mine").getAsString());
+
+    JsonArray sourcesArray = json.getAsJsonArray("sources");
+    assertNotNull(sourcesArray);
+    assertEquals(0, sourcesArray.size());
+
+    JsonObject storageJson = json.getAsJsonObject("storage");
+    assertNotNull(storageJson);
+    assertEquals(0, storageJson.entrySet().size());
+
+    ironMine.addToStorage(iron, 5);
+    json = ironMine.toJson();
+    storageJson = json.getAsJsonObject("storage");
+    assertNotNull(storageJson);
+    assertTrue(storageJson.has("iron"));
+    assertEquals(5, storageJson.get("iron").getAsInt());
+  }
+
+
 }

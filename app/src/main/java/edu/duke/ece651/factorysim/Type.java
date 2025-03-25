@@ -1,5 +1,8 @@
 package edu.duke.ece651.factorysim;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 import java.util.List;
 
 /**
@@ -40,5 +43,21 @@ public class Type {
    */
   public List<Recipe> getRecipes() {
     return recipes;
+  }
+
+  /**
+   * Converts the Type object to a JSON representation.
+   *
+   * @return a JsonObject representing the type.
+   */
+  public JsonObject toJson() {
+    JsonObject json = new JsonObject();
+    json.addProperty("name", name);
+    JsonArray recipesArray=new JsonArray();
+    for (Recipe recipe : recipes) {
+      recipesArray.add(recipe.getOutput().getName());
+    }
+    json.add("recipes", recipesArray);
+    return json;
   }
 }

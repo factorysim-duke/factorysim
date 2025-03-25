@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 public class TestUtils {
   /**
@@ -85,6 +86,11 @@ public class TestUtils {
     @Override
     public boolean canProduce(Item item) {
         return true;
+    }
+
+    @Override
+    public JsonObject toJson() {
+      return null;
     }
   }
 }
