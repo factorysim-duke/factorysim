@@ -1,6 +1,5 @@
 package edu.duke.ece651.factorysim;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.util.*;
@@ -44,6 +43,25 @@ public abstract class Building {
 public Map<Item, Integer> getStorage() {
     return storage;
 }
+  /**
+   * Gets the simulation.
+   * 
+   * @return the simulation.
+   */
+  public Simulation getSimulation() {
+    return simulation;
+  }
+
+  /**
+   * Gets the recipe for a given item.
+   * 
+   * @param item is the item to get the recipe for.
+   * @return the recipe for the item.
+   */
+  public Recipe getRecipeForItem(Item item) {
+    return simulation.getRecipeForItem(item);
+  }
+
   /**
    * Gets the name of the building.
    * 
@@ -179,6 +197,7 @@ public Map<Item, Integer> getStorage() {
   public boolean isProcessing() {
     return currentRequest != null; // If there's a current request, it means the building is processing it
   }
+
 
   /**
    * Checks if the factory/building has finished processing all requests.
@@ -538,6 +557,15 @@ public Map<Item, Integer> getStorage() {
       ans += currentRequest.getRemainingSteps();
     }
     return ans;
+  }
+
+  /**
+   * Gets the list of pending requests of this building.
+   * 
+   * @return the list of pending requests.
+   */
+  public List<Request> getPendingRequests() {
+    return pendingRequests;
   }
 
   /**

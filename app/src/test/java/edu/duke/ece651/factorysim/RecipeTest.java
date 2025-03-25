@@ -3,7 +3,6 @@ package edu.duke.ece651.factorysim;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
