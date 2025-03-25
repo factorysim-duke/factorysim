@@ -1,5 +1,7 @@
 package edu.duke.ece651.factorysim;
 
+import java.io.FileNotFoundException;
+
 /**
  * Usage: <code>load file name</code>
  */

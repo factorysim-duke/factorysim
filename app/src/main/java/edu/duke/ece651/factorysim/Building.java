@@ -188,6 +188,9 @@ public Map<Item, Integer> getStorage() {
     requestMissingIngredients(request.getRecipe());
   }
 
+  public void setCurrentRequest(Request request) {
+    currentRequest = request;
+  }
   /**
    * Checks if the building is processing a request currently.
    *
@@ -242,6 +245,7 @@ public Map<Item, Integer> getStorage() {
     else if (pendingRequests.isEmpty() == false) {
       // Select a request based on the current policy
       Request selectedRequest = requestPolicy.selectRequest(this, pendingRequests);
+      selectedRequest.setStatus("current");
       Recipe selectedRecipe = selectedRequest.getRecipe();
 
       // Notify simulation a request has been selected

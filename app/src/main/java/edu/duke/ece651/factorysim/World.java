@@ -74,5 +74,33 @@ public class World {
     return false;
   }
 
+  /**
+   * Gets a Type by its name.
+   * @param name The name of the type.
+   * @return The Type object, or null if not found.
+   */
+  public Type getTypeFromName(String name) {
+    for (Type type : types) {
+      if (type.getName().equals(name)) {
+        return type;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Gets a Recipe by its name (output item name).
+   * @param name The name of the recipe's output item.
+   * @return The Recipe object, or null if not found.
+   */
+  public Recipe getRecipeFromName(String name) {
+    for (Recipe recipe : recipes) {
+      if (recipe.getOutput().getName().equals(name)) {
+        return recipe;
+      }
+    }
+    return null;
+  }
+
 
 }

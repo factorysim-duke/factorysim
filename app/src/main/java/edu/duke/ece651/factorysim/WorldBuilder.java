@@ -34,6 +34,7 @@ public class WorldBuilder {
         return world;
     }
 
+
     /**
      * Builds the recipes from the RecipeDTOs and checks the validity of the data.
      *
@@ -66,26 +67,26 @@ public class WorldBuilder {
             Recipe recipe = new Recipe(output, ingredients, recipeDTO.latency);
             recipes.put(recipeDTO.output, recipe);
         }
-        
+
         // Check if all ingredients are defined as recipe outputs
         for (Recipe r : recipes.values()) {
             for (Item ingredient : r.getIngredients().keySet()) {
                 if (!recipes.containsKey(ingredient.getName())) {
-                    throw new IllegalArgumentException("Recipe '" + r.getOutput().getName() 
-                        + "' references ingredient '" + ingredient.getName() 
-                        + "', but that is not defined as a recipe output (violates #6).");
+                    throw new IllegalArgumentException("Recipe '" + r.getOutput().getName()
+                            + "' references ingredient '" + ingredient.getName()
+                            + "', but that is not defined as a recipe output (violates #6).");
                 }
             }
-          }
+        }
 
         return recipes;
     }
 
     /**
      * Builds the types from the TypeDTOs and checks the validity of the data.
-     * 
+     *
      * @param typeDTOs is the TypeDTOs to build the types from.
-     * @param recipes is the Map of recipes.
+     * @param recipes  is the Map of recipes.
      * @return the Map of types.
      */
     private static Map<String, Type> buildTypes(List<TypeDTO> typeDTOs, Map<String, Recipe> recipes) {
@@ -111,14 +112,14 @@ public class WorldBuilder {
 
     /**
      * Builds the buildings from the BuildingDTOs and checks the validity of the data.
-     * 
+     *
      * @param buildingDTOs is the BuildingDTOs to build the buildings from.
-     * @param typeMap is the Map of types.
-     * @param recipeMap is the Map of recipes.
+     * @param typeMap      is the Map of types.
+     * @param recipeMap    is the Map of recipes.
      * @return the Map of buildings.
      */
     private static Map<String, Building> buildBuildings(List<BuildingDTO> buildingDTOs,
-            Map<String, Type> typeMap, Map<String, Recipe> recipeMap, Simulation simulation) {
+                                                        Map<String, Type> typeMap, Map<String, Recipe> recipeMap, Simulation simulation) {
         Map<String, Building> buildings = new HashMap<>();
         Set<String> usedNames = new HashSet<>();
         for (BuildingDTO buildingDTO : buildingDTOs) {
@@ -135,6 +136,11 @@ public class WorldBuilder {
                     throw new IllegalArgumentException("Mine building '" + buildingDTO.name + "' should have no ingredients (violates #8).");
                 }
                 MineBuilding mineBuilding = new MineBuilding(recipe, buildingDTO.name, simulation);
+                if (buildingDTO.storage != null) {
+                    for (Map.Entry<String, Integer> entry : buildingDTO.storage.entrySet()) {
+                        mineBuilding.addToStorage(new Item(entry.getKey()), entry.getValue());
+                    }
+                }
                 buildings.put(buildingDTO.name, mineBuilding);
             } else if (buildingDTO.type != null) {
                 if (!typeMap.containsKey(buildingDTO.type)) {
@@ -146,6 +152,11 @@ public class WorldBuilder {
                 }
                 Type type = typeMap.get(buildingDTO.type);
                 FactoryBuilding factoryBuilding = new FactoryBuilding(type, buildingDTO.name, new ArrayList<>(), simulation);
+                if (buildingDTO.storage != null) {
+                    for (Map.Entry<String, Integer> entry : buildingDTO.storage.entrySet()) {
+                        factoryBuilding.addToStorage(new Item(entry.getKey()), entry.getValue());
+                    }
+                }
                 buildings.put(buildingDTO.name, factoryBuilding);
             } else {
                 throw new IllegalArgumentException("Building '" + buildingDTO.name + "' has no mine or type.");
@@ -168,15 +179,15 @@ public class WorldBuilder {
             }
             building.updateSources(sources);
         }
-        
+
         return buildings;
     }
 
     /**
      * Validates the ingredients of the buildings.
-     * 
+     *
      * @param buildings is the Map of buildings.
-     * @param types is the Map of types.
+     * @param types     is the Map of types.
      */
     private static void validateBuildingsIngredients(Map<String, Building> buildings, Map<String, Type> types) {
         for (Building building : buildings.values()) {

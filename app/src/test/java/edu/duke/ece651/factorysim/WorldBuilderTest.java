@@ -15,6 +15,25 @@ public class WorldBuilderTest {
   }
 
   @Test
+  public void test_WorldBuilder_with_storage() {
+    ConfigData configData = TestUtils.loadConfigData("src/test/resources/inputs/storageBuilder.json");
+    assertNotNull(configData, "ConfigData should not be null");
+
+    Simulation simulation = new Simulation("src/test/resources/inputs/storageBuilder.json");
+
+    World world = WorldBuilder.buildWorld(configData, simulation);
+    Building hingeFactory = world.getBuildingFromName("Hi");
+    assertNotNull(hingeFactory, "Hi should exist");
+    assertTrue(hingeFactory instanceof FactoryBuilding);
+
+    assertEquals(2, hingeFactory.getStorage().getOrDefault(new Item("metal"), 0));
+    assertEquals(3, hingeFactory.getStorage().getOrDefault(new Item("hinge"), 0));
+
+    simulation.step(1);
+  }
+
+
+  @Test
   public void test_WorldBuilder_failure_missingRecipe() {
     ConfigData configDataMissingRecipe = TestUtils.loadConfigData("src/test/resources/inputs/MissingReceipe.json");
     assertThrows(IllegalArgumentException.class, () -> {
@@ -85,4 +104,6 @@ public class WorldBuilderTest {
       WorldBuilder.buildWorld(configDataFactoryMissingOneSource, new TestUtils.MockSimulation());
     });
   }
+
+
 }

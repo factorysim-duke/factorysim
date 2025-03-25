@@ -72,6 +72,9 @@ class RequestTest {
 
     request.setStatus("completed");
     assertEquals("completed", request.getStatus());
+
+    request.setRemainingSteps(0);
+    assertEquals(0, request.getRemainingSteps());
   }
 
   @Test

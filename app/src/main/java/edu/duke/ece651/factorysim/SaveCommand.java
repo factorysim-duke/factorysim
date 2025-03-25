@@ -1,5 +1,7 @@
 package edu.duke.ece651.factorysim;
 
+import java.io.IOException;
+
 /**
  * Usage: <code>save file name</code>
  */
@@ -10,7 +12,7 @@ public class SaveCommand implements Command {
     }
 
     @Override
-    public void execute(String[] args, Simulation sim) {
+    public void execute(String[] args, Simulation sim){
         // Check argument count
         if (args.length != 2) {
             throw new IllegalArgumentException("Invalid 'save' command: illegal number of arguments");
@@ -24,11 +26,7 @@ public class SaveCommand implements Command {
         // Parse steps
         String fileName = args[1];
 
-        // Operate on the simulation
-        try {
             sim.save(fileName);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid 'save' command: file name doesn't exist", e);
-        }
+
     }
 }

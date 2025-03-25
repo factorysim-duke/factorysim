@@ -16,6 +16,8 @@ public class Request {
     private int remainingSteps;
     private String status;
 
+
+
     /**
      * Constructs a request.
      *
@@ -35,7 +37,10 @@ public class Request {
         this.deliverTo = deliverTo;
         this.remainingSteps = recipe.getLatency();
         status = "pending";
+
     }
+
+
 
     /**
      * Gets the order number of this request.
@@ -150,6 +155,15 @@ public class Request {
     }
 
     /**
+     * Sets the remainingSteps to the specified value.
+     *
+     * @param remainingSteps the new status to set.
+     */
+    public void setRemainingSteps(int remainingSteps) {
+        this.remainingSteps = remainingSteps;
+    }
+
+    /**
      * Converts the Request object to a JSON representation.
      *
      * @return a JsonObject representing the request.
@@ -171,4 +185,7 @@ public class Request {
         json.addProperty("status", status);
         return json;
     }
+
+
+
 }

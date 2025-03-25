@@ -143,6 +143,9 @@ public class FactoryBuildingTest {
 
     assertEquals(1, doorFactory.getPendingRequest().size());
     assertSame(request1, doorFactory.getCurrentRequest());
+
+    doorFactory.setCurrentRequest(request2);
+    assertEquals(doorFactory.getCurrentRequest(), request2);
   }
 
 

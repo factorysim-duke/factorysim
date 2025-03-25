@@ -1,0 +1,130 @@
+{
+  "currentTime": 1,
+  "finished": false,
+  "nextOrderNum": 3,
+  "verbosity": 2,
+  "types": [
+    {
+      "name": "door",
+      "recipes": [
+        "door"
+      ]
+    },
+    {
+      "name": "hinge",
+      "recipes": [
+        "hinge"
+      ]
+    },
+    {
+      "name": "handle",
+      "recipes": [
+        "handle"
+      ]
+    }
+  ],
+  "buildings": [
+    {
+      "name": "Hi",
+      "type": "hinge",
+      "sources": [
+        "M"
+      ],
+      "storage": {}
+    },
+    {
+      "name": "D",
+      "type": "door",
+      "sources": [
+        "W",
+        "Hi",
+        "Ha"
+      ],
+      "storage": {}
+    },
+    {
+      "name": "W",
+      "mine": "wood",
+      "sources": [],
+      "storage": {}
+    },
+    {
+      "name": "Ha",
+      "type": "handle",
+      "sources": [
+        "M"
+      ],
+      "storage": {}
+    },
+    {
+      "name": "M",
+      "mine": "metal",
+      "sources": [],
+      "storage": {}
+    }
+  ],
+  "recipes": [
+    {
+      "output": "door",
+      "ingredients": {
+        "wood": 1,
+        "handle": 1,
+        "hinge": 3
+      },
+      "latency": 12
+    },
+    {
+      "output": "hinge",
+      "ingredients": {
+        "metal": 1
+      },
+      "latency": 1
+    },
+    {
+      "output": "metal",
+      "ingredients": {},
+      "latency": 1
+    },
+    {
+      "output": "handle",
+      "ingredients": {
+        "metal": 1
+      },
+      "latency": 5
+    },
+    {
+      "output": "wood",
+      "ingredients": {},
+      "latency": 1
+    }
+  ],
+  "requests": [
+    {
+      "orderNum": 0,
+      "item": "hinge",
+      "recipe": "hinge",
+      "producer": "Hi",
+      "deliverTo": "null",
+      "remainingSteps": 1,
+      "status": "current"
+    },
+    {
+      "orderNum": 1,
+      "item": "metal",
+      "recipe": "metal",
+      "producer": "M",
+      "deliverTo": "Hi",
+      "remainingSteps": 1,
+      "status": "current"
+    },
+    {
+      "orderNum": 2,
+      "item": "metal",
+      "recipe": "metal",
+      "producer": "M",
+      "deliverTo": "null",
+      "remainingSteps": 1,
+      "status": "pending"
+    }
+  ]
+}

@@ -3,6 +3,7 @@ package edu.duke.ece651.factorysim;
 import java.io.*;
 import java.util.*;
 
+import com.google.gson.JsonSyntaxException;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -209,5 +210,41 @@ public class SimulationTest {
     sim.finish();
     expected = "Simulation completed at time-step 50" + System.lineSeparator();
     assertEquals(expected, stream.toString());
+  }
+
+  @Test
+  public void test_SaveAndLoad_Simulation() throws Exception {
+    Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+    simulation.setVerbosity(2);
+
+
+
+    simulation.makeUserRequest("hinge", "Hi");
+
+    simulation.step(1);
+    simulation.makeUserRequest("metal", "M");
+    assertEquals(1, simulation.getCurrentTime());
+
+    simulation.save("test_save");
+    assertTrue(new File("test_save").exists());
+
+    Simulation loadedSimulation = new Simulation("src/test/resources/inputs/doors1.json");
+    loadedSimulation.load("test_save");
+
+    assertEquals(1, loadedSimulation.getCurrentTime());
+    assertEquals(2, loadedSimulation.getVerbosity());
+
+    assertFalse(loadedSimulation.allRequestsFinished());
+  }
+
+  @Test
+  public void test_load_save_false() throws Exception {
+    Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+    assertThrows(IllegalArgumentException.class,() -> simulation.load("src/test/resources/inputs/test_load_producer_false"));
+    assertThrows(IllegalArgumentException.class,() -> simulation.load("src/test/resources/inputs/test_load_recipe_false"));
+    assertThrows(IllegalArgumentException.class,() -> simulation.load("src/test/resources/inputs/test_load_deliverTo_false"));
+    assertThrows(IllegalArgumentException.class,() -> simulation.load("src/test/resources/inputs/invalid_file"));
+    assertThrows(IllegalArgumentException.class,() -> simulation.save("invalid/0001/test_load_producer_false"));
+
   }
 }
