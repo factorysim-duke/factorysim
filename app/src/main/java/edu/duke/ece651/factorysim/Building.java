@@ -199,14 +199,6 @@ public Map<Item, Integer> getStorage() {
     return currentRequest != null; // If there's a current request, it means the building is processing it
   }
 
-  /**
-   * Gets the current request of the building.
-   * 
-   * @return the current request.
-   */
-  public Request getCurrentRequest() {
-    return currentRequest;
-  }
 
   /**
    * Checks if the factory/building has finished processing all requests.

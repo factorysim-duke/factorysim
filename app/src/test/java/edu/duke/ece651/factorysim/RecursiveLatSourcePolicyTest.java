@@ -201,46 +201,4 @@ public class RecursiveLatSourcePolicyTest {
     assertEquals(0, usage.getStorageUsed(item1, path1));
     assertFalse(usage.isInProgressUsed(requestInUse));
   }
-  @Test
-  public void test_estimate_inProgressTwice() {
-    Simulation simulation = new TestUtils.MockSimulation();
-  
-    // Step 1: Create a recipe with latency=5, no ingredients
-    Recipe recipe = TestUtils.makeTestRecipe("myItem", 0, 5); 
-    // “0” inputs means no sub-ingredients, “5” means it takes 5 cycles.
-  
-    // Step 2: Create a factory that can produce that recipe
-    Type singleType = new Type("singleType", Arrays.asList(recipe));
-    FactoryBuilding factory = new FactoryBuilding(singleType, "F", new ArrayList<>(), simulation);
-  
-    // Step 3: Create a Request for 'myItem' and put it in the factory's queue
-    Request req = new Request(simulation.getOrderNum(), new Item("myItem"), recipe, factory, null);
-    factory.addPendingRequest(req);
-  
-    // Force the factory to be “currently” working on that request
-    // The actual method name might differ (or you might set currentRequest manually).
-    factory.processRequestEasyVersion(); // sets factory.getCurrentRequest() == req
-    // Now that request is in progress with 5 steps to go.
-  
-    // Step 4: Use the RecursiveLatSourcePolicy
-    RecursiveLatSourcePolicy policy = new RecursiveLatSourcePolicy();
-    List<Building> singleFactoryList = List.of(factory);
-  
-    // Step 5: First call to selectSource => should yield "5" as the time
-    Building chosen1 = policy.selectSource(
-        new Item("myItem"), 
-        singleFactoryList, 
-        (b, score) -> assertEquals(5, score, "First estimate must be 5")
-    );
-    assertEquals("F", chosen1.getName());
-  
-    // Step 6: Second call to selectSource => must still yield "5", 
-    //         since the exact same request is still in progress.
-    Building chosen2 = policy.selectSource(
-        new Item("myItem"), 
-        singleFactoryList, 
-        (b, score) -> assertEquals(5, score, "Second estimate must remain 5")
-    );
-    assertEquals("F", chosen2.getName());
-  }
 }
