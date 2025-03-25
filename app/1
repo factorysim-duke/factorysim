@@ -1,8 +1,8 @@
 {
-  "currentTime": 0,
+  "currentTime": 1,
   "finished": false,
-  "nextOrderNum": 0,
-  "verbosity": 0,
+  "nextOrderNum": 3,
+  "verbosity": 2,
   "types": [
     {
       "name": "door",
@@ -98,5 +98,33 @@
       "latency": 1
     }
   ],
-  "requests": []
+  "requests": [
+    {
+      "orderNum": 0,
+      "item": "hinge",
+      "recipe": "hinge",
+      "producer": "Hi",
+      "deliverTo": "null",
+      "remainingSteps": 1,
+      "status": "current"
+    },
+    {
+      "orderNum": 1,
+      "item": "metal",
+      "recipe": "metal",
+      "producer": "M",
+      "deliverTo": "Hi",
+      "remainingSteps": 1,
+      "status": "current"
+    },
+    {
+      "orderNum": 2,
+      "item": "metal",
+      "recipe": "metal",
+      "producer": "M",
+      "deliverTo": "null",
+      "remainingSteps": 1,
+      "status": "pending"
+    }
+  ]
 }
