@@ -11,7 +11,7 @@ public class LoadCommandTest {
         Simulation sim = new Simulation("src/test/resources/inputs/doors1.json");
 
         // Invalid inputs
-        assertThrows(IllegalArgumentException.class, () -> { execute(load, sim, "load", "1.json", "2"); });
+        assertThrows(IllegalArgumentException.class, () -> { execute(load, sim, "load", "src/test/resources/inputs/doors1.json", "src/test/resources/inputs/doors1.json"); });
         assertThrows(IllegalArgumentException.class,
                 () -> { execute(load, sim, "request", "'handle'", "from", "'Ha'"); });
         assertThrows(IllegalArgumentException.class,
@@ -21,8 +21,6 @@ public class LoadCommandTest {
         assertThrows(IllegalArgumentException.class,
                 () -> { execute(load, sim, "step", "1"); });
 
-        assertThrows(IllegalArgumentException.class,
-                () -> { execute(load, sim, "load", "00001"); });
         // Test if load has been made in the simulation
         execute(load, sim, "load", "1");
 

@@ -27,10 +27,8 @@ public class LoadCommand implements Command {
         String fileName = args[1];
 
         // Operate on the simulation
-        try {
+
             sim.load(fileName);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid 'load' command: file name doesn't exist", e);
-        }
+
     }
 }
