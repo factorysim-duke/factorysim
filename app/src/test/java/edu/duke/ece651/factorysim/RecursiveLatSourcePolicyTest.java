@@ -80,11 +80,9 @@ public class RecursiveLatSourcePolicyTest {
 
     RecursiveLatSourcePolicy policy = new RecursiveLatSourcePolicy();
     Building selected = policy.selectSource(new Item("handle"), availableSources, (b, score) -> {
-      // score reporting for coverage
-      // System.out.println("Building: " + b.getName() + ", Score: " + score);
+      System.out.println("Building: " + b.getName() + ", Score: " + score);
     });
 
-    // ha2 has a smaller total estimate (1 vs 5), so should be chosen
     assertEquals("Ha2", selected.getName());
   }
 
