@@ -148,5 +148,11 @@ public class MineBuildingTest {
     assertEquals(5, storageJson.get("iron").getAsInt());
   }
 
-
+  @Test
+  public void test_getSimulation() {
+    Simulation sim = new TestUtils.MockSimulation();
+    Recipe miningRecipe = TestUtils.makeTestRecipe("iron", 0, 1);
+    MineBuilding ironMine = new MineBuilding(miningRecipe, "ironMine", sim);
+    assertSame(sim, ironMine.getSimulation());
+  }
 }
