@@ -14,16 +14,23 @@ public class ReadyRequestPolicyTest {
 
     // Doable request
     Item steel = new Item("steel");
-    List<Request> requests = new ArrayList<>(List.of(new Request(1, steel, steelRecipe, steelMine, null)));
-    requestPolicy.selectRequest(steelMine, requests);
+    Request r1 = new Request(1, steel, steelRecipe, steelMine, null);
+    List<Request> requests = new ArrayList<>(List.of(r1));
+    assertSame(r1, requestPolicy.selectRequest(steelMine, requests));
 
     // Undoable request
     Item chair = new Item("chair");
     HashMap<Item, Integer> ingredients = new HashMap<>();
     ingredients.put(new Item("wood"), 3);
     Recipe chairRecipe = new Recipe(chair, ingredients, 1);
-    requests = new ArrayList<>(List.of(new Request(1, chair, chairRecipe, steelMine, null)));
-    requestPolicy.selectRequest(steelMine, requests);
-    assertFalse(requests.isEmpty()); // Because `steelMine` cannot produce `chair` so no request was popped
+    Request r2 = new Request(1, chair, chairRecipe, steelMine, null);
+    requests = new ArrayList<>(List.of(r2));
+    assertNull(requestPolicy.selectRequest(steelMine, requests));
+  }
+
+  @Test
+  public void test_getName() {
+    RequestPolicy requestPolicy = new ReadyRequestPolicy();
+    assertEquals("ready", requestPolicy.getName());
   }
 }
