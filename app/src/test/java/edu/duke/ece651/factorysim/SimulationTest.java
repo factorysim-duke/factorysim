@@ -16,6 +16,9 @@ public class SimulationTest {
     assertEquals(1, sim.getCurrentTime());
     sim.step(2);
     assertEquals(3, sim.getCurrentTime());
+
+    assertThrows(IllegalArgumentException.class, () -> sim.step(0));
+    assertThrows(IllegalArgumentException.class, () -> sim.step(Integer.MAX_VALUE));
   }
 
   @Test
