@@ -28,7 +28,7 @@ public class SetPolicyCommand implements Command {
    */
   @Override
   public void execute(String[] args, Simulation sim) {
-    if (args.length != 6 || !args[1].equals("policy") || !args[4].equals("on")) {
+    if (args.length != 6 || !args[0].equals("set") || !args[1].equals("policy") || !args[4].equals("on")) {
       throw new IllegalArgumentException("Invalid syntax. Use: set policy TYPE POLICY on TARGET");
     }
 
