@@ -1,12 +1,6 @@
 package edu.duke.ece651.factorysim;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -93,10 +87,13 @@ public class RecursiveLatSourcePolicyTest {
     Recipe shortRecipe = TestUtils.makeTestRecipe("handle", 1, 1);
     MineBuilding ha2 = new MineBuilding(shortRecipe, "Ha2", simulation);
     ha2.prependPendingRequest(new Request(1, new Item("handle"), shortRecipe, ha2, null));
+    MineBuilding ha3 = new MineBuilding(longRecipe, "Ha3", simulation);
+    ha3.prependPendingRequest(new Request(2, new Item("handle"), longRecipe, ha3, null));
 
     List<Building> availableSources = new ArrayList<>();
     availableSources.add(ha);
     availableSources.add(ha2);
+    availableSources.add(ha3);
 
     RecursiveLatSourcePolicy policy = new RecursiveLatSourcePolicy();
     Building selected = policy.selectSource(new Item("handle"), availableSources, (b, score) -> {
@@ -225,22 +222,29 @@ public class RecursiveLatSourcePolicyTest {
     assertEquals(5, usage.getStorageUsed(testItem, testPath));
     usage.addStorageUsed(testItem, testPath, 3);
     assertEquals(8, usage.getStorageUsed(testItem, testPath));
-    
+
     List<RecursiveLatSourcePolicy.BuildingId> otherPath = new ArrayList<RecursiveLatSourcePolicy.BuildingId>();
     otherPath.add(new RecursiveLatSourcePolicy.BuildingId(building2, "id2"));
     assertEquals(0, usage.getStorageUsed(testItem, otherPath));
   }
-  
+
   @Test
   public void test_clear_reservation() {
     List<RecursiveLatSourcePolicy.BuildingId> longPath = new ArrayList<RecursiveLatSourcePolicy.BuildingId>();
     longPath.add(new RecursiveLatSourcePolicy.BuildingId(building1, "id1"));
     longPath.add(new RecursiveLatSourcePolicy.BuildingId(building2, "id2"));
     usage.addStorageUsed(testItem, longPath, 10);
-    
+
     usage.clearReservations(testPath);
     assertEquals(0, usage.getStorageUsed(testItem, longPath));
-    
+    List<RecursiveLatSourcePolicy.BuildingId> shortPath = new ArrayList<>();
+    shortPath.add(new RecursiveLatSourcePolicy.BuildingId(building1, "id1"));
+    List<RecursiveLatSourcePolicy.BuildingId> longerPrefix = new ArrayList<>(shortPath);
+    longerPrefix.add(new RecursiveLatSourcePolicy.BuildingId(building2, "id2"));
+    usage.addStorageUsed(testItem, shortPath, 5);
+    usage.clearReservations(longerPrefix);
+    assertEquals(5, usage.getStorageUsed(testItem, shortPath));
+
     // don;t change the non-matching path storage
     List<RecursiveLatSourcePolicy.BuildingId> nonMatchingPath = new ArrayList<RecursiveLatSourcePolicy.BuildingId>();
     nonMatchingPath.add(new RecursiveLatSourcePolicy.BuildingId(building2, "id2"));
@@ -248,20 +252,23 @@ public class RecursiveLatSourcePolicyTest {
     usage.clearReservations(testPath);
     assertEquals(7, usage.getStorageUsed(testItem, nonMatchingPath));
   }
-  
+
   @Test
   public void test_building_ID_equals() {
     RecursiveLatSourcePolicy.BuildingId idA = new RecursiveLatSourcePolicy.BuildingId(building1, "unique");
     RecursiveLatSourcePolicy.BuildingId idB = new RecursiveLatSourcePolicy.BuildingId(building1, "unique");
     RecursiveLatSourcePolicy.BuildingId idC = new RecursiveLatSourcePolicy.BuildingId(building1, "diff");
     RecursiveLatSourcePolicy.BuildingId idD = new RecursiveLatSourcePolicy.BuildingId(building2, "unique");
-    
+
+    assertTrue(idA.equals(idA));
+    assertFalse(idA.equals(null));
+    assertFalse(idA.equals(3));
     assertTrue(idA.equals(idB));
     assertEquals(idA.hashCode(), idB.hashCode());
     assertFalse(idA.equals(idC));
     assertFalse(idA.equals(idD));
   }
-  
+
   @Test
   public void test_request_in_use_equals() {
     Recipe testRecipe = TestUtils.makeTestRecipe("test", 5, 1);
@@ -272,18 +279,21 @@ public class RecursiveLatSourcePolicyTest {
     List<RecursiveLatSourcePolicy.BuildingId> pathB = new ArrayList<RecursiveLatSourcePolicy.BuildingId>();
     pathB.add(new RecursiveLatSourcePolicy.BuildingId(building1, "id1"));
     pathB.add(new RecursiveLatSourcePolicy.BuildingId(building2, "id2"));
-    
+
     RecursiveLatSourcePolicy.RequestInUse riu1 = new RecursiveLatSourcePolicy.RequestInUse(building1, request1, pathA);
     RecursiveLatSourcePolicy.RequestInUse riu2 = new RecursiveLatSourcePolicy.RequestInUse(building1, request1, pathA);
     RecursiveLatSourcePolicy.RequestInUse riu3 = new RecursiveLatSourcePolicy.RequestInUse(building1, request2, pathA);
     RecursiveLatSourcePolicy.RequestInUse riu4 = new RecursiveLatSourcePolicy.RequestInUse(building1, request1, pathB);
-    
+
+    assertTrue(riu1.equals(riu1));
+    assertFalse(riu1.equals(null));
+    assertFalse(riu1.equals(2));
     assertTrue(riu1.equals(riu2));
     assertEquals(riu1.hashCode(), riu2.hashCode());
     assertFalse(riu1.equals(riu3));
     assertFalse(riu1.equals(riu4));
   }
-  
+
   @Test
   public void test_estimate_with_equal_current_request() {
     Recipe recipe = TestUtils.makeTestRecipe("test", 10, 0);
@@ -292,7 +302,7 @@ public class RecursiveLatSourcePolicyTest {
     int estimate = policy.estimate(request, building1, usage, testPath);
     assertEquals(10, estimate);
   }
-  
+
   @Test
   public void test_estimate_with_efficient_storage() {
     Item dog = new Item("dog");
@@ -305,7 +315,7 @@ public class RecursiveLatSourcePolicyTest {
     int estimate = policy.estimate(request, building1, usage, testPath);
     assertEquals(7, estimate);
   }
-  
+
   @Test
   public void test_estimate_with_missing_ingredients() {
     Item cat = new Item("cat");
@@ -317,5 +327,53 @@ public class RecursiveLatSourcePolicyTest {
     building1.updateSources(new ArrayList<Building>());
     int estimate = policy.estimate(request, building1, usage, testPath);
     assertEquals(4, estimate);
+  }
+
+  // test source building of cat
+  private static class TestSourceBuilding extends TestUtils.MockBuilding {
+    private Item ingredient;
+    private int latency;
+    public TestSourceBuilding(String name, Item ingredient, int latency) {
+      super(name);
+      this.ingredient = ingredient;
+      this.latency = latency;
+    }
+    @Override
+    public Recipe getRecipeForItem(Item item) {
+      return TestUtils.makeTestRecipe("cat", latency, 0);
+    }
+  }
+
+  @Test
+  public void test_estimate_with_missing_ingredients_with_source() {
+    Item cat = new Item("cat");
+    LinkedHashMap<Item, Integer> ingredients = new LinkedHashMap<>();
+    ingredients.put(cat, 3);
+    Recipe recipe = new Recipe(new Item("dog"), ingredients, 5);
+    Request request = new Request(10, new Item("dog"), recipe, building1, null);
+    building1.addToStorage(cat, 1);
+    building1.setCurrentRequest(null);
+    TestSourceBuilding source1 = new TestSourceBuilding("Source1", cat, 2);
+    TestSourceBuilding source2 = new TestSourceBuilding("Source2", cat, 2);
+    TestSourceBuilding source3 = new TestSourceBuilding("Source3", cat, 2);
+    List<Building> newSources = new ArrayList<>();
+    newSources.add(source1);
+    newSources.add(source2);
+    newSources.add(source3);
+    building1.updateSources(newSources);
+
+    int estimate = policy.estimate(request, building1, usage, testPath);
+    assertTrue(estimate > 5);
+  }
+
+  @Test
+  public void test_prefix_longer_than_path() {
+    List<RecursiveLatSourcePolicy.BuildingId> shortPath = new ArrayList<>();
+    shortPath.add(new RecursiveLatSourcePolicy.BuildingId(building1, "id1"));
+    List<RecursiveLatSourcePolicy.BuildingId> longerPrefix = new ArrayList<>(shortPath);
+    longerPrefix.add(new RecursiveLatSourcePolicy.BuildingId(building2, "id2"));
+    usage.addStorageUsed(testItem, shortPath, 5);
+    usage.clearReservations(longerPrefix);
+    assertEquals(5, usage.getStorageUsed(testItem, shortPath));
   }
 }
