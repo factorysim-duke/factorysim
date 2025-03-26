@@ -410,7 +410,9 @@ public Map<Item, Integer> getStorage() {
             .collect(Collectors.toMap(
               Tuple::first,
               Tuple::second,
-              (t1, t2) -> t2
+              (t1, t2) -> t2 // Safety precaution in case there's a duplicated item
+                                           // (but it's impossible when this method was first written
+                                           // because `Recipe` uses a `LinkedHashMap`)
             )));
   }
 
