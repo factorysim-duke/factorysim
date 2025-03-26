@@ -5,4 +5,6 @@ The recipe for item invalid_item does not exist.
 5>
 The building invalid_factory does not exist.
 5>
-Simulation completed at time-step 12
+[order complete] Order 0 completed (door) at time 26
+Simulation completed at time-step 27
+

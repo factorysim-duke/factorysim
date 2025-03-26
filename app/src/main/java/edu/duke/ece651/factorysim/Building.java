@@ -522,12 +522,27 @@ public abstract class Building {
    */
   public abstract boolean canProduce(Item item);
 
+  /**
+   * Converts the building object to a JSON representation.
+   *
+   * @return a JsonObject representing the serialized state of the object.
+   */
   public abstract JsonObject toJson();
 
+  /**
+   * Get the list of pending requests for this entity.
+   *
+   * @return pendingRequests List.
+   */
   public List<Request> getPendingRequest() {
     return pendingRequests;
   }
 
+  /**
+   * Get the current request for this building.
+   *
+   * @return Request currentRequest
+   */
   public Request getCurrentRequest() {
     return currentRequest;
   }

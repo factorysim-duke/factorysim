@@ -71,6 +71,7 @@ public class MineBuilding extends Building {
     return false;
   }
 
+  @Override
   public JsonObject toJson(){
     JsonObject json = new JsonObject();
     json.addProperty("name", this.getName());

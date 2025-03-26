@@ -78,6 +78,8 @@ public class FactoryBuilding extends Building {
     return remainingLatency;
   }
 
+
+@Override
  public JsonObject toJson(){
   JsonObject json = new JsonObject();
   json.addProperty("name", this.getName());

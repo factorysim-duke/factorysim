@@ -9,6 +9,7 @@ public class LoadCommand implements Command {
     return "load";
   }
 
+
   @Override
   public void execute(String[] args, Simulation sim) {
     // Check argument count

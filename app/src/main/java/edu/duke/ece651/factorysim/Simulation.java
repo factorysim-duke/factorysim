@@ -568,6 +568,12 @@ public class Simulation {
         }
     }
 
+    /**
+     * Loads a saved simulation state from a specified file.
+     *
+     * @param fileName the name of the file containing the saved simulation state.
+     * @throws IllegalArgumentException if the file is invalid or cannot be loaded.
+     */
     public void load(String fileName) {
         System.out.println("Loading " + fileName);
         Gson gson = new Gson();
@@ -592,6 +598,12 @@ public class Simulation {
         }
     }
 
+    /**
+     * Reconstructs requests from a JSON array and assigns them to buildings.
+     *
+     * @param requestsArray the JSON array containing saved requests.
+     * @throws IllegalArgumentException if any referenced recipe or building is missing.
+     */
     public void buildRequests(JsonArray requestsArray) {
         if (requestsArray.isEmpty()) {
             return;
