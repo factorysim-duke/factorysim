@@ -161,8 +161,10 @@ public abstract class Building {
 
   /**
    * Add a request to the beginning of the pending request list.
-   * This is useful mainly used to maintain the order that older requests are towards the end of the list.
-   * NOTE: this method only adds the request, it doesn't request ingredients from sources like `addRequest`.
+   * This is useful mainly used to maintain the order that older requests are
+   * towards the end of the list.
+   * NOTE: this method only adds the request, it doesn't request ingredients from
+   * sources like `addRequest`.
    *
    * @param request the request to be added.
    */
@@ -172,8 +174,10 @@ public abstract class Building {
 
   /**
    * Add a request to the end of the pending request list.
-   * This is used for reconstructing the pending request list with the original order.
-   * NOTE: this method only adds the request, it doesn't request ingredients from sources like `addRequest`.
+   * This is used for reconstructing the pending request list with the original
+   * order.
+   * NOTE: this method only adds the request, it doesn't request ingredients from
+   * sources like `addRequest`.
    *
    * @param request the request to be added.
    */
@@ -535,11 +539,7 @@ public abstract class Building {
 
     // Process current request by one step
     if (currentRequest.process()) {
-      // Deliver item on request completion if it's not a user request and there's a
-      // destination
-      if (!currentRequest.isUserRequest()) {
-        deliverTo(currentRequest.getDeliverTo(), currentRequest.getItem(), 1);
-      }
+      deliverTo(currentRequest.getDeliverTo(), currentRequest.getItem(), 1);
 
       // Current request is completed, setting it to null to indicate no request
       // processing for the next step

@@ -11,7 +11,6 @@ import java.util.Map;
  */
 public class FactoryBuilding extends Building {
   private final Type factoryType;
-  // TODO: (Shiyu) I don't think the remaining latency makes much sense -- a factory can produce many kinds of things, and this single field cannot represent the different remaining latencies of many ongoing requests?
   private int remainingLatency;
 
   /**

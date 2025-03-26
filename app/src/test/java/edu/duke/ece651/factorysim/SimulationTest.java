@@ -248,6 +248,5 @@ public class SimulationTest {
     assertThrows(IllegalArgumentException.class,() -> simulation.load("src/test/resources/inputs/test_load_deliverTo_false"));
     assertThrows(IllegalArgumentException.class,() -> simulation.load("src/test/resources/inputs/invalid_file"));
     assertThrows(IllegalArgumentException.class,() -> simulation.save("invalid/0001/test_load_producer_false"));
-
   }
 }
