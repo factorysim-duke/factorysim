@@ -652,10 +652,8 @@ public class Simulation {
             if (request.getStatus().equals("current")) {
                 targetBuilding.setCurrentRequest(request);
             } else {
-                targetBuilding.addPendingRequest(request);
+                targetBuilding.appendPendingRequest(request);
             }
-
         }
     }
-
 }

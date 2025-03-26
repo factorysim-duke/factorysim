@@ -68,11 +68,11 @@ public class RecursiveLatSourcePolicyTest {
 
     Recipe longRecipe = TestUtils.makeTestRecipe("handle", 5, 1);
     MineBuilding ha = new MineBuilding(longRecipe, "Ha", simulation);
-    ha.addPendingRequest(new Request(0, new Item("handle"), longRecipe, ha, null));
+    ha.prependPendingRequest(new Request(0, new Item("handle"), longRecipe, ha, null));
 
     Recipe shortRecipe = TestUtils.makeTestRecipe("handle", 1, 1);
     MineBuilding ha2 = new MineBuilding(shortRecipe, "Ha2", simulation);
-    ha2.addPendingRequest(new Request(1, new Item("handle"), shortRecipe, ha2, null));
+    ha2.prependPendingRequest(new Request(1, new Item("handle"), shortRecipe, ha2, null));
 
     List<Building> availableSources = new ArrayList<>();
     availableSources.add(ha);
@@ -115,21 +115,21 @@ public class RecursiveLatSourcePolicyTest {
     // iron recipe
     Recipe ironRecipe = TestUtils.makeTestRecipe("iron", 1, 0);
     MineBuilding ironMine = new MineBuilding(ironRecipe, "IronMine", simulation);
-    ironMine.addPendingRequest(new Request(0, new Item("iron"), ironRecipe, ironMine, null));
+    ironMine.prependPendingRequest(new Request(0, new Item("iron"), ironRecipe, ironMine, null));
 
     // bolt recipe (requires iron, lat=2)
     Recipe boltRecipe = TestUtils.makeTestRecipe("bolt", 1, 2);
     FactoryBuilding boltFactory = new FactoryBuilding(new Type("boltMaker", List.of(boltRecipe)), 
                                                       "BoltFactory", List.of(ironMine), simulation);
     Request boltRequest = new Request(1, new Item("bolt"), boltRecipe, boltFactory, null);
-    boltFactory.addPendingRequest(boltRequest);
+    boltFactory.prependPendingRequest(boltRequest);
 
     // door recipe (requires bolt?), lat=3
     Recipe doorRecipe = TestUtils.makeTestRecipe("door", 1, 3);
     FactoryBuilding doorFactory = new FactoryBuilding(new Type("doorMaker", List.of(doorRecipe)), 
                                                       "DoorFactory", List.of(boltFactory), simulation);
     Request doorRequest = new Request(2, new Item("door"), doorRecipe, doorFactory, null);
-    doorFactory.addPendingRequest(doorRequest);
+    doorFactory.prependPendingRequest(doorRequest);
 
     RecursiveLatSourcePolicy policy = new RecursiveLatSourcePolicy();
     Building selected = policy.selectSource(new Item("door"), List.of(doorFactory), (b, score) -> {});
