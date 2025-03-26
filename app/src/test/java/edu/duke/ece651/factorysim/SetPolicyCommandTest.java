@@ -133,4 +133,19 @@ public class SetPolicyCommandTest {
         () -> command.execute(new String[] { "set", "policy", "request", "default", "on", "default" },
             new TestUtils.MockSimulation()));
   }
+
+  @Test
+  public void test_execute_throws() {
+    assertThrows(IllegalArgumentException.class,
+            () -> command.execute(new String[] { "sat", "policy", "request", "'fifo'", "on", "*" },
+                    new TestUtils.MockSimulation()));
+
+    assertThrows(IllegalArgumentException.class,
+            () -> command.execute(new String[] { "set", "bolicy", "request", "'fifo'", "in", "*" },
+                    new TestUtils.MockSimulation()));
+
+    assertThrows(IllegalArgumentException.class,
+            () -> command.execute(new String[] { "set", "policy", "request", "'fifo'", "in", "*" },
+                    new TestUtils.MockSimulation()));
+  }
 }
