@@ -160,16 +160,18 @@ public Map<Item, Integer> getStorage() {
 
   /**
    * Add a request to the beginning of the pending request list.
+   * This is useful mainly used to maintain the order that older requests are towards the end of the list.
    * NOTE: this method only adds the request, it doesn't request ingredients from sources like `addRequest`.
    *
    * @param request the request to be added.
    */
-  public void addPendingRequest(Request request) {
+  public void prependPendingRequest(Request request) {
     pendingRequests.addFirst(request);
   }
 
   /**
    * Add a request to the end of the pending request list.
+   * This is used for reconstructing the pending request list with the original order.
    * NOTE: this method only adds the request, it doesn't request ingredients from sources like `addRequest`.
    *
    * @param request the request to be added.
@@ -192,7 +194,7 @@ public Map<Item, Integer> getStorage() {
     simulation.onSourceSelected(this, sourcePolicy, request.getItem());
 
     // Add request as a pending request
-    addPendingRequest(request);
+    prependPendingRequest(request);
 
     // Send out requests for ingredients
     requestMissingIngredients(request.getRecipe());
