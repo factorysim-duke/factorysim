@@ -159,13 +159,23 @@ public Map<Item, Integer> getStorage() {
   }
 
   /**
-   * Add a request as a pending request.
+   * Add a request to the beginning of the pending request list.
    * NOTE: this method only adds the request, it doesn't request ingredients from sources like `addRequest`.
    *
    * @param request the request to be added.
    */
   public void addPendingRequest(Request request) {
     pendingRequests.addFirst(request);
+  }
+
+  /**
+   * Add a request to the end of the pending request list.
+   * NOTE: this method only adds the request, it doesn't request ingredients from sources like `addRequest`.
+   *
+   * @param request the request to be added.
+   */
+  public void appendPendingRequest(Request request) {
+    pendingRequests.addLast(request);
   }
 
   /**
