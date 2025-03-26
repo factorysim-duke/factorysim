@@ -87,4 +87,9 @@ public class SjfRequestPolicyTest {
     assertEquals(2, requests.size());
     assertTrue(requests.contains(request2));
   }
+
+  @Test
+  public void test_getName() {
+    assertEquals("sjf", policy.getName());
+  }
 }

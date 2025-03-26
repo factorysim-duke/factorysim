@@ -98,4 +98,9 @@ public class SimpleLatSourcePolicyTest {
     Building result1 = policy.selectSource(water, availableSources);
     assertSame(waterMine3, result1);
   }
+
+  @Test
+  public void test_getName() {
+    assertEquals("simplelat", policy.getName());
+  }
 }
