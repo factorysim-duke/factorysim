@@ -87,4 +87,9 @@ public class MineBuilding extends Building {
 //    json.addProperty("remainingLatency", remainingLatency);
     return json;
   }
+
+  @Override
+  public boolean hasAllIngredientsFor(Recipe recipe) {
+    return canProduce(recipe.getOutput());
+  }
 }
