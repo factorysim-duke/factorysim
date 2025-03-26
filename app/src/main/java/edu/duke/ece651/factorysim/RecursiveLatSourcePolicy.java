@@ -17,8 +17,8 @@ public class RecursiveLatSourcePolicy extends SourcePolicy {
     /**
      * Adds storage used for a given item and path.
      * 
-     * @param item the item to add storage used for.
-     * @param path the path to add storage used for.
+     * @param item   the item to add storage used for.
+     * @param path   the path to add storage used for.
      * @param amount the amount of storage used.
      */
     public void addStorageUsed(Item item, List<BuildingId> path, int amount) {
@@ -78,7 +78,7 @@ public class RecursiveLatSourcePolicy extends SourcePolicy {
     /**
      * Checks if a path starts with a given prefix.
      * 
-     * @param path the path to check.
+     * @param path   the path to check.
      * @param prefix the prefix to check against.
      * @return true if the path starts with the prefix, false otherwise.
      */
@@ -155,7 +155,7 @@ public class RecursiveLatSourcePolicy extends SourcePolicy {
      * 
      * @param factory the factory building.
      * @param request the request.
-     * @param path the path.
+     * @param path    the path.
      */
     public RequestInUse(Building factory, Request request, List<BuildingId> path) {
       this.factory = factory;
@@ -180,8 +180,10 @@ public class RecursiveLatSourcePolicy extends SourcePolicy {
      */
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o)
+        return true;
+      if (o == null || getClass() != o.getClass())
+        return false;
       RequestInUse that = (RequestInUse) o;
       return factory.equals(that.factory)
           && request.equals(that.request)
@@ -206,7 +208,7 @@ public class RecursiveLatSourcePolicy extends SourcePolicy {
    * @param factory the factory building
    * @param usage   usage/reservations info
    * @param path    path to this request
-   * @return        the estimated time
+   * @return the estimated time
    */
   private int estimate(Request request, Building factory, Usage usage, List<BuildingId> path) {
     Request currentRequest = factory.getCurrentRequest();
@@ -237,12 +239,11 @@ public class RecursiveLatSourcePolicy extends SourcePolicy {
 
           Recipe subRecipe = source.getRecipeForItem(ingredient);
           Request subReq = new Request(
-              factory.getSimulation().getOrderNum(), 
-              ingredient, 
-              subRecipe, 
-              source, 
-              factory
-          );
+              factory.getSimulation().getOrderNum(),
+              ingredient,
+              subRecipe,
+              source,
+              factory);
           int est = estimate(subReq, source, usage, newPath);
           estimates.add(Map.entry(source, est));
         }
@@ -291,15 +292,15 @@ public class RecursiveLatSourcePolicy extends SourcePolicy {
   /**
    * Selects a source according to recursivelat.
    * 
-   * @param item the item to select a source for.
-   * @param sources the list of sources to select from.
+   * @param item          the item to select a source for.
+   * @param sources       the list of sources to select from.
    * @param onReportScore a callback to report the score of the selected source.
    * @return the selected source.
    */
   @Override
   public Building selectSource(Item item,
-                               List<Building> sources,
-                               BiConsumer<Building, Integer> onReportScore) {
+      List<Building> sources,
+      BiConsumer<Building, Integer> onReportScore) {
     if (sources.isEmpty()) {
       return null;
     }
