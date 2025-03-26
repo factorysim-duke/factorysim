@@ -35,7 +35,6 @@ public class Request {
     this.deliverTo = deliverTo;
     this.remainingSteps = recipe.getLatency();
     status = "pending";
-
   }
 
   /**
