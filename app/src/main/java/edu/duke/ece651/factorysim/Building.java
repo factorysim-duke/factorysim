@@ -161,8 +161,10 @@ public abstract class Building {
 
   /**
    * Add a request to the beginning of the pending request list.
-   * This is useful mainly used to maintain the order that older requests are towards the end of the list.
-   * NOTE: this method only adds the request, it doesn't request ingredients from sources like `addRequest`.
+   * This is useful mainly used to maintain the order that older requests are
+   * towards the end of the list.
+   * NOTE: this method only adds the request, it doesn't request ingredients from
+   * sources like `addRequest`.
    *
    * @param request the request to be added.
    */
@@ -172,8 +174,10 @@ public abstract class Building {
 
   /**
    * Add a request to the end of the pending request list.
-   * This is used for reconstructing the pending request list with the original order.
-   * NOTE: this method only adds the request, it doesn't request ingredients from sources like `addRequest`.
+   * This is used for reconstructing the pending request list with the original
+   * order.
+   * NOTE: this method only adds the request, it doesn't request ingredients from
+   * sources like `addRequest`.
    *
    * @param request the request to be added.
    */
@@ -275,30 +279,6 @@ public abstract class Building {
       }
     }
   }
-
-  // // A copy of the old `processRequest` that send out sub-requests to sources
-  // when request is selected
-  // protected void processRequest() {
-  // // if the building is processing a request, work on the current one
-  // if (isProcessing()) {
-  // boolean isRequestFinished = currentRequest.process();
-  // if (isRequestFinished) {
-  // finishCurrentRequest();
-  // }
-  // }
-  // // else, try to fetch the next one and work on it
-  // else if (pendingRequests.isEmpty() == false) {
-  // Request selectedRequest = requestPolicy.popRequest(this, pendingRequests);
-  // Recipe selectedRecipe = selectedRequest.getRecipe();
-  // if (hasAllIngredientsFor(selectedRecipe)) {
-  // consumeIngredientsFor(selectedRecipe);
-  // } else {
-  // HashMap<Item, Integer> missingIngredients =
-  // findMissingIngredients(selectedRecipe);
-  // requestMissingIngredients(missingIngredients);
-  // }
-  // }
-  // }
 
   /**
    * Checks if the things in storage are enough to produce the output of a recipe.
@@ -451,65 +431,6 @@ public abstract class Building {
     requestMissingIngredients(new Recipe(new Item(""), missingIngredients, 0));
   }
 
-  // /**
-  // * Finds the missing ingredients item and corresponding quantity for a given
-  // * recipe, considering current building storage.
-  // * Precondition: hasAllIngredientsFor(recipe) == false, thus there must be
-  // some
-  // * item whose number in storage is smaller than number needed in recipe
-  // *
-  // * @return recipe is the recipe for reference.
-  // * @return the hashmap for missing ingredients.
-  // */
-  // public HashMap<Item, Integer> findMissingIngredients(Recipe recipe) {
-  // HashMap<Item, Integer> ans = new HashMap<>();
-  // for (Item item : recipe.getIngredients().keySet()) {
-  // if (storage.containsKey(item) == false) {
-  // ans.put(item, recipe.getIngredients().get(item));
-  // } else {
-  // int numNeeded = recipe.getIngredients().get(item);
-  // int numInStorage = storage.get(item);
-  // if (numNeeded > numInStorage) {
-  // ans.put(item, numNeeded - numInStorage);
-  // }
-  // }
-  // }
-  // return ans;
-  // }
-  //
-  // /**
-  // * Requests missing ingredients from sources.
-  // * NOTE: this is where the source policy takes place.
-  // *
-  // * @param missingIngredients is the hashmap for missing ingredeints.
-  // * @throws IllegalArgumentException if the sources of the building are not
-  // * enough to give missing items.
-  // */
-  // public void requestMissingIngredients(HashMap<Item, Integer>
-  // missingIngredients) {
-  // for (Item item : missingIngredients.keySet()) {
-  // int numNeeded = missingIngredients.get(item);
-  // List<Building> availableSources = getAvailableSourcesForItem(item);
-  // Building selectedSource = sourcePolicy.selectSource(item, availableSources);
-  // if (selectedSource == null) {
-  // throw new IllegalArgumentException("No source can produce the item " +
-  // item.getName());
-  // }
-  // Recipe recipeNeeded = simulation.getRecipeForItem(item);
-  // // create sub-requests for numNeeded times for this item
-  // for (int i = 0; i < numNeeded; i++) {
-  // int orderNum = simulation.getOrderNum(); // this function automatically
-  // proceed the next order num by 1
-  // Request subRequest = new Request(orderNum, item, recipeNeeded,
-  // selectedSource, this);
-  // selectedSource.addRequest(subRequest);
-  //
-  // // notify simulation about ingredient assignment
-  // simulation.onIngredientAssigned(item, selectedSource, this);
-  // }
-  // }
-  // }
-
   /**
    * An easy version of request processing routine, assuming that all ingredients
    * required by the request recipe are in the storage.
@@ -535,11 +456,7 @@ public abstract class Building {
 
     // Process current request by one step
     if (currentRequest.process()) {
-      // Deliver item on request completion if it's not a user request and there's a
-      // destination
-      if (!currentRequest.isUserRequest()) {
-        deliverTo(currentRequest.getDeliverTo(), currentRequest.getItem(), 1);
-      }
+      deliverTo(currentRequest.getDeliverTo(), currentRequest.getItem(), 1);
 
       // Current request is completed, setting it to null to indicate no request
       // processing for the next step

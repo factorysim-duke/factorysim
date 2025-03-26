@@ -210,7 +210,7 @@ public class RecursiveLatSourcePolicy extends SourcePolicy {
    * @param path    path to this request
    * @return the estimated time
    */
-  private int estimate(Request request, Building factory, Usage usage, List<BuildingId> path) {
+  protected int estimate(Request request, Building factory, Usage usage, List<BuildingId> path) {
     Request currentRequest = factory.getCurrentRequest();
     if (currentRequest != null && currentRequest.equals(request)) {
       return request.getRemainingSteps();

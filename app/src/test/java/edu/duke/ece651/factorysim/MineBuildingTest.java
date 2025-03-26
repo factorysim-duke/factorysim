@@ -61,7 +61,8 @@ public class MineBuildingTest {
     // Mine should be finished now since there's no current and pending requests
     assertTrue(mine.isFinished());
 
-    // This `processRequestEasyVersion` should not change anything since there's no pending
+    // This `processRequestEasyVersion` should not change anything since there's no
+    // pending
     // requests
     mine.processRequestEasyVersion();
     assertTrue(request.isCompleted());
@@ -100,7 +101,8 @@ public class MineBuildingTest {
 
   @Test
   public void test_find_missing_ingredients() {
-    Recipe testRecipe = TestUtils.makeTestRecipe("testItem", 1, 4); // the ingredients should be {("a", 1), ("b", 2), ("c", 3), ("d", 4)}
+    Recipe testRecipe = TestUtils.makeTestRecipe("testItem", 1, 4); // the ingredients should be {("a", 1), ("b", 2),
+                                                                    // ("c", 3), ("d", 4)}
     Building building = new TestUtils.MockBuilding("MockBuilding");
     assertFalse(building.hasAllIngredientsFor(testRecipe));
     Item a = new Item("a");
@@ -110,7 +112,7 @@ public class MineBuildingTest {
     building.addToStorage(a, 1);
     building.addToStorage(c, 4);
     building.addToStorage(d, 3);
-    
+
     HashMap<Item, Integer> missingIngredients = building.findMissingIngredientsAsHashMap(testRecipe);
     assertTrue(missingIngredients.keySet().contains(b));
     assertFalse(missingIngredients.keySet().contains(a));
@@ -118,7 +120,8 @@ public class MineBuildingTest {
     assertTrue(missingIngredients.keySet().contains(d));
     assertEquals(2, missingIngredients.get(b));
     assertEquals(1, missingIngredients.get(d));
-    assertThrows(IllegalArgumentException.class, ()->building.requestMissingIngredientsFromHashMap(missingIngredients));
+    assertThrows(IllegalArgumentException.class,
+        () -> building.requestMissingIngredientsFromHashMap(missingIngredients));
   }
 
   @Test
