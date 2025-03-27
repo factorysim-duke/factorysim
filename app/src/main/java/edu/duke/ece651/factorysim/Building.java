@@ -407,10 +407,12 @@ public abstract class Building {
     return new HashMap<>(findMissingIngredients(recipe).stream()
         .collect(Collectors.toMap(
             Tuple::first,
-            Tuple::second,
-            (t1, t2) -> t2 // Safety precaution in case there's a duplicated item
-                           // (but it's impossible when this method was first written
-                           // because `Recipe` uses a `LinkedHashMap`)
+            Tuple::second
+            // In case of duplication causes `IllegalStateException`, uncomment the
+            // following lambda to deal with duplication
+            //,(t1, t2) -> t2 // Safety precaution in case there's a duplicated item
+                              // (but it's impossible when this method was first written
+                              // because `Recipe` uses a `LinkedHashMap`)
         )));
   }
 
