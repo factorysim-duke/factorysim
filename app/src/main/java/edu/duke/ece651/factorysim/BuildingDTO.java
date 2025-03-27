@@ -8,14 +8,19 @@ import java.util.Map;
  * It is used to transfer Building JSON data to building objects.
  */
 public class BuildingDTO {
-    public String name;
-    public String type;
-    public String mine;
-    public List<String> sources;
-    public Map<String, Integer> storage;
+  public String name;
+  public String type;
+  public String mine;
+  public List<String> sources;
+  public Map<String, Integer> storage;
 
-    public List<String> getSources() {
-        return sources;
-    }
+  /**
+   * Gets the source building names for a building.
+   * 
+   * @returnthe list of source building names of the building.
+   */
+  public List<String> getSources() {
+    return sources;
+  }
 
 }
