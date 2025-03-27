@@ -14,6 +14,9 @@ public class Tuple<T, U> {
 
   /**
    * Constucts a tuple.
+   * 
+   * @param first  is the first element.
+   * @param second is the second element.
    */
   public Tuple(T first, U second) {
     this.first = first;
