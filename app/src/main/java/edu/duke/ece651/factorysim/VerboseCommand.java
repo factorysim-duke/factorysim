@@ -1,11 +1,25 @@
 package edu.duke.ece651.factorysim;
 
+/**
+ * Represents the verbose command in the simulation.
+ */
 public class VerboseCommand implements Command {
+  /**
+   * Gets the name of the command.
+   * 
+   * @return the name of this verbose command.
+   */
   @Override
   public String getName() {
     return "verbose";
   }
 
+  /**
+   * Executes the command.
+   * 
+   * @param args is the list of strings of arguments for the command.
+   * @param sim  is the simulation in which to execute command.
+   */
   @Override
   public void execute(String[] args, Simulation sim) {
     // Check argument count
