@@ -99,13 +99,15 @@ public class SimulationTest {
   }
 
   @Test
-  public void test_onIngredientSourceSelected() {
+  public void test_mine_verbosity_2() {
     ByteArrayOutputStream stream = new ByteArrayOutputStream();
     Logger logger = new StreamLogger(stream);
     Simulation sim = new Simulation("src/test/resources/inputs/doors1.json", 2, logger);
 
     Item wood = new Item("wood");
     MineBuilding woodMine = new MineBuilding(TestUtils.makeTestRecipe("wood", 1, 0), "W", sim);
+    sim.onRecipeSelected(woodMine, new ReadyRequestPolicy(), Collections.emptyList(), null);
+    sim.onSourceSelected(woodMine, new QLenSourcePolicy(), wood);
     sim.onIngredientSourceSelected(woodMine, wood, 0, wood, Collections.emptyList(), woodMine);
 
     assertEquals("", stream.toString()); // Nothing should be logged because building is not factory
