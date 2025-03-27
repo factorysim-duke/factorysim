@@ -377,14 +377,16 @@ public class Simulation {
         logger.log(m);
 
         // Log ready ingredients (only when `to` is a factory since only factory have recipes)
-        if (to instanceof FactoryBuilding factory) {
-            List<Recipe> recipes = factory.getFactoryType().getRecipes();
-            int i = 0;
-            for (Recipe recipe : recipes) {
-                if (factory.findMissingIngredients(recipe).isEmpty()) {
-                    logger.log("    " + i++ + ": " + recipe.getOutput().getName() + " is ready");
-                }
-            }
+        if (!to.getClass().equals(FactoryBuilding.class)) {
+          return;
+        }
+        FactoryBuilding factory = (FactoryBuilding)to;
+        List<Recipe> recipes = factory.getFactoryType().getRecipes();
+        int i = 0;
+        for (Recipe recipe : recipes) {
+          if (factory.findMissingIngredients(recipe).isEmpty()) {
+            logger.log("    " + i++ + ": " + recipe.getOutput().getName() + " is ready");
+          }
         }
     }
 
@@ -404,9 +406,10 @@ public class Simulation {
         if (verbosity < 2) {
             return;
         }
-        if (!(building instanceof FactoryBuilding factory)) {
+        if (!building.getClass().equals(FactoryBuilding.class)) {
             return; // Ignore calls from other types of building
         }
+        FactoryBuilding factory = (FactoryBuilding)building;
 
         // Log recipe selection
         logger.log("[recipe selection]: factory " + factory.getName() +
@@ -466,9 +469,10 @@ public class Simulation {
         if (verbosity < 2) {
             return;
         }
-        if (!(building instanceof FactoryBuilding factory)) {
+        if (!building.getClass().equals(FactoryBuilding.class)) {
             return; // Ignore calls from other types of building
         }
+        FactoryBuilding factory = (FactoryBuilding)building;
 
         // Log source selection
         logger.log("[source selection]: " + factory.getName() +
@@ -497,9 +501,10 @@ public class Simulation {
         if (verbosity < 2) {
             return;
         }
-        if (!(building instanceof FactoryBuilding factory)) {
+        if (!building.getClass().equals(FactoryBuilding.class)) {
             return; // Ignore calls from other types of building
         }
+        FactoryBuilding factory = (FactoryBuilding)building;
 
         // Log selection detail
         logger.log("[" + factory.getName() + ":" + item.getName() + ":" + index +
