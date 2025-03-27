@@ -17,7 +17,7 @@ public class BuildingDTO {
   /**
    * Gets the source building names for a building.
    * 
-   * @returnthe list of source building names of the building.
+   * @return the list of source building names of the building.
    */
   public List<String> getSources() {
     return sources;
