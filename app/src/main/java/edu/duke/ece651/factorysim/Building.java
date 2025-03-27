@@ -22,9 +22,10 @@ public abstract class Building {
   /**
    * Constructs a basic building with empty storage.
    * 
-   * @param name    is the name of the building.
-   * @param sources is the list of buildings where this building can get
-   *                ingredients from.
+   * @param name       is the name of the building.
+   * @param sources    is the list of buildings where this building can get
+   *                   ingredients from.
+   * @param simulation is the simulation this building is in.
    * @throws IllegalArgumentException if the name is not valid.
    */
   protected Building(String name, List<Building> sources, Simulation simulation) {
@@ -41,6 +42,11 @@ public abstract class Building {
     this.sourcePolicy = simulation.getSourcePolicy(name);
   }
 
+  /**
+   * Gets the building's storage.
+   * 
+   * @return the storage of the building.
+   */
   public Map<Item, Integer> getStorage() {
     return storage;
   }
@@ -400,7 +406,8 @@ public abstract class Building {
    * recipe, considering current building storage.
    * Precondition: hasAllIngredientsFor(recipe) == false, thus there must be some
    * item whose number in storage is smaller than number needed in recipe
-   *
+   * 
+   * @param recipe is the recipe for ingredients check.
    * @return the hashmap for missing ingredients.
    */
   public HashMap<Item, Integer> findMissingIngredientsAsHashMap(Recipe recipe) {
@@ -408,11 +415,11 @@ public abstract class Building {
         .collect(Collectors.toMap(
             Tuple::first,
             Tuple::second
-            // In case of duplication causes `IllegalStateException`, uncomment the
-            // following lambda to deal with duplication
-            //,(t1, t2) -> t2 // Safety precaution in case there's a duplicated item
-                              // (but it's impossible when this method was first written
-                              // because `Recipe` uses a `LinkedHashMap`)
+        // In case of duplication causes `IllegalStateException`, uncomment the
+        // following lambda to deal with duplication
+        // ,(t1, t2) -> t2 // Safety precaution in case there's a duplicated item
+        // (but it's impossible when this method was first written
+        // because `Recipe` uses a `LinkedHashMap`)
         )));
   }
 
@@ -478,6 +485,7 @@ public abstract class Building {
   /**
    * Gets the list of source buildings that can produce a given item.
    * 
+   * @param item is the item to be checked.
    * @return the list of available source buildings.
    */
   public List<Building> getAvailableSourcesForItem(Item item) {

@@ -8,6 +8,9 @@ package edu.duke.ece651.factorysim;
 
 import java.io.*;
 
+/**
+ * Represents the app that runs the simulation.
+ */
 public class App {
   private final Simulation sim;
   private final CommandHandler commandHandler;
@@ -45,18 +48,19 @@ public class App {
     }
   }
 
-//  /**
-//   * Runs the application with the given file and input reader. Avoid file path
-//   * error in app test
-//   *
-//   * @param filePath    Path to the JSON file.
-//   * @param inputReader Reader for user input.
-//   * @throws IOException if an input error occurs.
-//   */
-//  public static void actualMain(String filePath, BufferedReader inputReader) throws IOException {
-//    App app = new App(filePath, inputReader);
-//    app.run();
-//  }
+  // /**
+  // * Runs the application with the given file and input reader. Avoid file path
+  // * error in app test
+  // *
+  // * @param filePath Path to the JSON file.
+  // * @param inputReader Reader for user input.
+  // * @throws IOException if an input error occurs.
+  // */
+  // public static void actualMain(String filePath, BufferedReader inputReader)
+  // throws IOException {
+  // App app = new App(filePath, inputReader);
+  // app.run();
+  // }
 
   /**
    * Main entry of the application.
@@ -65,9 +69,10 @@ public class App {
    * @throws IOException if an input error occurs.
    */
   public static void main(String[] args) throws IOException {
-//    String filePath = "app/src/main/resources/doors1.json";
-//    BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
-//    actualMain(filePath, inputReader);
+    // String filePath = "app/src/main/resources/doors1.json";
+    // BufferedReader inputReader = new BufferedReader(new
+    // InputStreamReader(System.in));
+    // actualMain(filePath, inputReader);
     String filePath = args[0];
     BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
     App app = new App(filePath, inputReader);
