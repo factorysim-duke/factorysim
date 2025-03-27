@@ -555,7 +555,7 @@ public class Simulation {
                 if (building.getCurrentRequest() != null) {
                     requestArray.add(building.getCurrentRequest().toJson());
                 }
-                if (building.getPendingRequest() != null && !building.getPendingRequest().isEmpty()) {
+                if (/*building.getPendingRequest() != null && */!building.getPendingRequest().isEmpty()) {
                     building.getPendingRequest().forEach(request -> requestArray.add(request.toJson()));
                 }
             }
