@@ -125,9 +125,11 @@ public class Simulation {
       if (policyInstance.getPolicyTypeName() == "request") {
         RequestPolicy requestPolicy = (RequestPolicy) policyInstance;
         requestPolicies.put(building.getName(), requestPolicy);
+        world.getBuildingFromName(building.getName()).setRequestPolicy(requestPolicy);
       } else {
         SourcePolicy sourcePolicy = (SourcePolicy) policyInstance;
         sourcePolicies.put(building.getName(), sourcePolicy);
+        world.getBuildingFromName(building.getName()).setSourcePolicy(sourcePolicy);
       }
     }
   }
@@ -145,9 +147,11 @@ public class Simulation {
     if (policyInstance.getPolicyTypeName() == "request") {
       RequestPolicy requestPolicy = (RequestPolicy) policyInstance;
       requestPolicies.put(buildingName, requestPolicy);
+      world.getBuildingFromName(buildingName).setRequestPolicy(requestPolicy);
     } else {
       SourcePolicy sourcePolicy = (SourcePolicy) policyInstance;
       sourcePolicies.put(buildingName, sourcePolicy);
+      world.getBuildingFromName(buildingName).setSourcePolicy(sourcePolicy);
     }
   }
 

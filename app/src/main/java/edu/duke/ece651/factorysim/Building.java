@@ -241,13 +241,28 @@ public abstract class Building {
   }
 
   /**
+   * Sets the request policy for the building.
+   * 
+   * @param requestPolicy the request policy to set.
+   */
+  public void setRequestPolicy(RequestPolicy requestPolicy) {
+    this.requestPolicy = requestPolicy;
+  }
+
+  /**
+   * Sets the source policy for the building.
+   * 
+   * @param sourcePolicy the source policy to set.
+   */
+  public void setSourcePolicy(SourcePolicy sourcePolicy) {
+    this.sourcePolicy = sourcePolicy;
+  }
+
+  /**
    * Steps the building forward in time.
    * Updates the request and source policy for the building.
    */
   public void step() {
-    requestPolicy = simulation.getRequestPolicy(name);
-    sourcePolicy = simulation.getSourcePolicy(name);
-
     processRequest();
   }
 
