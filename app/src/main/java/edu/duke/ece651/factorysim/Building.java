@@ -271,7 +271,6 @@ public abstract class Building {
     else if (pendingRequests.isEmpty() == false) {
       // Select a request based on the current policy
       Request selectedRequest = requestPolicy.selectRequest(this, pendingRequests);
-      selectedRequest.setStatus("current");
       Recipe selectedRecipe = selectedRequest.getRecipe();
 
       // Notify simulation a request has been selected
@@ -282,6 +281,7 @@ public abstract class Building {
         consumeIngredientsFor(selectedRecipe);
         pendingRequests.remove(selectedRequest);
         currentRequest = selectedRequest;
+        currentRequest.setStatus("current");
       }
     }
   }

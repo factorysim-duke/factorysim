@@ -1,0 +1,123 @@
+{
+    "currentTime": 0,
+    "finished": false,
+    "nextOrderNum": 0,
+    "verbosity": 0,
+    "types": [
+        {
+            "name": "door",
+            "recipes": [
+                "door"
+            ]
+        },
+        {
+            "name": "hinge",
+            "recipes": [
+                "hinge"
+            ]
+        },
+        {
+            "name": "ball",
+            "recipes": [
+                "ball"
+            ]
+        },
+        {
+            "name": "handle",
+            "recipes": [
+                "handle"
+            ]
+        }
+    ],
+    "buildings": [
+        {
+            "name": "Hi",
+            "type": "hinge",
+            "sources": [
+                "M"
+            ],
+            "storage": {}
+        },
+        {
+            "name": "D",
+            "type": "door",
+            "sources": [
+                "W",
+                "Hi",
+                "Ha"
+            ],
+            "storage": {}
+        },
+        {
+            "name": "W",
+            "mine": "wood",
+            "sources": [],
+            "storage": {}
+        },
+        {
+            "name": "Ha",
+            "type": "handle",
+            "sources": [
+                "M"
+            ],
+            "storage": {}
+        },
+        {
+            "name": "M",
+            "mine": "metal",
+            "sources": [],
+            "storage": {}
+        },
+        {
+            "name": "Ba",
+            "type": "ball",
+            "sources": [
+                "W"
+            ],
+            "storage": {}
+        }
+    ],
+    "recipes": [
+        {
+            "output": "door",
+            "ingredients": {
+                "wood": 1,
+                "handle": 1,
+                "hinge": 3
+            },
+            "latency": 12
+        },
+        {
+            "output": "ball",
+            "ingredients": {
+                "wood": 3
+            },
+            "latency": 3
+        },
+        {
+            "output": "hinge",
+            "ingredients": {
+                "metal": 1
+            },
+            "latency": 1
+        },
+        {
+            "output": "metal",
+            "ingredients": {},
+            "latency": 1
+        },
+        {
+            "output": "handle",
+            "ingredients": {
+                "metal": 1
+            },
+            "latency": 5
+        },
+        {
+            "output": "wood",
+            "ingredients": {},
+            "latency": 1
+        }
+    ],
+    "requests": []
+}
