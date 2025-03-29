@@ -135,21 +135,22 @@ public class SimulationTest {
 
     // 0> step 50
     sim.step(50);
-    expected = "[ingredient delivered]: wood to D from W on cycle 1" + System.lineSeparator() +
-        "[ingredient delivered]: metal to Hi from M on cycle 1" + System.lineSeparator() +
-        "    0: hinge is ready" + System.lineSeparator() +
-        "[ingredient delivered]: hinge to D from Hi on cycle 3" + System.lineSeparator() +
-        "[ingredient delivered]: metal to Hi from M on cycle 3" + System.lineSeparator() +
-        "    0: hinge is ready" + System.lineSeparator() +
-        "[ingredient delivered]: hinge to D from Hi on cycle 5" + System.lineSeparator() +
-        "[ingredient delivered]: metal to Hi from M on cycle 5" + System.lineSeparator() +
-        "    0: hinge is ready" + System.lineSeparator() +
-        "[ingredient delivered]: hinge to D from Hi on cycle 7" + System.lineSeparator() +
-        "[ingredient delivered]: metal to Ha from M on cycle 7" + System.lineSeparator() +
-        "    0: handle is ready" + System.lineSeparator() +
-        "[ingredient delivered]: handle to D from Ha on cycle 13" + System.lineSeparator() +
-        "    0: door is ready" + System.lineSeparator() +
-        "[order complete] Order 0 completed (door) at time 26" + System.lineSeparator();
+    expected = 
+      "[ingredient delivered]: wood to D from W on cycle 1\n" +
+      "[ingredient delivered]: metal to Ha from M on cycle 1\n" +
+      "    0: handle is ready\n" +
+      "[ingredient delivered]: metal to Hi from M on cycle 3\n" +
+      "    0: hinge is ready\n" +
+      "[ingredient delivered]: hinge to D from Hi on cycle 5\n" +
+      "[ingredient delivered]: metal to Hi from M on cycle 5\n" +
+      "    0: hinge is ready\n" +
+      "[ingredient delivered]: hinge to D from Hi on cycle 7\n" +
+      "[ingredient delivered]: handle to D from Ha on cycle 7\n" +
+      "[ingredient delivered]: metal to Hi from M on cycle 7\n" +
+      "    0: hinge is ready\n" +
+      "[ingredient delivered]: hinge to D from Hi on cycle 9\n" +
+      "    0: door is ready\n" +
+      "[order complete] Order 0 completed (door) at time 21\n";
     assertEquals(expected, stream.toString());
     stream.reset();
 
@@ -249,5 +250,40 @@ public class SimulationTest {
         () -> simulation.load("src/test/resources/inputs/test_load_deliverTo_false"));
     assertThrows(IllegalArgumentException.class, () -> simulation.load("src/test/resources/inputs/invalid_file"));
     assertThrows(IllegalArgumentException.class, () -> simulation.save("invalid/0001/test_load_producer_false"));
+  }
+
+  @Test
+  public void test_processRequest_policyReturnsNull() {
+    // Initialize a mock building and policy
+    Building building = new TestUtils.MockBuilding("TestBuilding");
+    RequestPolicy mockPolicy = new RequestPolicy() {
+      @Override
+      public Request selectRequest(Building producer, List<Request> requests) {
+        return null;
+      }
+      
+      @Override
+      public String getName() {
+        return "mock";
+      }
+    };
+    building.setRequestPolicy(mockPolicy);
+    
+    // Add a request to the building
+    Item testItem = new Item("test");
+    Recipe testRecipe = new Recipe(testItem, new HashMap<>(), 1);
+    Request testRequest = new Request(1, testItem, testRecipe, building, null);
+    building.prependPendingRequest(testRequest);
+    assertEquals(mockPolicy.getName(), "mock");
+    assertEquals(1, building.getNumOfPendingRequests());
+    assertNull(building.getCurrentRequest());
+    
+    // Skip processing since policy returns null
+    building.step();
+    
+    // Verify state remains unchanged
+    assertEquals(1, building.getNumOfPendingRequests());
+    assertNull(building.getCurrentRequest());
+    assertTrue(building.getPendingRequests().contains(testRequest));
   }
 }

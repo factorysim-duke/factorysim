@@ -32,16 +32,16 @@
         {
             "output" : "handle",
             "ingredients" : {
-                "metal" : 1
+                "metal" : 3
             },
-            "latency" : 5
+            "latency" : 2
         },
         {
             "output" : "hinge",
             "ingredients" : {
                 "metal" : 1
             },
-            "latency" : 1
+            "latency" : 10
         },
         {
             "output" : "metal",
