@@ -11,7 +11,7 @@ public class FifoRequestPolicy extends RequestPolicy {
     if (requests.isEmpty()) {
       return null;
     }
-    return requests.getFirst();
+    return requests.getLast();
   }
 
   @Override

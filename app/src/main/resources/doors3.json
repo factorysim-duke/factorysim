@@ -1,6 +1,12 @@
 {
     "types" : [
         {
+            "name" : "door",
+            "recipes" : [
+                "door"
+            ]
+        },
+        {
             "name" : "Hw",
             "recipes" : [
                 "handle",
@@ -10,12 +16,34 @@
     ],
     "buildings" : [
         {
+            "name" : "D",
+            "type" : "door",
+            "sources" : [
+                "Hw1",
+                "Hw2",
+                "W"
+            ]
+        },
+        {
             "name" : "Hw1",
             "type" : "Hw",
             "sources" : [
                 "M1",
                 "M2"
             ]
+        },
+        {
+            "name" : "Hw2",
+            "type" : "Hw",
+            "sources" : [
+                "M1",
+                "M2"
+            ]
+        },
+        {
+            "name" : "W",
+            "mine" : "wood",
+            "sources" : []
         },
         {
             "name" : "M1",
@@ -30,6 +58,15 @@
     ],
     "recipes" : [
         {
+            "output" : "door",
+            "ingredients" : {
+                "wood" : 1,
+                "handle" : 1,
+                "hinge" : 3
+            },
+            "latency" : 12
+        },
+        {
             "output" : "handle",
             "ingredients" : {
                 "metal" : 1
@@ -41,6 +78,11 @@
             "ingredients" : {
                 "metal" : 1
             },
+            "latency" : 1
+        },
+        {
+            "output" : "wood",
+            "ingredients" : {},
             "latency" : 1
         },
         {

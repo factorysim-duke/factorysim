@@ -469,12 +469,12 @@ public abstract class Building {
     if (currentRequest == null) {
       currentRequest = requestPolicy.selectRequest(this, pendingRequests);
 
-      pendingRequests.remove(currentRequest);
-
       // Do nothing if no request was fetched
       if (currentRequest == null) {
         return;
       }
+
+      pendingRequests.remove(currentRequest);
       currentRequest.setStatus("current");
     }
 
