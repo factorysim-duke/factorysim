@@ -175,7 +175,7 @@ public abstract class Building {
    * @param request the request to be added.
    */
   public void prependPendingRequest(Request request) {
-    pendingRequests.addFirst(request);
+    pendingRequests.addLast(request);
   }
 
   /**
@@ -286,12 +286,19 @@ public abstract class Building {
     else if (pendingRequests.isEmpty() == false) {
       // Select a request based on the current policy
       Request selectedRequest = requestPolicy.selectRequest(this, pendingRequests);
+      
+      // If no request can be selected, especially when the policy is "ready",
+      // we just skip this step
+      if (selectedRequest == null) {
+        return;
+      }
+
       Recipe selectedRecipe = selectedRequest.getRecipe();
 
       // Notify simulation a request has been selected
       simulation.onRecipeSelected(this, requestPolicy, pendingRequests, selectedRequest);
 
-      // Start processing request of has all the ingredients for it
+      // Start processing request if has all the ingredients for it
       if (hasAllIngredientsFor(selectedRecipe)) {
         consumeIngredientsFor(selectedRecipe);
         pendingRequests.remove(selectedRequest);
