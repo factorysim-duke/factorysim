@@ -134,23 +134,24 @@ public class SimulationTest {
     stream.reset();
 
     // 0> step 50
+    // Use `System.lineSeparator()` so tests can pass on Windows
     sim.step(50);
-    expected = 
-      "[ingredient delivered]: wood to D from W on cycle 1\n" +
-      "[ingredient delivered]: metal to Ha from M on cycle 1\n" +
-      "    0: handle is ready\n" +
-      "[ingredient delivered]: metal to Hi from M on cycle 3\n" +
-      "    0: hinge is ready\n" +
-      "[ingredient delivered]: hinge to D from Hi on cycle 5\n" +
-      "[ingredient delivered]: metal to Hi from M on cycle 5\n" +
-      "    0: hinge is ready\n" +
-      "[ingredient delivered]: hinge to D from Hi on cycle 7\n" +
-      "[ingredient delivered]: handle to D from Ha on cycle 7\n" +
-      "[ingredient delivered]: metal to Hi from M on cycle 7\n" +
-      "    0: hinge is ready\n" +
-      "[ingredient delivered]: hinge to D from Hi on cycle 9\n" +
-      "    0: door is ready\n" +
-      "[order complete] Order 0 completed (door) at time 21\n";
+    expected =
+        "[ingredient delivered]: wood to D from W on cycle 1" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Ha from M on cycle 1" + System.lineSeparator() +
+        "    0: handle is ready" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Hi from M on cycle 3" + System.lineSeparator() +
+        "    0: hinge is ready" + System.lineSeparator() +
+        "[ingredient delivered]: hinge to D from Hi on cycle 5" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Hi from M on cycle 5" + System.lineSeparator() +
+        "    0: hinge is ready" + System.lineSeparator() +
+        "[ingredient delivered]: hinge to D from Hi on cycle 7" + System.lineSeparator() +
+        "[ingredient delivered]: handle to D from Ha on cycle 7" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Hi from M on cycle 7" + System.lineSeparator() +
+        "    0: hinge is ready" + System.lineSeparator() +
+        "[ingredient delivered]: hinge to D from Hi on cycle 9" + System.lineSeparator() +
+        "    0: door is ready" + System.lineSeparator() +
+        "[order complete] Order 0 completed (door) at time 21" + System.lineSeparator();
     assertEquals(expected, stream.toString());
     stream.reset();
 
