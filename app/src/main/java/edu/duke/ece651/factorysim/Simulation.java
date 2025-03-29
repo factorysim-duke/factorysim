@@ -4,6 +4,7 @@ import com.google.gson.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Runs the factory simulation, managing buildings and item production.
@@ -583,7 +584,7 @@ public class Simulation {
       state.add("requests", requestArray);
 
       gson.toJson(state, writer);
-      System.out.println("Simulation saved to " + fileName);
+      logger.log("Simulation saved to " + fileName);
     } catch (IOException e) {
       throw new IllegalArgumentException("invalid file name for save" + fileName);
     }
@@ -596,26 +597,98 @@ public class Simulation {
    * @throws IllegalArgumentException if the file is invalid or cannot be loaded.
    */
   public void load(String fileName) {
-    System.out.println("Loading " + fileName);
-    Gson gson = new Gson();
+    logger.log("Loading " + fileName);
+
     try (Reader reader = new FileReader(fileName)) {
-      ConfigData configData = JsonLoader.loadConfigData(fileName);
-      this.world = WorldBuilder.buildWorld(configData, this);
-
-      JsonObject state = gson.fromJson(reader, JsonObject.class);
-
-      // load fields in simulation
-      this.currentTime = state.get("currentTime").getAsInt();
-      this.finished = state.get("finished").getAsBoolean();
-      this.nextOrderNum = state.get("nextOrderNum").getAsInt();
-      this.verbosity = state.get("verbosity").getAsInt();
-
-      JsonArray requestsArray = state.get("requests").getAsJsonArray();
-      buildRequests(requestsArray);
-    } catch (IOException | JsonSyntaxException e) {
-      throw new IllegalArgumentException("invalid file name for load" + fileName);
+      loadFromReader(reader);
+    } catch (IOException | JsonSyntaxException | JsonIOException e) {
+      throw new IllegalArgumentException("Invalid file name for load" + fileName);
       // System.err.println("Error loading file");
     }
+  }
+
+  /**
+   * Loads a simulation saved in JSON format from a reader.
+   *
+   * @param reader is the reader to read the JSON from.
+   * @throws com.google.gson.JsonSyntaxException when JSON syntax is bad.
+   * @throws com.google.gson.JsonIOException when JSON IO error.
+   */
+  void loadFromReader(Reader reader) {
+    Gson gson = new Gson();
+
+    String json = new BufferedReader(reader)
+            .lines().collect(Collectors.joining(System.lineSeparator()));
+
+    ConfigData configData = JsonLoader.loadConfigDataFromReader(new StringReader(json));
+    this.world = WorldBuilder.buildWorld(configData, this);
+
+    JsonObject state = gson.fromJson(new StringReader(json), JsonObject.class);
+
+    // load fields in simulation
+    this.currentTime = getJsonField(state, "currentTime", 0);
+    this.finished = getJsonField(state, "finished", false);
+    this.nextOrderNum = getJsonField(state, "nextOrderNum", 0);
+    this.verbosity = getJsonField(state, "verbosity", 0);
+
+    JsonElement requestsElement = state.get("requests");
+    JsonArray requestsArray;
+    if (requestsElement == null) {
+      requestsArray = new JsonArray();
+    } else {
+      if (requestsElement.isJsonNull()) {
+        throw new IllegalArgumentException("Array field 'requests' cannot explicitly be null");
+      }
+      requestsArray = requestsElement.getAsJsonArray();
+    }
+    buildRequests(requestsArray);
+  }
+
+  /**
+   * Get the value of a field as an integer.
+   *
+   * @param obj is the JSON object to get the value from.
+   * @param key is the name of the field.
+   * @param def is the default value if the field is missing.
+   * @return the value got from the JSON object.
+   * @throws IllegalArgumentException if field value is not an integer.
+   */
+  private static int getJsonField(JsonObject obj, String key, int def) {
+    JsonElement element = obj.get(key);
+    if (element == null) {
+      return def;
+    }
+    if (element.isJsonNull()) {
+      throw new IllegalArgumentException("Integer field '" + key + "' cannot explicitly be null");
+    }
+    try {
+      return element.getAsInt();
+    } catch (UnsupportedOperationException | NumberFormatException e) {
+      throw new IllegalArgumentException("Invalid value for integer field '" + key + "'", e);
+    }
+  }
+
+  /**
+   * Get the value of a field as a boolean.
+   *
+   * @param obj is the JSON object to get the value from.
+   * @param key is the name of the field.
+   * @param def is the default value if the field is missing.
+   * @return the value got from the JSON object.
+   * @throws IllegalArgumentException if field value is not a boolean.
+   */
+  private static boolean getJsonField(JsonObject obj, String key, boolean def) {
+    JsonElement element = obj.get(key);
+    if (element == null) {
+      return def;
+    }
+    if (element.isJsonNull()) {
+      throw new IllegalArgumentException("Boolean field '" + key + "' cannot explicitly be null");
+    }
+    if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isBoolean()) {
+      throw new IllegalArgumentException("Field '" + key + "' must be a boolean literal");
+    }
+    return element.getAsBoolean();
   }
 
   /**
