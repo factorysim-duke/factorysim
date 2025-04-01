@@ -270,10 +270,10 @@ public class WorldBuilder {
    */
   private static Coordinate findValidLocation(Set<Coordinate> usedCoordinates) {
     // TODO: Adjust the search boundaries later if we want to use boards
-    int minX = Integer.MAX_VALUE;
-    int maxX = Integer.MIN_VALUE;
-    int minY = Integer.MAX_VALUE;
-    int maxY = Integer.MIN_VALUE;
+    int minX = -100;
+    int maxX = 100;
+    int minY = -100;
+    int maxY = 100;
     for (Coordinate c : usedCoordinates) {
       minX = Math.min(minX, c.getX());
       maxX = Math.max(maxX, c.getX());
@@ -290,7 +290,7 @@ public class WorldBuilder {
         return location;
       }
     }
-    return null;
+    return null; // TODO: may not be possible to not have an available option... unless we have a board
   }
 
   /**
