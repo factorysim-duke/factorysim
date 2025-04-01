@@ -11,7 +11,17 @@ public class World {
   private List<Type> types;
   private List<Recipe> recipes;
   public HashMap<Building, Coordinate> locationMap;
-  
+
+  /**
+   * Constructs an empty world.
+   */
+  public World() {
+    this.buildings = null;
+    this.types = null;
+    this.recipes = null;
+    this.locationMap = new HashMap<>();
+  }
+
   /**
    * Gets all the buildings of the world.
    * 
@@ -138,5 +148,13 @@ public class World {
     }
     return null;
   }
-}
 
+  /**
+   * Generates location map from the list of buildings.
+   */
+  public void generateLocationMap() {
+    for (Building building : buildings) {
+      locationMap.put(building, building.getLocation());
+    }
+  }
+}

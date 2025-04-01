@@ -30,7 +30,7 @@ public class WorldBuilder {
     world.setTypes(new ArrayList<>(types.values()));
     world.setRecipes(new ArrayList<>(recipes.values()));
     world.setBuildings(new ArrayList<>(buildings.values()));
-
+    world.generateLocationMap();
     return world;
   }
 
@@ -290,7 +290,8 @@ public class WorldBuilder {
         return location;
       }
     }
-    return null; // TODO: may not be possible to not have an available option... unless we have a board
+    return null; // TODO: may not be possible to not have an available option... unless we have a
+                 // board
   }
 
   /**
