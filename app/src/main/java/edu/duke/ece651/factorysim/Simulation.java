@@ -763,16 +763,47 @@ public class Simulation {
     }
   }
 
-  public void removeBuildingFromLocationMap() {
+  /**
+   * Removes a building from location map.
+   * 
+   * @param building is the building to be removed.
+   */
+  public void removeBuildingFromLocationMap(Building building) {
+    world.locationMap.remove(building);
   }
 
-  public void updateLocationMap(Building building, int x, int y) {
-  }
-
+  /**
+   * Updates the location map with given building and coordinate.
+   * 
+   * @param building is the building to be updated.
+   * @param location is the new coordinate.
+   */
   public void updateLocationMap(Building building, Coordinate location) {
+    world.locationMap.put(building, location);
   }
 
-  public Coordinate assignLocationToBuilding(Building building) {
+  /**
+   * Updates the location map with given building and coordinate.
+   * 
+   * @param building is the building to be updated.
+   * @param x        is the x of new coordinate.
+   * @param y        is the y of new coordinate.
+   */
+  public void updateLocationMap(Building building, int x, int y) {
+    Coordinate newLocation = new Coordinate(x, y);
+    updateLocationMap(building, newLocation);
+  }
+
+  /**
+   * Gets the location of a building from the location map.
+   * 
+   * @param building is the building to look up.
+   * @return the corresponding location if building is in the map, null otherwise.
+   */
+  public Coordinate getBuildingLocation(Building building) {
+    if (world.locationMap.containsKey(building)) {
+      return world.locationMap.get(building);
+    }
     return null;
   }
 }
