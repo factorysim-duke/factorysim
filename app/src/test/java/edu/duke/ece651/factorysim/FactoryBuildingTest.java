@@ -171,4 +171,25 @@ public class FactoryBuildingTest {
     Building mockBuilding = new TestUtils.MockBuilding("D");
     assertThrows(IllegalArgumentException.class, () -> mockBuilding.requestMissingIngredients(nonExistingRecipe));
   }
+
+  @Test
+  public void test_coordinate_operations() {
+    ConfigData configData = TestUtils.loadConfigData("src/test/resources/inputs/SomeLocationAssigned.json");
+    Simulation sim = new TestUtils.MockSimulation();
+    World world = WorldBuilder.buildWorld(configData, sim);
+
+    Building D = world.getBuildingFromName("D");
+    sim.updateLocationMap(D, 3, 4);
+    Coordinate location1 = new Coordinate(3, 4);
+    assertTrue(D.occupiesCoordinate(location1));
+    Coordinate location2 = new Coordinate(2, 1);
+    sim.updateLocationMap(D, location2);
+    assertTrue(D.occupiesCoordinate(location2));
+    assertFalse(D.occupiesCoordinate(location1));
+    assertSame(location2, sim.getBuildingLocation(D));
+    Building Ha = world.getBuildingFromName("Ha");
+    assertNull(sim.getBuildingLocation(Ha));
+    sim.removeBuildingFromLocationMap(D);
+    assertNull(sim.getBuildingLocation(D));
+  }
 }
