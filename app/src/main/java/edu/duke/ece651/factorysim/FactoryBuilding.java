@@ -31,11 +31,11 @@ public class FactoryBuilding extends Building {
    * Constructs a basic factory with empty storage and latency being the sum of
    * those in all recipes.
    *
-   * @param factoryType   is the type of factory.
-   * @param name          is the name of the building.
-   * @param sources       is the list of buildings where this factory can get
-   *                      ingredients from.
-   * @param simulation    is the injected simulation instance.
+   * @param factoryType is the type of factory.
+   * @param name        is the name of the building.
+   * @param sources     is the list of buildings where this factory can get
+   *                    ingredients from.
+   * @param simulation  is the injected simulation instance.
    * @throws IllegalArgumentException if the name is not valid.
    */
   public FactoryBuilding(Type factoryType, String name, List<Building> sources, Simulation simulation) {
@@ -63,7 +63,7 @@ public class FactoryBuilding extends Building {
     List<Recipe> recipes = factoryType.getRecipes();
     for (int i = 0; i < recipes.size(); i++) {
       if (recipes.get(i).getOutput().getName().equals(item.getName())) {
-          return true;
+        return true;
       }
     }
     return false;
@@ -78,26 +78,31 @@ public class FactoryBuilding extends Building {
     return remainingLatency;
   }
 
+  @Override
+  public JsonObject toJson() {
+    JsonObject json = new JsonObject();
+    json.addProperty("name", this.getName());
+    json.addProperty("type", factoryType.getName());
+    JsonArray sourcesArray = new JsonArray();
+    for (Building source : this.getSources()) {
+      sourcesArray.add(source.getName());
+    }
+    json.add("sources", sourcesArray);
 
-@Override
- public JsonObject toJson(){
-  JsonObject json = new JsonObject();
-  json.addProperty("name", this.getName());
-  json.addProperty("type", factoryType.getName());
-   JsonArray sourcesArray=new JsonArray();
-   for (Building source : this.getSources()) {
-     sourcesArray.add(source.getName());
-   }
-   json.add("sources", sourcesArray);
+    JsonObject storage = new JsonObject();
+    if (!getStorage().isEmpty()) {
+      for (Map.Entry<Item, Integer> entry : getStorage().entrySet()) {
+        storage.addProperty(entry.getKey().getName(), entry.getValue());
+      }
+    }
+    json.add("storage", storage);
 
-   JsonObject storage = new JsonObject();
-   if(!getStorage().isEmpty()){
-       for (Map.Entry<Item,Integer>entry:getStorage().entrySet()){
-           storage.addProperty(entry.getKey().getName(), entry.getValue());
-       }
-   }
-   json.add("storage", storage);
-//    json.addProperty("remainingLatency", remainingLatency);
+    // added for evolution 2: adapt to location
+    if (this.getLocation() != null) {
+      json.addProperty("x", this.getLocation().getX());
+      json.addProperty("y", this.getLocation().getY());
+    }
+
     return json;
- }
+  }
 }

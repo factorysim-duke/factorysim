@@ -18,9 +18,9 @@ public class MineBuilding extends Building {
    * Constructs a basic mine with empty storage and no ingredient source
    * buildings.
    *
-   * @param miningRecipe  is the recipe for this mine.
-   * @param name          is the name of the building.
-   * @param simulation    is the injected simulation instance.
+   * @param miningRecipe is the recipe for this mine.
+   * @param name         is the name of the building.
+   * @param simulation   is the injected simulation instance.
    * @throws IllegalArgumentException if the name is not valid.
    */
   public MineBuilding(Recipe miningRecipe, String name, Simulation simulation) {
@@ -72,20 +72,26 @@ public class MineBuilding extends Building {
   }
 
   @Override
-  public JsonObject toJson(){
+  public JsonObject toJson() {
     JsonObject json = new JsonObject();
     json.addProperty("name", this.getName());
     json.addProperty("mine", miningRecipe.getOutput().getName());
-    JsonArray sourcesArray=new JsonArray();
+    JsonArray sourcesArray = new JsonArray();
     json.add("sources", sourcesArray);
     JsonObject storage = new JsonObject();
-    if(!getStorage().isEmpty()){
-      for (Map.Entry<Item,Integer>entry:getStorage().entrySet()){
+    if (!getStorage().isEmpty()) {
+      for (Map.Entry<Item, Integer> entry : getStorage().entrySet()) {
         storage.addProperty(entry.getKey().getName(), entry.getValue());
       }
     }
     json.add("storage", storage);
-//    json.addProperty("remainingLatency", remainingLatency);
+
+    // added for evolution 2: adapt to location
+    if (this.getLocation() != null) {
+      json.addProperty("x", this.getLocation().getX());
+      json.addProperty("y", this.getLocation().getY());
+    }
+
     return json;
   }
 
