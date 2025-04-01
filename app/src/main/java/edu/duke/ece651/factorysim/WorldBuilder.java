@@ -302,7 +302,7 @@ public class WorldBuilder {
    * @return true if the new location is not too close to other existing
    *         locations, false otherwise.
    */
-  private static boolean isNotTooCloseToOthers(Coordinate location, Set<Coordinate> usedCoordinates) {
+  protected static boolean isNotTooCloseToOthers(Coordinate location, Set<Coordinate> usedCoordinates) {
     for (Coordinate c : usedCoordinates) {
       if (Math.abs(location.getX() - c.getX()) < 5 || Math.abs(location.getY() - c.getY()) < 5) {
         return false;
@@ -320,7 +320,7 @@ public class WorldBuilder {
    * @return true if the new location is not too far away from other existing
    *         locations, false otherwise.
    */
-  private static boolean isNotTooFarFromOthers(Coordinate location, Set<Coordinate> usedCoordinates) {
+  protected static boolean isNotTooFarFromOthers(Coordinate location, Set<Coordinate> usedCoordinates) {
     for (Coordinate c : usedCoordinates) {
       if (Math.abs(location.getX() - c.getX()) <= 10 && Math.abs(location.getY() - c.getY()) <= 10) {
         return true;

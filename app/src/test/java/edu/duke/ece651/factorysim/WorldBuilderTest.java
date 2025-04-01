@@ -1,9 +1,8 @@
 package edu.duke.ece651.factorysim;
 
 import static org.junit.jupiter.api.Assertions.*;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -191,6 +190,12 @@ public class WorldBuilderTest {
     }
     assertTrue(withinX);
     assertTrue(withinY);
+
+    // extra testing for distance functions
+    Set<Coordinate> usedCoordinates = new HashSet<>();
+    usedCoordinates.add(D.getLocation()); // (20, 20)
+    assertFalse(WorldBuilder.isNotTooCloseToOthers(new Coordinate(16, 24), usedCoordinates));
+    assertFalse(WorldBuilder.isNotTooFarFromOthers(new Coordinate(9, 20), usedCoordinates));
   }
 
   @Test
