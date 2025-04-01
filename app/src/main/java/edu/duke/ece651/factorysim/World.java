@@ -10,7 +10,7 @@ public class World {
   private List<Building> buildings;
   private List<Type> types;
   private List<Recipe> recipes;
-  private HashMap<Building, Coordinate> coordinateMap;
+  public HashMap<Building, Coordinate> locationMap;
   
   /**
    * Gets all the buildings of the world.
@@ -137,15 +137,6 @@ public class World {
       }
     }
     return null;
-  }
-
-  public void removeBuildingFromCoordinateMap(){
-  }
-
-  public void updateCoordinateMap(Building building, int x, int y) {
-  }
-
-  public void updateCoordinateMap(Building building, Coordinate coordinate){
   }
 }
 

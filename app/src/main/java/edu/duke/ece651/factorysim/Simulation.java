@@ -763,7 +763,16 @@ public class Simulation {
     }
   }
 
-  public Coordinate assignCoordinateToBuilding(Building building) {
+  public void removeBuildingFromLocationMap() {
+  }
+
+  public void updateLocationMap(Building building, int x, int y) {
+  }
+
+  public void updateLocationMap(Building building, Coordinate location) {
+  }
+
+  public Coordinate assignLocationToBuilding(Building building) {
     return null;
   }
 }

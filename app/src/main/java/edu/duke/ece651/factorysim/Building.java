@@ -12,12 +12,14 @@ public abstract class Building {
   private final String name;
   private final List<Building> sources;
   private final Simulation simulation;
-  
+
   private HashMap<Item, Integer> storage;
   private Request currentRequest = null;
   private List<Request> pendingRequests;
   private RequestPolicy requestPolicy;
   private SourcePolicy sourcePolicy;
+
+  private Coordinate location;
 
   /**
    * Constructs a basic building with empty storage.
@@ -286,7 +288,7 @@ public abstract class Building {
     else if (pendingRequests.isEmpty() == false) {
       // Select a request based on the current policy
       Request selectedRequest = requestPolicy.selectRequest(this, pendingRequests);
-      
+
       // If no request can be selected, especially when the policy is "ready",
       // we just skip this step
       if (selectedRequest == null) {
@@ -579,4 +581,21 @@ public abstract class Building {
     return currentRequest;
   }
 
+  /**
+   * Gets the location of the building.
+   * 
+   * @return the location of the building.
+   */
+  public Coordinate getLocation() {
+    return location;
+  }
+
+  /**
+   * Sets the location of the building.
+   * 
+   * @param location is the location to be set.
+   */
+  public void setLocation(Coordinate location) {
+    this.location = location;
+  }
 }

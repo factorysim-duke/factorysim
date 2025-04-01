@@ -13,6 +13,8 @@ public class BuildingDTO {
   public String mine;
   public List<String> sources;
   public Map<String, Integer> storage;
+  public Integer x;
+  public Integer y;
 
   /**
    * Gets the source building names for a building.
@@ -22,5 +24,4 @@ public class BuildingDTO {
   public List<String> getSources() {
     return sources;
   }
-
 }
