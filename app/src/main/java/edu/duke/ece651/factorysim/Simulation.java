@@ -612,13 +612,13 @@ public class Simulation {
    *
    * @param reader is the reader to read the JSON from.
    * @throws com.google.gson.JsonSyntaxException when JSON syntax is bad.
-   * @throws com.google.gson.JsonIOException when JSON IO error.
+   * @throws com.google.gson.JsonIOException     when JSON IO error.
    */
   void loadFromReader(Reader reader) {
     Gson gson = new Gson();
 
     String json = new BufferedReader(reader)
-            .lines().collect(Collectors.joining(System.lineSeparator()));
+        .lines().collect(Collectors.joining(System.lineSeparator()));
 
     ConfigData configData = JsonLoader.loadConfigDataFromReader(new StringReader(json));
     this.world = WorldBuilder.buildWorld(configData, this);
@@ -761,5 +761,49 @@ public class Simulation {
         targetBuilding.appendPendingRequest(request);
       }
     }
+  }
+
+  /**
+   * Removes a building from location map.
+   * 
+   * @param building is the building to be removed.
+   */
+  public void removeBuildingFromLocationMap(Building building) {
+    world.locationMap.remove(building);
+  }
+
+  /**
+   * Updates the location map with given building and coordinate.
+   * 
+   * @param building is the building to be updated.
+   * @param location is the new coordinate.
+   */
+  public void updateLocationMap(Building building, Coordinate location) {
+    world.locationMap.put(building, location);
+  }
+
+  /**
+   * Updates the location map with given building and coordinate.
+   * 
+   * @param building is the building to be updated.
+   * @param x        is the x of new coordinate.
+   * @param y        is the y of new coordinate.
+   */
+  public void updateLocationMap(Building building, int x, int y) {
+    Coordinate newLocation = new Coordinate(x, y);
+    updateLocationMap(building, newLocation);
+  }
+
+  /**
+   * Gets the location of a building from the location map.
+   * 
+   * @param building is the building to look up.
+   * @return the corresponding location if building is in the map, null otherwise.
+   */
+  public Coordinate getBuildingLocation(Building building) {
+    if (world.locationMap.containsKey(building)) {
+      return world.locationMap.get(building);
+    }
+    return null;
   }
 }

@@ -26,12 +26,11 @@ public class WorldBuilder {
     Map<String, Type> types = buildTypes(configData.types, recipes);
     Map<String, Building> buildings = buildBuildings(configData.buildings, types, recipes, simulation);
     validateBuildingsIngredients(buildings, types);
-
     World world = new World();
     world.setTypes(new ArrayList<>(types.values()));
     world.setRecipes(new ArrayList<>(recipes.values()));
     world.setBuildings(new ArrayList<>(buildings.values()));
-
+    world.generateLocationMap();
     return world;
   }
 
@@ -123,9 +122,16 @@ public class WorldBuilder {
       Map<String, Type> typeMap, Map<String, Recipe> recipeMap, Simulation simulation) {
     Map<String, Building> buildings = new HashMap<>();
     Set<String> usedNames = new HashSet<>();
+
+    // added for evolution 2: make buildings adapt to locations
+    Set<Coordinate> usedCoordinates = new HashSet<>();
+    List<Building> buildingsWithoutLocations = new ArrayList<>();
+
+    // create buildings and assign coordinates if possible
     for (BuildingDTO buildingDTO : buildingDTOs) {
       Utils.validNameAndUnique(buildingDTO.name, usedNames);
       usedNames.add(buildingDTO.name);
+      Building building;
 
       if (buildingDTO.mine != null) {
         Recipe recipe = recipeMap.get(buildingDTO.mine);
@@ -138,12 +144,7 @@ public class WorldBuilder {
               "Mine building '" + buildingDTO.name + "' should have no ingredients (violates #8).");
         }
         MineBuilding mineBuilding = new MineBuilding(recipe, buildingDTO.name, simulation);
-        if (buildingDTO.storage != null) {
-          for (Map.Entry<String, Integer> entry : buildingDTO.storage.entrySet()) {
-            mineBuilding.addToStorage(new Item(entry.getKey()), entry.getValue());
-          }
-        }
-        buildings.put(buildingDTO.name, mineBuilding);
+        building = mineBuilding;
       } else if (buildingDTO.type != null) {
         if (!typeMap.containsKey(buildingDTO.type)) {
           throw new IllegalArgumentException("Type '" + buildingDTO.type + "' is not defined (violates #2).");
@@ -154,17 +155,43 @@ public class WorldBuilder {
         }
         Type type = typeMap.get(buildingDTO.type);
         FactoryBuilding factoryBuilding = new FactoryBuilding(type, buildingDTO.name, new ArrayList<>(), simulation);
-        if (buildingDTO.storage != null) {
-          for (Map.Entry<String, Integer> entry : buildingDTO.storage.entrySet()) {
-            factoryBuilding.addToStorage(new Item(entry.getKey()), entry.getValue());
-          }
-        }
-        buildings.put(buildingDTO.name, factoryBuilding);
+        building = factoryBuilding;
       } else {
         throw new IllegalArgumentException("Building '" + buildingDTO.name + "' has no mine or type.");
       }
+
+      // assign storage
+      if (buildingDTO.storage != null) {
+        for (Map.Entry<String, Integer> entry : buildingDTO.storage.entrySet()) {
+          building.addToStorage(new Item(entry.getKey()), entry.getValue());
+        }
+      }
+
+      // assign locations if provided
+      if (buildingDTO.x != null && buildingDTO.y != null) {
+        Coordinate location = new Coordinate(buildingDTO.x, buildingDTO.y);
+        if (usedCoordinates.contains(location)) {
+          throw new IllegalArgumentException(
+              "The location " + location + " has already been occupied by another building.");
+        }
+        building.setLocation(location);
+        usedCoordinates.add(location);
+      } else {
+        buildingsWithoutLocations.add(building);
+      }
+
+      buildings.put(buildingDTO.name, building);
     }
 
+    // if no building has initially provided locations, place the first at (0, 0)
+    if (usedCoordinates.isEmpty() && !buildingsWithoutLocations.isEmpty()) {
+      Building first = buildingsWithoutLocations.remove(0);
+      Coordinate location = new Coordinate(0, 0);
+      first.setLocation(location);
+      usedCoordinates.add(location);
+    }
+
+    // assign sources
     for (BuildingDTO buildingDTO : buildingDTOs) {
       Building building = buildings.get(buildingDTO.name);
       List<Building> sources = new ArrayList<>();
@@ -180,6 +207,13 @@ public class WorldBuilder {
         continue;
       }
       building.updateSources(sources);
+    }
+
+    // assign a valid location to buildings that don't have provided locations
+    for (Building missingBuilding : buildingsWithoutLocations) {
+      Coordinate validLocation = findValidLocation(usedCoordinates);
+      missingBuilding.setLocation(validLocation);
+      usedCoordinates.add(validLocation);
     }
 
     return buildings;
@@ -219,5 +253,80 @@ public class WorldBuilder {
         }
       }
     }
+  }
+
+  /**
+   * Finds a valid location for a building accoding to these rules:
+   * 1. The location is at least 5 units away in both x and y from any other
+   * buildings.
+   * 2. The location is within 10 units in x and y of at least one used
+   * coordinate.
+   * Precondition: the building is not initially assigned a location in JSON.
+   * 
+   * @param usedCoordinates is the set of coordinates that are already assigned
+   *                        with a building.
+   * @return a valid Coordinate for a new building placement if there's one, null
+   *         otherwise.
+   */
+  private static Coordinate findValidLocation(Set<Coordinate> usedCoordinates) {
+    // TODO: Adjust the search boundaries later if we want to use boards
+    int minX = -100;
+    int maxX = 100;
+    int minY = -100;
+    int maxY = 100;
+    for (Coordinate c : usedCoordinates) {
+      minX = Math.min(minX, c.getX());
+      maxX = Math.max(maxX, c.getX());
+      minY = Math.min(minY, c.getY());
+      maxY = Math.max(maxY, c.getY());
+    }
+    for (int x = minX - 10; x <= maxX + 10; x++) {
+      for (int y = minY - 10; y <= maxY + 10; y++) {
+        Coordinate location = new Coordinate(x, y);
+        if (!isNotTooCloseToOthers(location, usedCoordinates))
+          continue;
+        if (!isNotTooFarFromOthers(location, usedCoordinates))
+          continue;
+        return location;
+      }
+    }
+    return null; // TODO: may not be possible to not have an available option... unless we have a
+                 // board
+  }
+
+  /**
+   * See if a given location is not too close to any other buildings (i.e. at
+   * least 5 units away in both x and y dimensions).
+   * 
+   * @param location        is the location to be checked.
+   * @param usedCoordinates is the set of coordinates occupied by other buildings.
+   * @return true if the new location is not too close to other existing
+   *         locations, false otherwise.
+   */
+  protected static boolean isNotTooCloseToOthers(Coordinate location, Set<Coordinate> usedCoordinates) {
+    for (Coordinate c : usedCoordinates) {
+      if (Math.abs(location.getX() - c.getX()) < 5 || Math.abs(location.getY() - c.getY()) < 5) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * See if a given location is not too close to any other buildings (i.e. within
+   * 10 units in both x and y dimensions from at least one location).
+   * 
+   * @param location        is the location to be checked.
+   * @param usedCoordinates is the set of coordinates occupied by other buildings.
+   * @return true if the new location is not too far away from other existing
+   *         locations, false otherwise.
+   */
+  protected static boolean isNotTooFarFromOthers(Coordinate location, Set<Coordinate> usedCoordinates) {
+    for (Coordinate c : usedCoordinates) {
+      if (Math.abs(location.getX() - c.getX()) <= 10 && Math.abs(location.getY() - c.getY()) <= 10) {
+        return true;
+      }
+    }
+    return false;
   }
 }

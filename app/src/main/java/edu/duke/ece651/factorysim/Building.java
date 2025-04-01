@@ -19,6 +19,8 @@ public abstract class Building {
   private RequestPolicy requestPolicy;
   private SourcePolicy sourcePolicy;
 
+  private Coordinate location;
+
   /**
    * Constructs a basic building with empty storage.
    * 
@@ -286,7 +288,7 @@ public abstract class Building {
     else if (pendingRequests.isEmpty() == false) {
       // Select a request based on the current policy
       Request selectedRequest = requestPolicy.selectRequest(this, pendingRequests);
-      
+
       // If no request can be selected, especially when the policy is "ready",
       // we just skip this step
       if (selectedRequest == null) {
@@ -579,4 +581,35 @@ public abstract class Building {
     return currentRequest;
   }
 
+  /**
+   * Gets the location of the building.
+   * 
+   * @return the location of the building.
+   */
+  public Coordinate getLocation() {
+    return location;
+  }
+
+  /**
+   * Sets the location of the building.
+   * 
+   * @param location is the location to be set.
+   */
+  public void setLocation(Coordinate location) {
+    this.location = location;
+  }
+
+  /**
+   * Checks if a building occupies a given coordinate in the simulation.
+   * 
+   * @param coordinate is the coordinate to be checked.
+   * @return true if the coordinate is occupied by the building, false otherwise.
+   */
+  public boolean occupiesCoordinate(Coordinate coordinate) {
+    Coordinate location = simulation.getBuildingLocation(this);
+    if (location == null || !location.equals(coordinate)) {
+      return false;
+    }
+    return true;
+  }
 }

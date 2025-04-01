@@ -30,7 +30,9 @@
       "sources": [
         "M"
       ],
-      "storage": {}
+      "storage": {},
+      "x": -20,
+      "y": -20
     },
     {
       "name": "D",
@@ -40,13 +42,17 @@
         "Hi",
         "Ha"
       ],
-      "storage": {}
+      "storage": {},
+      "x": 0,
+      "y": 0
     },
     {
       "name": "W",
       "mine": "wood",
       "sources": [],
-      "storage": {}
+      "storage": {},
+      "x": -30,
+      "y": -30
     },
     {
       "name": "Ha",
@@ -54,13 +60,17 @@
       "sources": [
         "M"
       ],
-      "storage": {}
+      "storage": {},
+      "x": -10,
+      "y": -10
     },
     {
       "name": "M",
       "mine": "metal",
       "sources": [],
-      "storage": {}
+      "storage": {},
+      "x": -40,
+      "y": -40
     }
   ],
   "recipes": [
