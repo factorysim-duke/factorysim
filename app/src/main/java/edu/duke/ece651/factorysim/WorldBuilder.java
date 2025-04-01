@@ -321,16 +321,11 @@ public class WorldBuilder {
    *         locations, false otherwise.
    */
   private static boolean isNotTooFarFromOthers(Coordinate location, Set<Coordinate> usedCoordinates) {
-    boolean withinX = false;
-    boolean withinY = false;
     for (Coordinate c : usedCoordinates) {
-      if (Math.abs(location.getX() - c.getX()) <= 10) {
-        withinX = true;
-      }
-      if (Math.abs(location.getY() - c.getY()) <= 10) {
-        withinY = true;
+      if (Math.abs(location.getX() - c.getX()) <= 10 && Math.abs(location.getY() - c.getY()) <= 10) {
+        return true;
       }
     }
-    return withinX && withinY;
+    return false;
   }
 }

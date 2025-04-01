@@ -1,0 +1,86 @@
+{
+  "types": [
+    {
+      "name": "door",
+      "recipes": ["door"]
+    },
+    {
+      "name": "handle",
+      "recipes": ["handle"]
+    },
+    {
+      "name": "hinge",
+      "recipes": ["hinge"]
+    }
+  ],
+  "recipes": [
+    {
+      "output": "door",
+      "ingredients": {
+        "wood": 1,
+        "handle": 1,
+        "hinge": 3
+      },
+      "latency": 12
+    },
+    {
+      "output": "handle",
+      "ingredients": {
+        "metal": 1
+      },
+      "latency": 5
+    },
+    {
+      "output": "hinge",
+      "ingredients": {
+        "metal": 1
+      },
+      "latency": 1
+    },
+    {
+      "output": "wood",
+      "ingredients": {},
+      "latency": 1
+    },
+    {
+      "output": "metal",
+      "ingredients": {},
+      "latency": 1
+    }
+  ],
+  "buildings": [
+    {
+      "name": "D",
+      "type": "door",
+      "sources": ["W", "Hi", "Ha"],
+      "x": 20,
+      "y": 20
+    },
+    {
+      "name": "Ha",
+      "type": "handle",
+      "sources": ["M"]
+    },
+    {
+      "name": "Hi",
+      "type": "hinge",
+      "sources": ["M"],
+      "x": 25,
+      "y": 25
+    },
+    {
+      "name": "W",
+      "mine": "wood",
+      "sources": [],
+      "x": 10,
+      "y": 10
+    },
+    {
+      "name": "M",
+      "mine": "metal",
+      "sources": [],
+      "x": 15,
+      "y": 10
+    }
+  ]
+}
