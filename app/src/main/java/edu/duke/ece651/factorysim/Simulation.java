@@ -612,13 +612,13 @@ public class Simulation {
    *
    * @param reader is the reader to read the JSON from.
    * @throws com.google.gson.JsonSyntaxException when JSON syntax is bad.
-   * @throws com.google.gson.JsonIOException when JSON IO error.
+   * @throws com.google.gson.JsonIOException     when JSON IO error.
    */
   void loadFromReader(Reader reader) {
     Gson gson = new Gson();
 
     String json = new BufferedReader(reader)
-            .lines().collect(Collectors.joining(System.lineSeparator()));
+        .lines().collect(Collectors.joining(System.lineSeparator()));
 
     ConfigData configData = JsonLoader.loadConfigDataFromReader(new StringReader(json));
     this.world = WorldBuilder.buildWorld(configData, this);
@@ -761,5 +761,9 @@ public class Simulation {
         targetBuilding.appendPendingRequest(request);
       }
     }
+  }
+
+  public Coordinate assignCoordinateToBuilding(Building building) {
+    return null;
   }
 }

@@ -12,7 +12,7 @@ public abstract class Building {
   private final String name;
   private final List<Building> sources;
   private final Simulation simulation;
-
+  
   private HashMap<Item, Integer> storage;
   private Request currentRequest = null;
   private List<Request> pendingRequests;
