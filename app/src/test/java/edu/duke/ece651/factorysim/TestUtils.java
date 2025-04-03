@@ -1,10 +1,12 @@
 package edu.duke.ece651.factorysim;
 
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 public class TestUtils {
   /**
@@ -29,6 +31,22 @@ public class TestUtils {
   }
 
   /**
+   * Conveniently generates a recipe for testing.
+   * 
+   * @param itemName         is the String name of the recipe's output item.
+   * @param latency          is the latency for the recipe.
+   * @param numOfIngredients is the number of ingredients you want in the
+   *                         ingredients hashmap (in the form of {("a", 1), ("b", 2)...} as described in makeTestIngredients())
+   * @return the recipe used for tesing.
+   */
+  public static Recipe makeTestRecipe(String itemName, int latency, int numOfIngredients) {
+    HashMap<Item, Integer> ingredients = makeTestIngredientMap(numOfIngredients);
+    Item item = new Item(itemName);
+    Recipe ans = new Recipe(item, ingredients, latency);
+    return ans;
+  }
+
+  /**
    * Loads the config data from the given file path.
    * 
    * @param filePath is the path to the config data file.
@@ -40,6 +58,39 @@ public class TestUtils {
       return new Gson().fromJson(json, ConfigData.class);
     } catch (IOException e) {
       throw new RuntimeException("Failed to load config data from " + filePath, e);
+    }
+  }
+
+  /**
+   * Mock simulation for testing.
+   */
+  public static class MockSimulation extends Simulation {
+    public MockSimulation() {
+        super("src/test/resources/inputs/doors1.json"); 
+    }
+  
+    @Override
+    public RequestPolicy getRequestPolicy(String building) {
+        return new FifoRequestPolicy(); 
+    }
+  }
+
+  /**
+   * Mock building for testing.
+   */
+  public static class MockBuilding extends Building {
+    public MockBuilding(String name) {
+        super(name, new ArrayList<>(), new MockSimulation());
+    }
+
+    @Override
+    public boolean canProduce(Item item) {
+        return true;
+    }
+
+    @Override
+    public JsonObject toJson() {
+      return null;
     }
   }
 }

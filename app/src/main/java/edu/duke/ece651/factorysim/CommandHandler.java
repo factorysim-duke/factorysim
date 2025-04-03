@@ -18,6 +18,10 @@ public class CommandHandler {
         registerCommand(new RequestCommand());
         registerCommand(new StepCommand());
         registerCommand(new FinishCommand());
+        registerCommand(new SetPolicyCommand());
+        registerCommand(new VerboseCommand());
+        registerCommand(new SaveCommand());
+        registerCommand(new LoadCommand());
     }
 
     /**

@@ -20,10 +20,10 @@ class AppTest {
         ByteArrayOutputStream bytes=new ByteArrayOutputStream();
         PrintStream out=new PrintStream(bytes,true);
 
-        InputStream input = getClass().getClassLoader().getResourceAsStream("inputs/input.txt");
+        InputStream input = getClass().getClassLoader().getResourceAsStream("inputs/input1.txt");
         assertNotNull(input);
 
-        InputStream expectedStream = getClass().getClassLoader().getResourceAsStream("outputs/output.txt");
+        InputStream expectedStream = getClass().getClassLoader().getResourceAsStream("outputs/output1.txt");
         assertNotNull(expectedStream);
         InputStream oldIn = System.in;
         PrintStream oldOut = System.out;
@@ -32,7 +32,9 @@ class AppTest {
             System.setIn(input);
             System.setOut(out);
             String filePath = "src/test/resources/inputs/doors1.json";
-            App.actualMain(filePath, new BufferedReader(new InputStreamReader(System.in)));
+            String[] args = {filePath};
+            App.main(args);
+//            App.actualMain(filePath, new BufferedReader(new InputStreamReader(System.in)));
         }
         finally {
             //replace back
@@ -49,4 +51,5 @@ class AppTest {
         input.close();
 
     }
+
 }

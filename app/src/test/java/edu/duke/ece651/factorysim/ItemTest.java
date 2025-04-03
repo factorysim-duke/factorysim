@@ -22,4 +22,21 @@ public class ItemTest {
     assertThrows(IllegalArgumentException.class, () -> new Item("'A"));
     assertThrows(IllegalArgumentException.class, () -> new Item("'"));
   }
+
+  @Test
+  public void test_hashcode_and_equals() {
+    Item a = new Item("dog");
+    assertEquals(a, a);
+    Item b = null;
+    assertNotEquals(a, b);
+    assertNotEquals(b, a);
+    String string = "dog";
+    assertNotEquals(a, string);
+    Item c = new Item("dog");
+    assertEquals(a, c);
+    assertEquals(c, a);
+    Item e = new Item("cat");
+    assertNotEquals(a, e);
+    assertNotEquals(e, a);
+  }
 }

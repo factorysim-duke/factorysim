@@ -1,0 +1,112 @@
+{
+  "currentTime": 0,
+  "finished": false,
+  "nextOrderNum": 0,
+  "verbosity": 0,
+  "types": [
+    {
+      "name": "door",
+      "recipes": [
+        "door"
+      ]
+    },
+    {
+      "name": "hinge",
+      "recipes": [
+        "hinge"
+      ]
+    },
+    {
+      "name": "handle",
+      "recipes": [
+        "handle"
+      ]
+    }
+  ],
+  "buildings": [
+    {
+      "name": "Hi",
+      "type": "hinge",
+      "sources": [
+        "M"
+      ],
+      "storage": {},
+      "x": -20,
+      "y": -20
+    },
+    {
+      "name": "D",
+      "type": "door",
+      "sources": [
+        "W",
+        "Hi",
+        "Ha"
+      ],
+      "storage": {},
+      "x": 0,
+      "y": 0
+    },
+    {
+      "name": "W",
+      "mine": "wood",
+      "sources": [],
+      "storage": {},
+      "x": -30,
+      "y": -30
+    },
+    {
+      "name": "Ha",
+      "type": "handle",
+      "sources": [
+        "M"
+      ],
+      "storage": {},
+      "x": -10,
+      "y": -10
+    },
+    {
+      "name": "M",
+      "mine": "metal",
+      "sources": [],
+      "storage": {},
+      "x": -40,
+      "y": -40
+    }
+  ],
+  "recipes": [
+    {
+      "output": "door",
+      "ingredients": {
+        "wood": 1,
+        "handle": 1,
+        "hinge": 3
+      },
+      "latency": 12
+    },
+    {
+      "output": "hinge",
+      "ingredients": {
+        "metal": 1
+      },
+      "latency": 1
+    },
+    {
+      "output": "metal",
+      "ingredients": {},
+      "latency": 1
+    },
+    {
+      "output": "handle",
+      "ingredients": {
+        "metal": 1
+      },
+      "latency": 5
+    },
+    {
+      "output": "wood",
+      "ingredients": {},
+      "latency": 1
+    }
+  ],
+  "requests": []
+}

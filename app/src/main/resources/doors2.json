@@ -1,0 +1,52 @@
+{
+    "types" : [
+        {
+            "name" : "Hw",
+            "recipes" : [
+                "handle",
+                "hinge"
+            ]
+        }
+    ],
+    "buildings" : [
+        {
+            "name" : "Hw1",
+            "type" : "Hw",
+            "sources" : [
+                "M1",
+                "M2"
+            ]
+        },
+        {
+            "name" : "M1",
+            "mine" : "metal",
+            "sources" : []
+        },
+        {
+            "name" : "M2",
+            "mine" : "metal",
+            "sources" : []
+        }
+    ],
+    "recipes" : [
+        {
+            "output" : "handle",
+            "ingredients" : {
+                "metal" : 1
+            },
+            "latency" : 5
+        },
+        {
+            "output" : "hinge",
+            "ingredients" : {
+                "metal" : 1
+            },
+            "latency" : 1
+        },
+        {
+            "output" : "metal",
+            "ingredients" : {},
+            "latency" : 1
+        }
+    ]
+}

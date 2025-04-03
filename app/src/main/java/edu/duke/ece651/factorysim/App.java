@@ -7,67 +7,76 @@
 package edu.duke.ece651.factorysim;
 
 import java.io.*;
-import java.util.Scanner;
 
+/**
+ * Represents the app that runs the simulation.
+ */
 public class App {
-    private final Simulation sim;
-    private final CommandHandler commandHandler;
-    private final BufferedReader inputReader;
+  private final Simulation sim;
+  private final CommandHandler commandHandler;
+  private final BufferedReader inputReader;
 
-    /**
-     * Creates an instance with the given configuration file and input reader.
-     *
-     * @param filePath    Path to the JSON configuration file.
-     * @param inputReader Reader for user input.
-     */
-    public App(String filePath, BufferedReader inputReader) {
-        this.sim = new Simulation(filePath);
-        this.inputReader = inputReader;
-        this.commandHandler = new CommandHandler(sim);
-    }
+  /**
+   * Creates an instance with the given configuration file and input reader.
+   *
+   * @param filePath    Path to the JSON configuration file.
+   * @param inputReader Reader for user input.
+   */
+  public App(String filePath, BufferedReader inputReader) {
+    this.sim = new Simulation(filePath);
+    this.inputReader = inputReader;
+    this.commandHandler = new CommandHandler(sim);
+  }
 
-    /**
-     * Runs the simulation, processing user commands until finished.
-     *
-     * @throws IOException if an input error occurs.
-     */
-    public void run() throws IOException {
-            while(!sim.isFinished()){
-                System.out.println(sim.getCurrentTime() + ">");
-                String line = inputReader.readLine();
-                if(line.trim().isEmpty()){
-                    continue;
-                }
-                try{
-                    commandHandler.execute(line);
-                } catch (Exception e){
-                    System.out.println(e.getMessage());
-                }
-            }
+  /**
+   * Runs the simulation, processing user commands until finished.
+   *
+   * @throws IOException if an input error occurs.
+   */
+  public void run() throws IOException {
+    while (!sim.isFinished()) {
+      System.out.println(sim.getCurrentTime() + ">");
+      String line = inputReader.readLine();
+      if (line == null || line.trim().isEmpty()) {
+        continue;
+      }
+      try {
+        commandHandler.execute(line);
+      } catch (Exception e) {
+        System.out.println(e.getMessage());
+      }
     }
+  }
 
-    /**
-     * Runs the application with the given file and input reader. Avoid file path error in app test
-     *
-     * @param filePath    Path to the JSON file.
-     * @param inputReader Reader for user input.
-     * @throws IOException if an input error occurs.
-     */
-    public static void actualMain(String filePath, BufferedReader inputReader) throws IOException {
-        App app = new App(filePath, inputReader);
-        app.run();
-    }
+  // /**
+  // * Runs the application with the given file and input reader. Avoid file path
+  // * error in app test
+  // *
+  // * @param filePath Path to the JSON file.
+  // * @param inputReader Reader for user input.
+  // * @throws IOException if an input error occurs.
+  // */
+  // public static void actualMain(String filePath, BufferedReader inputReader)
+  // throws IOException {
+  // App app = new App(filePath, inputReader);
+  // app.run();
+  // }
 
-    /**
-     * Main entry of the application.
-     *
-     * @param args Command line arguments (not used).
-     * @throws IOException if an input error occurs.
-     */
-    public static void main(String[] args) throws IOException {
-        String filePath = "app/src/main/resources/doors1.json";
-        BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
-        actualMain(filePath, inputReader);
-    }
+  /**
+   * Main entry of the application.
+   *
+   * @param args Command line arguments (not used).
+   * @throws IOException if an input error occurs.
+   */
+  public static void main(String[] args) throws IOException {
+    // String filePath = "app/src/main/resources/doors1.json";
+    // BufferedReader inputReader = new BufferedReader(new
+    // InputStreamReader(System.in));
+    // actualMain(filePath, inputReader);
+    String filePath = args[0];
+    BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
+    App app = new App(filePath, inputReader);
+    app.run();
+  }
 
 }

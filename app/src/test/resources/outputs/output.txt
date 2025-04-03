@@ -1,9 +1,10 @@
 0>
 0>
 5>
-Building cannot produce item
+The recipe for item invalid_item does not exist.
 5>
-Building not found
+The building invalid_factory does not exist.
 5>
-5>
-Simulation completed at time-step 5
+[order complete] Order 0 completed (door) at time 26
+Simulation completed at time-step 27
+

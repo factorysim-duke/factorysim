@@ -1,10 +1,11 @@
 package edu.duke.ece651.factorysim;
 
 import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import com.google.gson.JsonObject;
 
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +33,8 @@ public class FactoryBuildingTest {
     Item out1 = new Item("out1");
     Item out2 = new Item("out2");
     Type factoryType = makeTestFactoryType();
-    FactoryBuilding factory = new FactoryBuilding(factoryType, "myFactory", new ArrayList<>());
+    FactoryBuilding factory = new FactoryBuilding(factoryType, "myFactory", new ArrayList<>(),
+        new TestUtils.MockSimulation());
 
     assertEquals(30, factory.getRemainingLatency());
     assertEquals("myFactory", factory.getName());
@@ -45,9 +47,10 @@ public class FactoryBuildingTest {
   @Test
   public void test_invalid_name() {
     Type factoryType = makeTestFactoryType();
-    assertThrows(IllegalArgumentException.class, () -> new FactoryBuilding(factoryType, "'factory", new ArrayList<>()));
     assertThrows(IllegalArgumentException.class,
-        () -> new FactoryBuilding(factoryType, "Fac tory'", new ArrayList<>()));
+        () -> new FactoryBuilding(factoryType, "'factory", new ArrayList<>(), new TestUtils.MockSimulation()));
+    assertThrows(IllegalArgumentException.class,
+        () -> new FactoryBuilding(factoryType, "Fac tory'", new ArrayList<>(), new TestUtils.MockSimulation()));
   }
 
   @Test
@@ -58,16 +61,16 @@ public class FactoryBuildingTest {
     Recipe recipeA = new Recipe(a, new HashMap<>(), 1);
     Recipe recipeB = new Recipe(b, new HashMap<>(), 3);
     Recipe recipeC = new Recipe(c, new HashMap<>(), 5);
-    MineBuilding mineA = new MineBuilding(recipeA, "mineA");
-    MineBuilding mineB = new MineBuilding(recipeB, "mineB");
-    MineBuilding mineC = new MineBuilding(recipeC, "mineC");
+    MineBuilding mineA = new MineBuilding(recipeA, "mineA", new TestUtils.MockSimulation());
+    MineBuilding mineB = new MineBuilding(recipeB, "mineB", new TestUtils.MockSimulation());
+    MineBuilding mineC = new MineBuilding(recipeC, "mineC", new TestUtils.MockSimulation());
 
     Type factoryType = makeTestFactoryType();
     ArrayList<Building> sources = new ArrayList<>();
     sources.add(mineA);
     sources.add(mineB);
     sources.add(mineC);
-    FactoryBuilding factory = new FactoryBuilding(factoryType, "myFactory", sources);
+    FactoryBuilding factory = new FactoryBuilding(factoryType, "myFactory", sources, new TestUtils.MockSimulation());
 
     List<Building> factorySources = factory.getSources();
     assertEquals(3, factorySources.size());
@@ -95,9 +98,98 @@ public class FactoryBuildingTest {
     mineB.deliverTo(factory, b, 4);
     mineB.deliverTo(factory, b, 10);
     assertEquals(14, factory.getStorageNumberOf(b));
-    
+
     assertThrows(IllegalArgumentException.class, () -> factory.takeFromStorage(d, 3));
     assertThrows(IllegalArgumentException.class, () -> factory.takeFromStorage(c, 2));
     assertThrows(IllegalArgumentException.class, () -> factory.takeFromStorage(a, 1));
+  }
+
+  @Test
+  public void test_toJson() {
+    Item door = new Item("door");
+    Recipe doorRecipe = TestUtils.makeTestRecipe("door", 2, 5);
+    Type factoryType = new Type("DoorFactory", List.of(doorRecipe));
+
+    MineBuilding woodMine = new MineBuilding(TestUtils.makeTestRecipe("wood", 0, 1), "woodMine",
+        new TestUtils.MockSimulation());
+    MineBuilding metalMine = new MineBuilding(TestUtils.makeTestRecipe("metal", 0, 1), "metalMine",
+        new TestUtils.MockSimulation());
+
+    FactoryBuilding doorFactory = new FactoryBuilding(factoryType, "doorFactory", List.of(woodMine, metalMine),
+        new TestUtils.MockSimulation());
+    doorFactory.addToStorage(door, 3);
+
+    JsonObject json = doorFactory.toJson();
+    assertEquals("doorFactory", json.get("name").getAsString());
+    assertEquals("DoorFactory", json.get("type").getAsString());
+    assertEquals(2, json.getAsJsonArray("sources").size());
+    assertEquals("woodMine", json.getAsJsonArray("sources").get(0).getAsString());
+    assertEquals("metalMine", json.getAsJsonArray("sources").get(1).getAsString());
+    assertEquals(3, json.getAsJsonObject("storage").get("door").getAsInt());
+  }
+
+  @Test
+  public void test_request_in_building() {
+    Item door = new Item("door");
+    Recipe doorRecipe = TestUtils.makeTestRecipe("door", 2, 5);
+    Type factoryType = new Type("DoorFactory", List.of(doorRecipe));
+
+    MineBuilding woodMine = new MineBuilding(TestUtils.makeTestRecipe("wood", 0, 1), "woodMine",
+        new TestUtils.MockSimulation());
+    MineBuilding metalMine = new MineBuilding(TestUtils.makeTestRecipe("metal", 0, 1), "metalMine",
+        new TestUtils.MockSimulation());
+
+    FactoryBuilding doorFactory = new FactoryBuilding(factoryType, "doorFactory", List.of(woodMine, metalMine),
+        new TestUtils.MockSimulation());
+
+    Request request1 = new Request(1, door, doorRecipe, doorFactory, null);
+    Request request2 = new Request(2, door, doorRecipe, doorFactory, null);
+
+    doorFactory.getPendingRequest().add(request1);
+    doorFactory.getPendingRequest().add(request2);
+    doorFactory.processRequestEasyVersion();
+
+    assertEquals(1, doorFactory.getPendingRequest().size());
+    assertSame(request1, doorFactory.getCurrentRequest());
+
+    doorFactory.setCurrentRequest(request2);
+    assertEquals(doorFactory.getCurrentRequest(), request2);
+  }
+
+  @Test
+  public void test_get_recipe_for_item() {
+    Building mockBuilding = new TestUtils.MockBuilding("D");
+    Recipe doorRecipe = mockBuilding.getRecipeForItem(new Item("door"));
+    assertNotNull(doorRecipe);
+    Recipe nullRecipe = mockBuilding.getRecipeForItem(new Item("notExist"));
+    assertNull(nullRecipe);
+  }
+
+  @Test
+  public void test_request_missing_ingredients_from_missing_source() {
+    Recipe nonExistingRecipe = TestUtils.makeTestRecipe("test", 2, 5);
+    Building mockBuilding = new TestUtils.MockBuilding("D");
+    assertThrows(IllegalArgumentException.class, () -> mockBuilding.requestMissingIngredients(nonExistingRecipe));
+  }
+
+  @Test
+  public void test_coordinate_operations() {
+    ConfigData configData = TestUtils.loadConfigData("src/test/resources/inputs/SomeLocationAssigned.json");
+    Simulation sim = new TestUtils.MockSimulation();
+    World world = WorldBuilder.buildWorld(configData, sim);
+
+    Building D = world.getBuildingFromName("D");
+    sim.updateLocationMap(D, 3, 4);
+    Coordinate location1 = new Coordinate(3, 4);
+    assertTrue(D.occupiesCoordinate(location1));
+    Coordinate location2 = new Coordinate(2, 1);
+    sim.updateLocationMap(D, location2);
+    assertTrue(D.occupiesCoordinate(location2));
+    assertFalse(D.occupiesCoordinate(location1));
+    assertSame(location2, sim.getBuildingLocation(D));
+    Building Ha = world.getBuildingFromName("Ha");
+    assertNull(sim.getBuildingLocation(Ha));
+    sim.removeBuildingFromLocationMap(D);
+    assertNull(sim.getBuildingLocation(D));
   }
 }

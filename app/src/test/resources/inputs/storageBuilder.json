@@ -1,0 +1,70 @@
+{
+  "currentTime": 0,
+  "finished": false,
+  "nextOrderNum": 2,
+  "verbosity": 0,
+  "types": [
+    {
+      "name": "hinge",
+      "recipes": [
+        "hinge"
+      ]
+    }
+  ],
+  "buildings": [
+    {
+      "name": "Hi",
+      "type": "hinge",
+      "sources": [
+        "M"
+      ],
+      "storage": {
+        "metal": 2,
+        "hinge": 3
+      }
+    },
+    {
+      "name": "M",
+      "mine": "metal",
+      "sources": [],
+      "storage": {
+        "metal": 5
+      }
+    }
+  ],
+  "recipes": [
+
+    {
+      "output": "hinge",
+      "ingredients": {
+        "metal": 1
+      },
+      "latency": 1
+    },
+    {
+      "output": "metal",
+      "ingredients": {},
+      "latency": 1
+    }
+  ],
+  "requests": [
+    {
+      "orderNum": 0,
+      "item": "hinge",
+      "recipe": "hinge",
+      "producer": "Hi",
+      "deliverTo": "null",
+      "remainingSteps": 1,
+      "status": "pending"
+    },
+    {
+      "orderNum": 1,
+      "item": "metal",
+      "recipe": "metal",
+      "producer": "M",
+      "deliverTo": "Hi",
+      "remainingSteps": 1,
+      "status": "pending"
+    }
+  ]
+}
