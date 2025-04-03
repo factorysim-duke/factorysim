@@ -764,32 +764,46 @@ public class Simulation {
   }
 
   /**
-   * Updates the tile map with given tile type and coordinate.
-   *
-   * @param tileType is the tileType to be updated.
+   * Removes a building from location map.
+   * 
+   * @param building is the building to be removed.
+   */
+  public void removeBuildingFromLocationMap(Building building) {
+    world.locationMap.remove(building);
+  }
+
+  /**
+   * Updates the location map with given building and coordinate.
+   * 
+   * @param building is the building to be updated.
    * @param location is the new coordinate.
    */
-  public void updateTileMap(Coordinate location, TileType tileType) {
-    world.tileMap.setTileType(location, tileType);
+  public void updateLocationMap(Building building, Coordinate location) {
+    world.locationMap.put(building, location);
+  }
+
+  /**
+   * Updates the location map with given building and coordinate.
+   * 
+   * @param building is the building to be updated.
+   * @param x        is the x of new coordinate.
+   * @param y        is the y of new coordinate.
+   */
+  public void updateLocationMap(Building building, int x, int y) {
+    Coordinate newLocation = new Coordinate(x, y);
+    updateLocationMap(building, newLocation);
   }
 
   /**
    * Gets the location of a building from the location map.
    * 
-   * @param buildingName is the name of building to look up.
-   * @return the corresponding location.
+   * @param building is the building to look up.
+   * @return the corresponding location if building is in the map, null otherwise.
    */
-  public Coordinate getBuildingLocation(String buildingName) {
-    return world.getBuildingFromName(buildingName).getLocation();
-  }
-
-  /**
-   * Checks what is on the specific coordinate.
-   *
-   * @param coordinate is the coordinate to be checked.
-   * @return TileType on that coordinate.
-   */
-  public TileType checkTile(Coordinate coordinate) {
-    return world.tileMap.getTileType(coordinate);
+  public Coordinate getBuildingLocation(Building building) {
+    if (world.locationMap.containsKey(building)) {
+      return world.locationMap.get(building);
+    }
+    return null;
   }
 }
