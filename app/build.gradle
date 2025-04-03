@@ -18,14 +18,15 @@ repositories {
 
 dependencies {
     // Use JUnit Jupiter for testing.
-    testImplementation libs.junit.jupiter
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
     testImplementation 'org.junit.platform:junit-platform-launcher:1.11.4'
     clover 'org.openclover:clover:4.5.2'
-    
+
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // This dependency is used by the application.
-    implementation libs.guava
+    implementation 'com.google.guava:guava:32.1.2-jre'
     implementation 'com.google.code.gson:gson:2.12.1'
 }
 
