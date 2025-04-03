@@ -158,8 +158,8 @@ public class WorldBuilderTest {
     Building Hi = world.getBuildingFromName("Hi");
     Building W = world.getBuildingFromName("W");
     Building M = world.getBuildingFromName("M");
-    assertEquals(new Coordinate(20, 20), D.getLocation());
-    assertEquals(new Coordinate(25, 25), Hi.getLocation());
+    assertEquals(new Coordinate(5, 5), D.getLocation());
+    assertEquals(new Coordinate(19, 19), Hi.getLocation());
     assertEquals(new Coordinate(10, 10), W.getLocation());
     assertEquals(new Coordinate(15, 10), M.getLocation());
 
@@ -193,8 +193,8 @@ public class WorldBuilderTest {
 
     // extra testing for distance functions
     Set<Coordinate> usedCoordinates = new HashSet<>();
-    usedCoordinates.add(D.getLocation()); // (20, 20)
-    assertFalse(WorldBuilder.isNotTooCloseToOthers(new Coordinate(16, 24), usedCoordinates));
+    usedCoordinates.add(D.getLocation()); // (5, 5)
+    assertFalse(WorldBuilder.isNotTooCloseToOthers(new Coordinate(1, 1), usedCoordinates));
     assertFalse(WorldBuilder.isNotTooFarFromOthers(new Coordinate(9, 20), usedCoordinates));
   }
 
