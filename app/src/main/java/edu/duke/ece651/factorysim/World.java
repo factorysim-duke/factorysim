@@ -2,6 +2,7 @@ package edu.duke.ece651.factorysim;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a world in the simulation which holds all the information.
@@ -11,6 +12,10 @@ public class World {
   private List<Type> types;
   private List<Recipe> recipes;
   public HashMap<Building, Coordinate> locationMap;
+  public TileMap tileMap;
+  public int boardWidth=25;
+  public int boardHeight=25;
+
 
   /**
    * Constructs an empty world.
@@ -20,6 +25,7 @@ public class World {
     this.types = null;
     this.recipes = null;
     this.locationMap = new HashMap<>();
+    this.tileMap =new TileMap(boardWidth,boardHeight);
   }
 
   /**
@@ -157,4 +163,11 @@ public class World {
       locationMap.put(building, building.getLocation());
     }
   }
+
+  public void updateTileMap() {
+    for (Building building : buildings) {
+      tileMap.setTileType(building.getLocation(),TileType.BUILDING);
+    }
+  }
+
 }
