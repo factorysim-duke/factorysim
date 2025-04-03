@@ -53,8 +53,8 @@
       "name": "D",
       "type": "door",
       "sources": ["W", "Hi", "Ha"],
-      "x": 20,
-      "y": 20
+      "x": 5,
+      "y": 5
     },
     {
       "name": "Ha",
@@ -65,8 +65,8 @@
       "name": "Hi",
       "type": "hinge",
       "sources": ["M"],
-      "x": 25,
-      "y": 25
+      "x": 19,
+      "y": 19
     },
     {
       "name": "W",

@@ -598,18 +598,4 @@ public abstract class Building {
   public void setLocation(Coordinate location) {
     this.location = location;
   }
-
-  /**
-   * Checks if a building occupies a given coordinate in the simulation.
-   * 
-   * @param coordinate is the coordinate to be checked.
-   * @return true if the coordinate is occupied by the building, false otherwise.
-   */
-  public boolean occupiesCoordinate(Coordinate coordinate) {
-    Coordinate location = simulation.getBuildingLocation(this);
-    if (location == null || !location.equals(coordinate)) {
-      return false;
-    }
-    return true;
-  }
 }
