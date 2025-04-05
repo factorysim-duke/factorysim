@@ -2,6 +2,7 @@ package edu.duke.ece651.factorysim;
 
 import java.util.List;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 /**
@@ -41,30 +42,6 @@ public class StorageBuilding extends Building {
     this.currentStockNum = 0;
   }
 
-  public Item getStorageItem() {
-    return storageItem;
-  }
-
-  public int getMaxCapacity() {
-    return maxCapacity;
-  }
-
-  public double getPriority() {
-    return priority;
-  }
-
-  public int getOutstandingRequestNum() {
-    return outstandingRequestNum;
-  }
-
-  public int getArrivingItemNum() {
-    return arrivingItemNum;
-  }
-
-  public int getCurrentStockNum() {
-    return currentStockNum;
-  }
-
   /**
    * Checks if this storage building can give an item.
    * 
@@ -78,8 +55,29 @@ public class StorageBuilding extends Building {
 
   @Override
   public JsonObject toJson() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'toJson'");
+    JsonObject json = new JsonObject();
+    json.addProperty("name", this.getName());
+    json.addProperty("stores", storageItem.getName());
+    json.addProperty("capacity", maxCapacity);
+    json.addProperty("priority", priority);
+
+    JsonArray sourcesArray = new JsonArray();
+    for (Building source : this.getSources()) {
+      sourcesArray.add(source.getName());
+    }
+    json.add("sources", sourcesArray);
+
+    JsonObject storageJson = new JsonObject();
+    if (currentStockNum > 0) {
+      storageJson.addProperty(storageItem.getName(), currentStockNum);
+    }
+    json.add("storage", storageJson);
+
+    if (this.getLocation() != null) {
+      json.addProperty("x", this.getLocation().getX());
+      json.addProperty("y", this.getLocation().getY());
+    }
+    return json;
   }
 
   /**
@@ -171,5 +169,44 @@ public class StorageBuilding extends Building {
         }
       }
     }
+  }
+
+  /**
+   * Gets the current storage number of an item.
+   * 
+   * @param item is the item to be checked.
+   * @return -1 if the requested item is not in storage, otherwise the current
+   *         storage number of that item.
+   */
+  public int getStorageNumberOf(Item item) {
+    if (!storageItem.equals(item)) {
+      return -1;
+    } else {
+      return currentStockNum;
+    }
+  }
+
+  public Item getStorageItem() {
+    return storageItem;
+  }
+
+  public int getMaxCapacity() {
+    return maxCapacity;
+  }
+
+  public double getPriority() {
+    return priority;
+  }
+
+  public int getOutstandingRequestNum() {
+    return outstandingRequestNum;
+  }
+
+  public int getArrivingItemNum() {
+    return arrivingItemNum;
+  }
+
+  public int getCurrentStockNum() {
+    return currentStockNum;
   }
 }
