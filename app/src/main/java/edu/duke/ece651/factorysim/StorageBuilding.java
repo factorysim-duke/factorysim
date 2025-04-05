@@ -13,6 +13,7 @@ public class StorageBuilding extends Building {
   private final double priority;
   private int outstandingRequestNum;
   private int arrivingItemNum; // number of items arriving this cycle, which will become available next cycle
+  private final Recipe recipe;
 
   /**
    * Constructs a storage building.
@@ -35,7 +36,9 @@ public class StorageBuilding extends Building {
     this.priority = priority;
     this.outstandingRequestNum = 0;
     this.arrivingItemNum = 0;
+    this.recipe = simulation.getRecipeForItem(storageItem);
   }
+
   /**
    * Checks if this storage building can give an item.
    * 
