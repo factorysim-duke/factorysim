@@ -128,4 +128,50 @@ public class StorageBuilding extends Building {
 
     currentStockNum -= quantity;
   }
+
+  /**
+   * Steps the building forward in time.
+   */
+  @Override
+  public void step() {
+    // try to complete pending request using currently available stocks
+    // can give away many at a time, and use fifo only to choose request
+    while (!getPendingRequest().isEmpty() && currentStockNum > 0) {
+      Request request = getPendingRequests().remove(0); // use fifo only
+      if (request.isUserRequest()) {
+        takeFromStorage(storageItem, 1);
+        getSimulation().onRequestCompleted(request);
+      } else {
+        Building destination = request.getDeliverTo();
+        deliverTo(destination, storageItem, 1);
+        takeFromStorage(storageItem, 1);
+        getSimulation().onIngredientDelivered(storageItem, destination, this);
+      }
+    }
+
+    // by the end of each time step, the arriving items becomes available
+    currentStockNum += arrivingItemNum;
+    arrivingItemNum = 0;
+
+    // periodically make refill requests from sources
+    int R = maxCapacity - currentStockNum - outstandingRequestNum + getPendingRequests().size();
+    if (R > 0) {
+      int T = maxCapacity;
+      int F = (int) Math.ceil((double) (T * T) / (R * priority));
+      if (F <= 0)
+        F = 1;
+      int currentTime = getSimulation().getCurrentTime();
+      if (currentTime % F == 0) {
+        List<Building> availableSources = getAvailableSourcesForItem(storageItem);
+        if (!availableSources.isEmpty()) {
+          SourcePolicy sourcePolicy = getSimulation().getSourcePolicy(getName());
+          Building selectedSource = sourcePolicy.selectSource(storageItem, availableSources);
+          int orderNum = getSimulation().getOrderNum();
+          Request newRequest = new Request(orderNum, storageItem, recipe, selectedSource, this);
+          outstandingRequestNum++;
+          selectedSource.addRequest(newRequest);
+        }
+      }
+    }
+  }
 }

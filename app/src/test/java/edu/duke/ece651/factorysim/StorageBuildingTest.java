@@ -46,7 +46,17 @@ public class StorageBuildingTest {
     assertThrows(IllegalArgumentException.class, () -> testBuilding.addToStorage(random, 10));
     assertThrows(IllegalArgumentException.class, () -> testBuilding.addToStorage(door, 101));
     testBuilding.addToStorage(door, 99);
-    assertEquals(99,testBuilding.getArrivingItemNum());
-    assertEquals(0,testBuilding.getCurrentStockNum());
+    assertEquals(99, testBuilding.getArrivingItemNum());
+    assertEquals(0, testBuilding.getCurrentStockNum());
+    testBuilding.step();
+    testBuilding.step();
+    testBuilding.step();
+    assertEquals(0, testBuilding.getArrivingItemNum());
+    assertEquals(99, testBuilding.getCurrentStockNum());
+    assertThrows(IllegalArgumentException.class, () -> testBuilding.takeFromStorage(random, 10));
+    assertThrows(IllegalArgumentException.class, () -> testBuilding.takeFromStorage(door, 100));
+    testBuilding.takeFromStorage(door, 98);
+    assertEquals(0, testBuilding.getArrivingItemNum());
+    assertEquals(1, testBuilding.getCurrentStockNum());
   }
 }
