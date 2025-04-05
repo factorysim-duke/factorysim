@@ -57,10 +57,6 @@ public class StorageBuilding extends Building {
     return outstandingRequestNum;
   }
 
-  public void setOutstandingRequestNum(int outstandingRequestNum) {
-    this.outstandingRequestNum = outstandingRequestNum;
-  }
-
   public int getArrivingItemNum() {
     return arrivingItemNum;
   }

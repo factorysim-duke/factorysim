@@ -1,5 +1,6 @@
 package edu.duke.ece651.factorysim;
 
+import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -24,10 +25,15 @@ public class StorageBuildingTest {
   }
 
   @Test
-  public void test_add_to_storage() {
+  public void test_constructor_and_getters() {
     Item door = new Item("door");
     StorageBuilding testBuilding = makeTestStorageBuilding("test", door, 100, 0.5);
-    
+    assertSame(door, testBuilding.getStorageItem());
+    assertEquals(100, testBuilding.getMaxCapacity());
+    assertEquals(0.5, testBuilding.getPriority());
+    assertEquals(0, testBuilding.getOutstandingRequestNum());
+    assertEquals(0, testBuilding.getArrivingItemNum());
+    assertEquals(0, testBuilding.getCurrentStockNum());
   }
 
 }
