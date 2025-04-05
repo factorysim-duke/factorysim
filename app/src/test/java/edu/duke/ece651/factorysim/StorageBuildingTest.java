@@ -7,6 +7,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 public class StorageBuildingTest {
   public StorageBuilding makeTestStorageBuilding(String name, Item item, int capacity, double priority) {
     Item a = new Item("a");
@@ -32,7 +35,6 @@ public class StorageBuildingTest {
     assertSame(door, testBuilding.getStorageItem());
     assertEquals(100, testBuilding.getMaxCapacity());
     assertEquals(0.5, testBuilding.getPriority());
-    assertEquals(0, testBuilding.getOutstandingRequestNum());
     assertEquals(0, testBuilding.getArrivingItemNum());
     assertEquals(0, testBuilding.getCurrentStockNum());
   }
@@ -59,6 +61,8 @@ public class StorageBuildingTest {
     testBuilding.takeFromStorage(door, 98);
     assertEquals(0, testBuilding.getArrivingItemNum());
     assertEquals(1, testBuilding.getCurrentStockNum());
+    assertEquals(1, testBuilding.getStorageNumberOf(door));
+    assertEquals(-1, testBuilding.getStorageNumberOf(random));
   }
 
   @Test
@@ -153,5 +157,63 @@ public class StorageBuildingTest {
 
     currentTimeValue[0] = 41; // 41 % 40 = 1 != 0
     testBuilding.step();
+  }
+
+  @Test
+  public void test_toJson() {
+    Item door = new Item("door");
+    MineBuilding woodMine = new MineBuilding(TestUtils.makeTestRecipe("wood", 0, 1), "woodMine",
+        new TestUtils.MockSimulation());
+    MineBuilding metalMine = new MineBuilding(TestUtils.makeTestRecipe("metal", 0, 1), "metalMine",
+        new TestUtils.MockSimulation());
+    StorageBuilding doorStorage = new StorageBuilding("doorStorage", List.of(woodMine, metalMine),
+        new TestUtils.MockSimulation(), door, 100, 0.75);
+    doorStorage.setLocation(new Coordinate(10, 20));
+    JsonObject json = doorStorage.toJson();
+
+    assertEquals("doorStorage", json.get("name").getAsString());
+    assertEquals("door", json.get("stores").getAsString());
+    assertEquals(100, json.get("capacity").getAsInt());
+    assertEquals(0.75, json.get("priority").getAsDouble());
+
+    JsonArray sourcesArray = json.getAsJsonArray("sources");
+    assertNotNull(sourcesArray);
+    assertEquals(2, sourcesArray.size());
+    assertEquals("woodMine", sourcesArray.get(0).getAsString());
+    assertEquals("metalMine", sourcesArray.get(1).getAsString());
+
+    JsonObject storageJson = json.getAsJsonObject("storage");
+    assertNotNull(storageJson);
+    assertEquals(0, storageJson.entrySet().size());
+    assertEquals(10, json.get("x").getAsInt());
+    assertEquals(20, json.get("y").getAsInt());
+
+    doorStorage.addToStorage(door, 5);
+    doorStorage.step();
+    json = doorStorage.toJson();
+    storageJson = json.getAsJsonObject("storage");
+    assertNotNull(storageJson);
+    assertTrue(storageJson.has("door"));
+    assertEquals(5, storageJson.get("door").getAsInt());
+  }
+
+  @Test
+  public void test_toJson_empty_storage() {
+    Item metal = new Item("metal");
+    StorageBuilding metalStorage = new StorageBuilding("metalStorage", List.of(),
+        new TestUtils.MockSimulation(), metal, 50, 0.5);
+    JsonObject json = metalStorage.toJson();
+
+    assertEquals("metalStorage", json.get("name").getAsString());
+    assertEquals("metal", json.get("stores").getAsString());
+    assertEquals(50, json.get("capacity").getAsInt());
+    assertEquals(0.5, json.get("priority").getAsDouble());
+
+    JsonArray sourcesArray = json.getAsJsonArray("sources");
+    assertNotNull(sourcesArray);
+    assertEquals(0, sourcesArray.size());
+    JsonObject storageJson = json.getAsJsonObject("storage");
+    assertNotNull(storageJson);
+    assertEquals(0, storageJson.entrySet().size());
   }
 }
