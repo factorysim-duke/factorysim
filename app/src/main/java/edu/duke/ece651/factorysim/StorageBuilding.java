@@ -158,8 +158,6 @@ public class StorageBuilding extends Building {
     if (R > 0) {
       int T = maxCapacity;
       int F = (int) Math.ceil((double) (T * T) / (R * priority));
-      if (F <= 0)
-        F = 1;
       int currentTime = getSimulation().getCurrentTime();
       if (currentTime % F == 0) {
         List<Building> availableSources = getAvailableSourcesForItem(storageItem);
