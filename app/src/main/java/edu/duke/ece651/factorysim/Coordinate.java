@@ -72,4 +72,14 @@ public class Coordinate {
   public int hashCode() {
     return toString().hashCode();
   }
+
+  public Coordinate getNextCoord(int dir) {
+    return switch (dir) {
+      case 0 -> new Coordinate(x, y - 1); // Up
+      case 1 -> new Coordinate(x + 1, y); // Right
+      case 2 -> new Coordinate(x, y + 1); // Down
+      case 3 -> new Coordinate(x - 1, y); // Left
+      default -> throw new IllegalArgumentException("Invalid direction: " + dir);
+    };
+  }
 }

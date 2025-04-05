@@ -3,6 +3,8 @@ package edu.duke.ece651.factorysim;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
+import java.util.Arrays;
 
 class TileMapTest {
 
@@ -22,6 +24,40 @@ class TileMapTest {
         assertFalse(map.isInsideMap(new Coordinate(25, 0)));
         assertFalse(map.isInsideMap(new Coordinate(0, 25)));
         assertFalse(map.isInsideMap(new Coordinate(-1, 5)));
+    }
+
+    // getFlow
+    @Test
+    public void test_get_flow_out_of_bounds() {
+        TileMap map = new TileMap(25, 25);
+        Coordinate out = new Coordinate(30, 30);
+        assertThrows(IllegalArgumentException.class, () -> map.getFlow(out, 0));
+    }
+
+    @Test
+    public void test_set_flow_valid_already_exists() {
+        TileMap map = new TileMap(25, 25);
+        Coordinate coord = new Coordinate(10, 10);
+        map.setFlow(coord, 0, 1);
+        map.setFlow(coord, 0, 1);
+        assertEquals(1, map.getFlow(coord, 0));
+    }
+
+    @Test
+    public void test_is_inside_map() {
+        TileMap map = new TileMap(25, 25);
+
+        assertTrue(map.isInsideMap(new Coordinate(0, 0)), "(0,0) should be inside the map");
+        assertTrue(map.isInsideMap(new Coordinate(24, 24)), "(24,24) should be inside the map");
+        assertTrue(map.isInsideMap(new Coordinate(10, 10)), "(10,10) should be inside the map");
+
+        assertFalse(map.isInsideMap(new Coordinate(-1, 0)), "(-1,0) should be outside the map");
+        assertFalse(map.isInsideMap(new Coordinate(0, -1)), "(0,-1) should be outside the map");
+        assertFalse(map.isInsideMap(new Coordinate(-5, -5)), "(-5,-5) should be outside the map");
+
+        assertFalse(map.isInsideMap(new Coordinate(25, 10)), "(25,10) should be outside the map");
+        assertFalse(map.isInsideMap(new Coordinate(10, 25)), "(10,25) should be outside the map");
+        assertFalse(map.isInsideMap(new Coordinate(26, 30)), "(26,30) should be outside the map");
     }
 
     @Test
@@ -52,11 +88,161 @@ class TileMapTest {
         map.setTileType(new Coordinate(0, 0), TileType.BUILDING);
         map.setTileType(new Coordinate(2, 0), TileType.PATH);
         map.setTileType(new Coordinate(3, 0), TileType.PATH);
-        map.setTileType(new Coordinate(4, 0), TileType.PATH);
         map.setTileType(new Coordinate(0, 1), TileType.BUILDING);
 
-        String expectedOutput = "BRPPP\n" +
-                "BRRRR\n" + "RRRRR\n" + "RRRRR\n" + "RRRRR\n";
+        map.setFlow(new Coordinate(2,0),0,-1);
+        map.setFlow(new Coordinate(2,0),1,-1);
+        map.setFlow(new Coordinate(2,0),3,-1);
+        map.setFlow(new Coordinate(2,0),2,-1);
+
+        map.setFlow(new Coordinate(3,0),0,1);
+        map.setFlow(new Coordinate(3,0),1,1);
+        map.setFlow(new Coordinate(3,0),2,1);
+        map.setFlow(new Coordinate(3,0),3,1);
+
+        String expectedOutput = "+---------------------------------------+\n" +
+                "|+-----+ +-----+ +-----+ +-----+ +-----+|\n" +
+                "||     | |     | |  v  | |  ^  | |     ||\n" +
+                "||  B  | |     | |> P <| |< P >| |     ||\n" +
+                "||     | |     | |  ^  | |  v  | |     ||\n" +
+                "|+-----+ +-----+ +-----+ +-----+ +-----+|\n" +
+                "|+-----+ +-----+ +-----+ +-----+ +-----+|\n" +
+                "||     | |     | |     | |     | |     ||\n" +
+                "||  B  | |     | |     | |     | |     ||\n" +
+                "||     | |     | |     | |     | |     ||\n" +
+                "|+-----+ +-----+ +-----+ +-----+ +-----+|\n" +
+                "|+-----+ +-----+ +-----+ +-----+ +-----+|\n" +
+                "||     | |     | |     | |     | |     ||\n" +
+                "||     | |     | |     | |     | |     ||\n" +
+                "||     | |     | |     | |     | |     ||\n" +
+                "|+-----+ +-----+ +-----+ +-----+ +-----+|\n" +
+                "|+-----+ +-----+ +-----+ +-----+ +-----+|\n" +
+                "||     | |     | |     | |     | |     ||\n" +
+                "||     | |     | |     | |     | |     ||\n" +
+                "||     | |     | |     | |     | |     ||\n" +
+                "|+-----+ +-----+ +-----+ +-----+ +-----+|\n" +
+                "|+-----+ +-----+ +-----+ +-----+ +-----+|\n" +
+                "||     | |     | |     | |     | |     ||\n" +
+                "||     | |     | |     | |     | |     ||\n" +
+                "||     | |     | |     | |     | |     ||\n" +
+                "|+-----+ +-----+ +-----+ +-----+ +-----+|\n" +
+                "+---------------------------------------+";
         assertEquals(expectedOutput, map.toString());
+    }
+
+    class DummyPath extends Path {
+        private List<Coordinate> steps;
+        private List<Integer> flowDirections;
+
+        public DummyPath(List<Coordinate> steps, List<Integer> flowDirections) {
+            this.steps = steps;
+            this.flowDirections = flowDirections;
+        }
+
+        @Override
+        public List<Coordinate> getSteps() {
+            return steps;
+        }
+
+        @Override
+        public List<Integer> getFlowDirections() {
+            return flowDirections;
+        }
+
+        @Override
+        public int getTotalLength() {
+            return steps.size();
+        }
+
+        @Override
+        public int getNewTileCount() {
+            return steps.size();
+        }
+
+        @Override
+        public String toString() {
+            return "DummyPath: steps=" + steps + ", dirs=" + flowDirections;
+        }
+    }
+
+    @Test
+    public void test_addPath_valid() {
+        TileMap tileMap = new TileMap(5, 5);
+        System.out.println(tileMap);
+
+        Coordinate p1 = new Coordinate(1, 1);
+        Coordinate p2 = new Coordinate(1, 2);
+        Coordinate p3 = new Coordinate(1, 3);
+        Coordinate p4 = new Coordinate(1, 4);
+
+        tileMap.setTileType(p1, TileType.BUILDING);
+        tileMap.setTileType(p4, TileType.BUILDING);
+
+        DummyPath path = new DummyPath(
+                Arrays.asList(p1, p2, p3, p4),
+                Arrays.asList(2, 2, 2, -1)
+        );
+
+        assertEquals(TileType.BUILDING, tileMap.getTileType(p1));
+        assertEquals(TileType.ROAD, tileMap.getTileType(p2));
+        assertEquals(TileType.ROAD, tileMap.getTileType(p3));
+        assertEquals(TileType.BUILDING, tileMap.getTileType(p4));
+
+        // add path
+        tileMap.addPath(path);
+
+        System.out.println(tileMap);
+
+        assertEquals(TileType.BUILDING, tileMap.getTileType(p1));
+        assertEquals(TileType.PATH, tileMap.getTileType(p2));
+        assertEquals(TileType.PATH, tileMap.getTileType(p3));
+        assertEquals(TileType.BUILDING, tileMap.getTileType(p4));
+
+        assertEquals(1, tileMap.getFlow(p1, 2));
+        assertEquals(-1, tileMap.getFlow(p2, 0));
+        assertEquals(1, tileMap.getFlow(p2, 2));
+        assertEquals(-1, tileMap.getFlow(p3, 0));
+        assertEquals(1, tileMap.getFlow(p3, 2));
+        assertEquals(-1, tileMap.getFlow(p4, 0));
+    }
+
+    @Test
+    public void test_addPath_mismatchedStepsAndDirections() {
+        TileMap tileMap = new TileMap(5, 5);
+        Coordinate p1 = new Coordinate(1, 1);
+        Coordinate p2 = new Coordinate(1, 2);
+
+        DummyPath path = new DummyPath(
+                Arrays.asList(p1, p2),
+                Arrays.asList(2)
+        );
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            tileMap.addPath(path);
+        });
+        String expectedMessage = "Mismatch between steps and flowDirections";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    @Test
+    public void test_addPath_flowConflict() {
+        TileMap tileMap = new TileMap(5, 5);
+        Coordinate p1 = new Coordinate(2, 2);
+        Coordinate p2 = new Coordinate(2, 3);
+
+        DummyPath validPath = new DummyPath(
+                Arrays.asList(p1, p2),
+                Arrays.asList(2, -1)
+        );
+
+        tileMap.setFlow(p1, 2, -1);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            tileMap.addPath(validPath);
+        });
+        String expectedMessage = "Flow conflict";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
     }
 }

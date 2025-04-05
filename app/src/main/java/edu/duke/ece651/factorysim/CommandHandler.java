@@ -22,6 +22,7 @@ public class CommandHandler {
         registerCommand(new VerboseCommand());
         registerCommand(new SaveCommand());
         registerCommand(new LoadCommand());
+        registerCommand(new ConnectCommand());
     }
 
     /**

@@ -170,4 +170,8 @@ public class World {
     }
   }
 
+  public TileMap getTileMap() {
+    return tileMap;
+  }
+
 }

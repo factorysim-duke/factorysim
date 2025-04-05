@@ -42,4 +42,11 @@ public class CoordinateTest {
     assertNotEquals(c1.hashCode(), c3.hashCode());
     assertNotEquals(c5.hashCode(), c4.hashCode());
   }
+
+  @Test
+  public void test_getNextCoord_invalidDirection() {
+    assertThrows(IllegalArgumentException.class, () -> {
+      c1.getNextCoord(4);
+    });
+  }
 }
