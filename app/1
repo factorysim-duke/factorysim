@@ -31,8 +31,8 @@
         "M"
       ],
       "storage": {},
-      "x": 13,
-      "y": 15
+      "x": 2,
+      "y": 2
     },
     {
       "name": "D",
@@ -51,8 +51,8 @@
       "mine": "wood",
       "sources": [],
       "storage": {},
-      "x": 22,
-      "y": 25
+      "x": 3,
+      "y": 3
     },
     {
       "name": "Ha",
@@ -61,16 +61,16 @@
         "M"
       ],
       "storage": {},
-      "x": 6,
-      "y": 9
+      "x": 1,
+      "y": 1
     },
     {
       "name": "M",
       "mine": "metal",
       "sources": [],
       "storage": {},
-      "x": 30,
-      "y": 33
+      "x": 4,
+      "y": 4
     }
   ],
   "recipes": [

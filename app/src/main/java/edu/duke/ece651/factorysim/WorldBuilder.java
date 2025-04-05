@@ -274,20 +274,22 @@ public class WorldBuilder {
   private static Coordinate findValidLocation(Set<Coordinate> usedCoordinates) {
     int maxX = boardWidth;
     int maxY = boardHeight;
+    List<Coordinate> candidates = new ArrayList<>();
 
-    // try 100000 attempts to find location
-    Random random = new Random();
-    for (int attempt = 0; attempt < 100000; attempt++) {
-      int x = random.nextInt(maxX + 1); // generates number between 0 and maxX inclusive
-      int y = random.nextInt(maxY + 1); // generates number between 0 and maxY inclusive
-
-      Coordinate location = new Coordinate(x, y);
-      if (isNotTooCloseToOthers(location, usedCoordinates) &&
-          isNotTooFarFromOthers(location, usedCoordinates)) {
-        return location;
+    for (int x = 0; x <= maxX; x++) {
+      for (int y = 0; y <= maxY; y++) {
+        Coordinate location = new Coordinate(x, y);
+        if (isNotTooCloseToOthers(location, usedCoordinates) &&
+            isNotTooFarFromOthers(location, usedCoordinates)) {
+          candidates.add(location);
+        }
       }
     }
-    return null;
+    if (candidates.isEmpty()) {
+      return null;
+    }
+    Random random = new Random();
+    return candidates.get(random.nextInt(candidates.size()));
   }
 
   /**
