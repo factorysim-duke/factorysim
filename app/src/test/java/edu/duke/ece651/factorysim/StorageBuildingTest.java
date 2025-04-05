@@ -36,4 +36,12 @@ public class StorageBuildingTest {
     assertEquals(0, testBuilding.getCurrentStockNum());
   }
 
+  @Test
+  public void test_can_produce(){
+    Item door = new Item("door");
+    StorageBuilding testBuilding = makeTestStorageBuilding("test", door, 100, 0.5);
+    assertTrue(testBuilding.canProduce(door));
+    Item random = new Item("random");
+    assertFalse(testBuilding.canProduce(random));
+  }
 }

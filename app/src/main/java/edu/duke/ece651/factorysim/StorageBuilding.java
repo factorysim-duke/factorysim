@@ -106,4 +106,26 @@ public class StorageBuilding extends Building {
     arrivingItemNum += quantity;
     outstandingRequestNum = Math.max(0, outstandingRequestNum - quantity);
   }
+
+  /**
+   * Reduce current stock number when a request to take items is completed.
+   * 
+   * @param item     is the item to be taken.
+   * @param quantity is the quantity of item to be taken.
+   * @throws IllegalArgumentException if item is not the storage item of this
+   *                                  building, or the current stock number is not
+   *                                  enough.
+   */
+  @Override
+  public void takeFromStorage(Item item, int quantity) {
+    if (!item.equals(storageItem)) {
+      throw new IllegalArgumentException("The storage building " + getName() + " cannot store " + item.getName());
+    }
+    if (currentStockNum < quantity) {
+      throw new IllegalArgumentException(
+          "The storage building " + getName() + " does not have enough " + item.getName());
+    }
+
+    currentStockNum -= quantity;
+  }
 }
