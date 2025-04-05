@@ -61,6 +61,8 @@ public class StorageBuildingTest {
     testBuilding.takeFromStorage(door, 98);
     assertEquals(0, testBuilding.getArrivingItemNum());
     assertEquals(1, testBuilding.getCurrentStockNum());
+    assertEquals(1, testBuilding.getStorageNumberOf(door));
+    assertEquals(-1, testBuilding.getStorageNumberOf(random));
   }
 
   @Test
