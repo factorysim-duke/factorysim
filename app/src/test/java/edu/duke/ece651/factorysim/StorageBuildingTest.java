@@ -35,7 +35,6 @@ public class StorageBuildingTest {
     assertSame(door, testBuilding.getStorageItem());
     assertEquals(100, testBuilding.getMaxCapacity());
     assertEquals(0.5, testBuilding.getPriority());
-    assertEquals(0, testBuilding.getOutstandingRequestNum());
     assertEquals(0, testBuilding.getArrivingItemNum());
     assertEquals(0, testBuilding.getCurrentStockNum());
   }

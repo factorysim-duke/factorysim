@@ -53,6 +53,11 @@ public class StorageBuilding extends Building {
     return storageItem.equals(item);
   }
 
+  /**
+   * Converts the current status of building into JSON.
+   * 
+   * @return the JSON representation of the building with current status.
+   */
   @Override
   public JsonObject toJson() {
     JsonObject json = new JsonObject();
@@ -186,26 +191,48 @@ public class StorageBuilding extends Building {
     }
   }
 
+  /**
+   * Gets the storage item.
+   * 
+   * @return the storage item.
+   */
   public Item getStorageItem() {
     return storageItem;
   }
 
+  /**
+   * Gets the maximum capacity.
+   * 
+   * @return the maximum capacity.
+   */
   public int getMaxCapacity() {
     return maxCapacity;
   }
 
+  /**
+   * Gets the priority number.
+   * 
+   * @return the priority number.
+   */
   public double getPriority() {
     return priority;
   }
 
-  public int getOutstandingRequestNum() {
-    return outstandingRequestNum;
-  }
-
+  /**
+   * Gets the number for arriving items (which are not available until next
+   * cycle).
+   * 
+   * @return the number of arricing items.
+   */
   public int getArrivingItemNum() {
     return arrivingItemNum;
   }
 
+  /**
+   * Gets the number of current stock.
+   * 
+   * @return the number of current stock.
+   */
   public int getCurrentStockNum() {
     return currentStockNum;
   }
