@@ -276,17 +276,14 @@ public class WorldBuilder {
     int maxY = boardHeight;
     List<Coordinate> candidates = new ArrayList<>();
 
-    for (int x = 0; x <= maxX; x++) {
-      for (int y = 0; y <= maxY; y++) {
+    for (int x = 0; x < maxX; x++) {
+      for (int y = 0; y < maxY; y++) {
         Coordinate location = new Coordinate(x, y);
         if (isNotTooCloseToOthers(location, usedCoordinates) &&
             isNotTooFarFromOthers(location, usedCoordinates)) {
           candidates.add(location);
         }
       }
-    }
-    if (candidates.isEmpty()) {
-      return null;
     }
     Random random = new Random();
     return candidates.get(random.nextInt(candidates.size()));

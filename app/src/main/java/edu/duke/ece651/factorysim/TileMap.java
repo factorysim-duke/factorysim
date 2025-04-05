@@ -23,9 +23,6 @@ public class TileMap {
   }
 
   public boolean isInsideMap(Coordinate c) {
-    if (c == null) {
-      return false;
-    }
     return c.getX() >= 0 && c.getX() < width && c.getY() >= 0 && c.getY() < height;
   }
 
