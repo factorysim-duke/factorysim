@@ -74,12 +74,17 @@ public class Coordinate {
   }
 
   public Coordinate getNextCoord(int dir) {
-    return switch (dir) {
-      case 0 -> new Coordinate(x, y - 1); // Up
-      case 1 -> new Coordinate(x + 1, y); // Right
-      case 2 -> new Coordinate(x, y + 1); // Down
-      case 3 -> new Coordinate(x - 1, y); // Left
-      default -> throw new IllegalArgumentException("Invalid direction: " + dir);
-    };
+    switch (dir) {
+      case 0:
+        return new Coordinate(x, y - 1);
+      case 1:
+        return new Coordinate(x + 1, y);
+      case 2:
+        return new Coordinate(x, y + 1);
+      case 3:
+        return new Coordinate(x - 1, y);
+      default:
+        throw new IllegalArgumentException("Invalid direction: " + dir);
+    }
   }
 }
