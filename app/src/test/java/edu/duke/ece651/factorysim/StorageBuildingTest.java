@@ -37,11 +37,16 @@ public class StorageBuildingTest {
   }
 
   @Test
-  public void test_can_produce(){
+  public void test_add_to_and_take_from_storage() {
     Item door = new Item("door");
     StorageBuilding testBuilding = makeTestStorageBuilding("test", door, 100, 0.5);
-    assertTrue(testBuilding.canProduce(door));
     Item random = new Item("random");
+    assertTrue(testBuilding.canProduce(door));
     assertFalse(testBuilding.canProduce(random));
+    assertThrows(IllegalArgumentException.class, () -> testBuilding.addToStorage(random, 10));
+    assertThrows(IllegalArgumentException.class, () -> testBuilding.addToStorage(door, 101));
+    testBuilding.addToStorage(door, 99);
+    assertEquals(99,testBuilding.getArrivingItemNum());
+    assertEquals(0,testBuilding.getCurrentStockNum());
   }
 }
