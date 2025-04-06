@@ -166,6 +166,9 @@ public class World {
     }
   }
 
+  public TileMap getTileMap() {
+    return tileMap;
+  }
   /**
    * Sets the dimensions of the tile map.
    * 
