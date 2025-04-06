@@ -23,7 +23,7 @@ public class Simulation {
   private int verbosity;
 
   private Logger logger;
-  private final Map<Coordinate, Map<Coordinate, Path>> pathCache = new HashMap<>();
+  private final Map<Coordinate, Map<Coordinate, Path>> pathList = new HashMap<>();
 
   /**
    * Creates a simulation from a JSON configuration file.
@@ -808,14 +808,14 @@ public class Simulation {
       return false;
     } else {
       path.dump();
-      // check if the path is already in the pathCache
-      if (pathCache.containsKey(src) && pathCache.get(src).containsKey(dst)) {
+      // check if the path is already in the pathList
+      if (pathList.containsKey(src) && pathList.get(src).containsKey(dst)) {
         logger.log("Path already exists in cache.");
         return true;
       }
       // add the path to the cache
-      pathCache.putIfAbsent(src, new HashMap<>());
-      pathCache.get(src).put(dst, path);
+      pathList.putIfAbsent(src, new HashMap<>());
+      pathList.get(src).put(dst, path);
 
       // add the path to the tileMap
       world.tileMap.addPath(path);

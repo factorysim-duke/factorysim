@@ -145,14 +145,11 @@ public class TileMap {
 
             Coordinate to = from.getNextCoord(dir);
 
-            // 设置 from tile：流出
             setFlow(from, dir, 1);
 
-            // 设置 to tile：流入
             int opp = (dir + 2) % 4;
             setFlow(to, opp, -1);
 
-            // 设置 tile 类型（如果还不是 PATH）
             if (getTileType(from) != TileType.BUILDING) {
                 setTileType(from, TileType.PATH);
             }

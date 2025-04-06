@@ -11,8 +11,8 @@ public class Coordinate {
   /**
    * Constructs a Coordinate with given row and column.
    * 
-   * @param row    is the row number of the coordinate.
-   * @param column is the column number of the coordinate.
+   * @param x   is the row number of the coordinate.
+   * @param y is the column number of the coordinate.
    */
   public Coordinate(int x, int y) {
     this.x = x;

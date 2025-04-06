@@ -537,14 +537,14 @@ public class SimulationTest {
     boolean firstConnection = simulation.connectBuildings("D", "W");
     assertTrue(firstConnection);
 
-    java.lang.reflect.Field field = Simulation.class.getDeclaredField("pathCache");
+    java.lang.reflect.Field field = Simulation.class.getDeclaredField("pathList");
     field.setAccessible(true);
-    Map<Coordinate, Map<Coordinate, Path>> pathCache = (Map<Coordinate, Map<Coordinate, Path>>) field.get(simulation);
+    Map<Coordinate, Map<Coordinate, Path>> pathList = (Map<Coordinate, Map<Coordinate, Path>>) field.get(simulation);
     Coordinate src = simulation.getBuildingLocation("D");
     Coordinate dst = simulation.getBuildingLocation("W");
 
-    if (pathCache.containsKey(src)) {
-      pathCache.get(src).remove(dst);
+    if (pathList.containsKey(src)) {
+      pathList.get(src).remove(dst);
     }
 
     logOutput.reset();
