@@ -27,31 +27,41 @@
                 "W",
                 "Hi",
                 "Ha"
-            ]
+            ],
+            "x": 0,
+            "y": 0
         },
         {
             "name" : "Ha",
             "type" : "handle",
             "sources" : [
                 "M"
-            ]
+            ],
+            "x": 1,
+            "y": 1
         },
         {
             "name" : "Hi",
             "type" : "hinge",
             "sources" : [
                 "M"
-            ]
+            ],
+            "x": 2,
+            "y": 2
         },
         {
             "name" : "W",
             "mine" : "wood",
-            "sources" : []
+            "sources" : [],
+            "x": 3,
+            "y": 3
         },
         {
             "name" : "M",
             "mine" : "metal",
-            "sources" : []
+            "sources" : [],
+            "x": 4,
+            "y": 4
         }
     ],
     "recipes" : [
