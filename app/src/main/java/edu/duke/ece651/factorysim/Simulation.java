@@ -23,6 +23,7 @@ public class Simulation {
   private int verbosity;
 
   private Logger logger;
+  private final Map<Coordinate, Map<Coordinate, Path>> pathList = new HashMap<>();
 
   /**
    * Creates a simulation from a JSON configuration file.
@@ -742,7 +743,6 @@ public class Simulation {
 
       requests.add(request);
     }
-
     assignRequestsToBuildings(requests);
   }
 
@@ -766,8 +766,8 @@ public class Simulation {
   /**
    * Updates the tile map with given tile type and coordinate.
    *
-   * @param tileType is the tileType to be updated.
    * @param location is the new coordinate.
+   * @param tileType is the tileType to be updated.
    */
   public void updateTileMap(Coordinate location, TileType tileType) {
     world.tileMap.setTileType(location, tileType);
@@ -790,6 +790,38 @@ public class Simulation {
    * @return TileType on that coordinate.
    */
   public TileType checkTile(Coordinate coordinate) {
+
     return world.tileMap.getTileType(coordinate);
   }
+
+  public World getWorld() {
+    return world;
+  }
+
+  public boolean connectBuildings(String sourceName, String destName) {
+    Coordinate src = getBuildingLocation(sourceName);
+    Coordinate dst = getBuildingLocation(destName);
+
+    Path path = PathFinder.findPath(src, dst, world.tileMap);
+    if (path == null) {
+      logger.log("Cannot connect " + sourceName + " to " + destName + ": No valid path.");
+      return false;
+    } else {
+      path.dump();
+      // check if the path is already in the pathList
+      if (pathList.containsKey(src) && pathList.get(src).containsKey(dst)) {
+        logger.log("Path already exists in cache.");
+        return true;
+      }
+      // add the path to the cache
+      pathList.putIfAbsent(src, new HashMap<>());
+      pathList.get(src).put(dst, path);
+
+      // add the path to the tileMap
+      world.tileMap.addPath(path);
+      System.out.println(world.tileMap);
+    }
+    return true;
+  }
+
 }

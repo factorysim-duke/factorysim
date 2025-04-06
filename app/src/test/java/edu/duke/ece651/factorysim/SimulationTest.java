@@ -469,10 +469,89 @@ public class SimulationTest {
   }
   @Test
   public void test_tileMap() {
-                                                                            // assertEquals(TileType.ROAD, sim.checkTile(new Coordinate(6,6)));
+    assertEquals(TileType.ROAD, sim.checkTile(new Coordinate(6,6)));
     assertEquals(TileType.BUILDING, sim.checkTile(new Coordinate(0,0)));
     assertEquals(new Coordinate(0,0),sim.getBuildingLocation("D"));
     sim.updateTileMap(new Coordinate(6,6),TileType.PATH);
-    //assertEquals(TileType.PATH, sim.checkTile(new Coordinate(6,6)));
+    assertEquals(TileType.PATH, sim.checkTile(new Coordinate(6,6)));
+  }
+
+  @Test
+  public void test_connectBuildings_validAndCache() {
+    Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+
+    ByteArrayOutputStream logOutput = new ByteArrayOutputStream();
+    Logger testLogger = new StreamLogger(new PrintStream(logOutput));
+    simulation.setLogger(testLogger);
+
+    boolean firstConnection = simulation.connectBuildings("D", "W");
+    assertTrue(firstConnection);
+
+    String logs = logOutput.toString();
+    assertFalse(logs.contains("Path already exists in cache."));
+
+    logOutput.reset();
+    boolean secondConnection = simulation.connectBuildings("D", "W");
+    assertTrue(secondConnection);
+
+    logs = logOutput.toString();
+    assertTrue(logs.contains("Path already exists in cache."));
+  }
+
+  @Test
+  public void test_connectBuildings_noValidPath() {
+    Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+
+    ByteArrayOutputStream logOutput = new ByteArrayOutputStream();
+    Logger testLogger = new StreamLogger(new PrintStream(logOutput));
+    simulation.setLogger(testLogger);
+
+    Coordinate src = simulation.getBuildingLocation("D");
+    Coordinate dst = simulation.getBuildingLocation("W");
+
+    // set all tiles to building except src and dst
+    for (int x = 0; x < simulation.getWorld().getTileMap().getWidth(); x++) {
+      for (int y = 0; y < simulation.getWorld().getTileMap().getHeight(); y++) {
+        Coordinate coord = new Coordinate(x, y);
+        if (!coord.equals(src) && !coord.equals(dst)) {
+          simulation.getWorld().getTileMap().setTileType(coord, TileType.BUILDING);
+        }
+      }
+    }
+
+    boolean result = simulation.connectBuildings("D", "W");
+    assertFalse(result);
+
+    String logs = logOutput.toString();
+    assertTrue(logs.contains("Cannot connect D to W: No valid path."));
+  }
+
+  @Test
+  public void test_connectBuildings_cacheMissingEntry() throws Exception {
+    Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+
+    ByteArrayOutputStream logOutput = new ByteArrayOutputStream();
+    Logger testLogger = new StreamLogger(new PrintStream(logOutput));
+    simulation.setLogger(testLogger);
+
+    boolean firstConnection = simulation.connectBuildings("D", "W");
+    assertTrue(firstConnection);
+
+    java.lang.reflect.Field field = Simulation.class.getDeclaredField("pathList");
+    field.setAccessible(true);
+    Map<Coordinate, Map<Coordinate, Path>> pathList = (Map<Coordinate, Map<Coordinate, Path>>) field.get(simulation);
+    Coordinate src = simulation.getBuildingLocation("D");
+    Coordinate dst = simulation.getBuildingLocation("W");
+
+    if (pathList.containsKey(src)) {
+      pathList.get(src).remove(dst);
+    }
+
+    logOutput.reset();
+    boolean secondConnection = simulation.connectBuildings("D", "W");
+    assertTrue(secondConnection);
+
+    String logs = logOutput.toString();
+    assertFalse(logs.contains("Path already exists in cache."));
   }
 }

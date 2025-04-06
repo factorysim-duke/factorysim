@@ -11,8 +11,8 @@ public class Coordinate {
   /**
    * Constructs a Coordinate with given row and column.
    * 
-   * @param row    is the row number of the coordinate.
-   * @param column is the column number of the coordinate.
+   * @param x   is the row number of the coordinate.
+   * @param y is the column number of the coordinate.
    */
   public Coordinate(int x, int y) {
     this.x = x;
@@ -71,5 +71,20 @@ public class Coordinate {
   @Override
   public int hashCode() {
     return toString().hashCode();
+  }
+
+  public Coordinate getNextCoord(int dir) {
+    switch (dir) {
+      case 0:
+        return new Coordinate(x, y - 1);
+      case 1:
+        return new Coordinate(x + 1, y);
+      case 2:
+        return new Coordinate(x, y + 1);
+      case 3:
+        return new Coordinate(x - 1, y);
+      default:
+        throw new IllegalArgumentException("Invalid direction: " + dir);
+    }
   }
 }
