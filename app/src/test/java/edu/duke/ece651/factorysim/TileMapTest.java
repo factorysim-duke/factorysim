@@ -148,21 +148,6 @@ class TileMapTest {
         public List<Integer> getFlowDirections() {
             return flowDirections;
         }
-
-        @Override
-        public int getTotalLength() {
-            return steps.size();
-        }
-
-        @Override
-        public int getNewTileCount() {
-            return steps.size();
-        }
-
-        @Override
-        public String toString() {
-            return "DummyPath: steps=" + steps + ", dirs=" + flowDirections;
-        }
     }
 
     @Test

@@ -819,7 +819,7 @@ public class Simulation {
 
       // add the path to the tileMap
       world.tileMap.addPath(path);
-      System.out.println(world.tileMap);
+      // System.out.println(world.tileMap);
     }
     return true;
   }
