@@ -165,8 +165,11 @@ public class StorageBuilding extends Building {
       if (currentTime % F == 0) {
         List<Building> availableSources = getAvailableSourcesForItem(storageItem);
         if (!availableSources.isEmpty()) {
-          SourcePolicy sourcePolicy = getSimulation().getSourcePolicy(getName());
-          Building selectedSource = sourcePolicy.selectSource(storageItem, availableSources);
+          Building selectedSource = sourcePolicy.selectSource(
+              storageItem,
+              availableSources,
+              (building, score) -> {
+              });
           int orderNum = getSimulation().getOrderNum();
           Request newRequest = new Request(orderNum, storageItem, recipe, selectedSource, this);
           outstandingRequestNum++;
@@ -235,5 +238,39 @@ public class StorageBuilding extends Building {
    */
   public int getCurrentStockNum() {
     return currentStockNum;
+  }
+
+  /**
+   * Gets the queue length for this storage building.
+   * 
+   * @return the queue length (negative if items are in stock)
+   */
+  @Override
+  public int getNumOfPendingRequests() {
+    if (currentStockNum > 0) {
+      // treat items in stock as negative queue entries
+      return -currentStockNum;
+    } else {
+      // if no stock, behave like factory
+      return super.getNumOfPendingRequests();
+    }
+  }
+
+  /**
+   * Gets the sum of remaining latencies for this storage building.
+   * 
+   * @return the sum of remaining latencies (negative if items are in stock)
+   */
+  @Override
+  public int sumRemainingLatencies() {
+    if (currentStockNum > 0) {
+      // if we have items in stock, return negative latency
+      // latency = -(recipe latency * number of items in stock)
+      int recipeLatency = recipe != null ? recipe.getLatency() : 1;
+      return -(recipeLatency * currentStockNum);
+    } else {
+      // if no stock, behave like factory
+      return super.sumRemainingLatencies();
+    }
   }
 }

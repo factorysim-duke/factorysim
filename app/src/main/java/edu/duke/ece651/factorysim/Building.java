@@ -16,8 +16,8 @@ public abstract class Building {
   private HashMap<Item, Integer> storage;
   private Request currentRequest = null;
   private List<Request> pendingRequests;
-  private RequestPolicy requestPolicy;
-  private SourcePolicy sourcePolicy;
+  protected RequestPolicy requestPolicy;
+  protected SourcePolicy sourcePolicy;
 
   private Coordinate location;
 

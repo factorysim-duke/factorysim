@@ -211,13 +211,29 @@ public class RecursiveLatSourcePolicy extends SourcePolicy {
    * @return the estimated time
    */
   protected int estimate(Request request, Building factory, Usage usage, List<BuildingId> path) {
+    // extra treatment for storage buildings
+    if (factory instanceof StorageBuilding) {
+      StorageBuilding storage = (StorageBuilding) factory;
+      Item requestedItem = request.getItem();
+      if (requestedItem.equals(storage.getStorageItem())) {
+        int available = storage.getCurrentStockNum();
+        int used = usage.getStorageUsed(requestedItem, path);
+        
+        if (available - used > 0) {
+          usage.addStorageUsed(requestedItem, path, 1);
+          return 0;
+        }
+      }
+    }
+    
     Request currentRequest = factory.getCurrentRequest();
     if (currentRequest != null && currentRequest.equals(request)) {
       return request.getRemainingSteps();
     }
+    
     int time = request.getRemainingSteps();
     LinkedHashMap<Item, Integer> ingredients = request.getRecipe().getIngredients();
-
+    
     for (Map.Entry<Item, Integer> entry : ingredients.entrySet()) {
       Item ingredient = entry.getKey();
       int needed = entry.getValue();
