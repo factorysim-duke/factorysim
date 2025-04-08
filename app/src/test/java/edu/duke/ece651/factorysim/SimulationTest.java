@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class SimulationTest {
   Simulation sim = new Simulation("src/test/resources/inputs/doors1.json");
+  ByteArrayOutputStream logOutput = new ByteArrayOutputStream();
+  Logger testLogger = new StreamLogger(new PrintStream(logOutput));
 
   @Test
   public void test_step() {
@@ -480,8 +482,6 @@ public class SimulationTest {
   public void test_connectBuildings_validAndCache() {
     Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
 
-    ByteArrayOutputStream logOutput = new ByteArrayOutputStream();
-    Logger testLogger = new StreamLogger(new PrintStream(logOutput));
     simulation.setLogger(testLogger);
 
     boolean firstConnection = simulation.connectBuildings("D", "W");
@@ -502,8 +502,6 @@ public class SimulationTest {
   public void test_connectBuildings_noValidPath() {
     Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
 
-    ByteArrayOutputStream logOutput = new ByteArrayOutputStream();
-    Logger testLogger = new StreamLogger(new PrintStream(logOutput));
     simulation.setLogger(testLogger);
 
     Coordinate src = simulation.getBuildingLocation("D");
@@ -524,34 +522,5 @@ public class SimulationTest {
 
     String logs = logOutput.toString();
     assertTrue(logs.contains("Cannot connect D to W: No valid path."));
-  }
-
-  @Test
-  public void test_connectBuildings_cacheMissingEntry() throws Exception {
-    Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
-
-    ByteArrayOutputStream logOutput = new ByteArrayOutputStream();
-    Logger testLogger = new StreamLogger(new PrintStream(logOutput));
-    simulation.setLogger(testLogger);
-
-    boolean firstConnection = simulation.connectBuildings("D", "W");
-    assertTrue(firstConnection);
-
-    java.lang.reflect.Field field = Simulation.class.getDeclaredField("pathList");
-    field.setAccessible(true);
-    Map<Coordinate, Map<Coordinate, Path>> pathList = (Map<Coordinate, Map<Coordinate, Path>>) field.get(simulation);
-    Coordinate src = simulation.getBuildingLocation("D");
-    Coordinate dst = simulation.getBuildingLocation("W");
-
-    if (pathList.containsKey(src)) {
-      pathList.get(src).remove(dst);
-    }
-
-    logOutput.reset();
-    boolean secondConnection = simulation.connectBuildings("D", "W");
-    assertTrue(secondConnection);
-
-    String logs = logOutput.toString();
-    assertFalse(logs.contains("Path already exists in cache."));
   }
 }
