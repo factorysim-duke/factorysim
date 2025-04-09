@@ -8,7 +8,7 @@ import java.util.*;
  * of the data.
  */
 public class WorldBuilder {
-  private static final int boardWidth = 100;
+  private static final int boardWidth = 1000;
   private static final int boardHeight = 100;
 
   /**
@@ -137,7 +137,18 @@ public class WorldBuilder {
       usedNames.add(buildingDTO.name);
       Building building;
 
-      if (buildingDTO.mine != null) {
+      if (buildingDTO.stores != null) {
+        if (buildingDTO.capacity == null || buildingDTO.priority == null) {
+          throw new IllegalArgumentException("Storage building '" + buildingDTO.name
+              + "' must have both capacity and priority defined.");
+        }
+        building = new StorageBuilding(buildingDTO.name,
+            new ArrayList<>(),
+            simulation,
+            new Item(buildingDTO.stores),
+            buildingDTO.capacity,
+            buildingDTO.priority);
+      } else if (buildingDTO.mine != null) {
         Recipe recipe = recipeMap.get(buildingDTO.mine);
         Utils.nullCheck(recipe, "Mine building '" + buildingDTO.name + "' has no recipe (violates #8).");
         if (!buildingDTO.getSources().isEmpty()) {
@@ -274,19 +285,21 @@ public class WorldBuilder {
   private static Coordinate findValidLocation(Set<Coordinate> usedCoordinates) {
     int maxX = boardWidth;
     int maxY = boardHeight;
-    List<Coordinate> candidates = new ArrayList<>();
-
+    // List<Coordinate> candidates = new ArrayList<>();
+    Coordinate choice = null;
     for (int x = 0; x < maxX; x++) {
       for (int y = 0; y < maxY; y++) {
         Coordinate location = new Coordinate(x, y);
         if (isNotTooCloseToOthers(location, usedCoordinates) &&
             isNotTooFarFromOthers(location, usedCoordinates)) {
-          candidates.add(location);
+          choice = location;
+          break;
         }
       }
     }
-    Random random = new Random();
-    return candidates.get(random.nextInt(candidates.size()));
+    return choice;
+    // Random random = new Random();
+    // return candidates.get(random.nextInt(candidates.size()));
   }
 
   /**

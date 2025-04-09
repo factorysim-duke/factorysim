@@ -207,4 +207,34 @@ public class WorldBuilderTest {
       WorldBuilder.buildWorld(configData, sim);
     });
   }
+
+  @Test
+  public void test_WorldBuilder_storage_missing_capacity_or_priority() {
+    ConfigData configDataMissingCapacity = TestUtils
+        .loadConfigData("src/test/resources/inputs/StorageMissingCapacity.json");
+    assertThrows(IllegalArgumentException.class, () -> {
+      WorldBuilder.buildWorld(configDataMissingCapacity, new TestUtils.MockSimulation());
+    });
+    ConfigData configDataMissingPriority = TestUtils
+        .loadConfigData("src/test/resources/inputs/StorageMissingPriority.json");
+    assertThrows(IllegalArgumentException.class, () -> {
+      WorldBuilder.buildWorld(configDataMissingPriority, new TestUtils.MockSimulation());
+    });
+    ConfigData configDataMissingBoth = TestUtils.loadConfigData("src/test/resources/inputs/StorageMissingFields.json");
+    assertThrows(IllegalArgumentException.class, () -> {
+      WorldBuilder.buildWorld(configDataMissingBoth, new TestUtils.MockSimulation());
+    });
+  }
+
+  @Test
+  public void test_WorldBuilder_storage_success() {
+    ConfigData configData = TestUtils.loadConfigData("src/main/resources/doors_with_storage.json");
+    assertNotNull(configData);
+    World world = WorldBuilder.buildWorld(configData, new TestUtils.MockSimulation());
+    Building storageBuilding = world.getBuildingFromName("WS");
+    assertNotNull(storageBuilding);
+    assertTrue(storageBuilding instanceof StorageBuilding);
+    StorageBuilding woodStorage = (StorageBuilding) storageBuilding;
+    assertEquals("wood", woodStorage.getStorageItem().getName());
+  }
 }

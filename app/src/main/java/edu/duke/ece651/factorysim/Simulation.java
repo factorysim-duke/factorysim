@@ -286,7 +286,7 @@ public class Simulation {
    * @return the recipe for the item.
    */
   public Recipe getRecipeForItem(Item item) {
-    return world.getRecipeForItem(item);
+    return this.world.getRecipeForItem(item);
   }
 
   /**
@@ -424,13 +424,13 @@ public class Simulation {
     if (verbosity < 2) {
       return;
     }
-    if (!building.getClass().equals(FactoryBuilding.class)) {
-      return; // Ignore calls from other types of building
+    if (building.getClass().equals(MineBuilding.class)) {
+      return; // Ignore calls from mines
     }
-    FactoryBuilding factory = (FactoryBuilding) building;
+    // FactoryBuilding factory = (FactoryBuilding) building;
 
     // Log recipe selection
-    logger.log("[recipe selection]: factory " + factory.getName() +
+    logger.log("[recipe selection]: " + building.getName() +
         " has " + requestPolicy.getName() +
         " on cycle " + currentTime);
 
@@ -487,13 +487,11 @@ public class Simulation {
     if (verbosity < 2) {
       return;
     }
-    if (!building.getClass().equals(FactoryBuilding.class)) {
-      return; // Ignore calls from other types of building
+    if (building.getClass().equals(MineBuilding.class)) {
+      return; // Ignore calls from mines
     }
-    FactoryBuilding factory = (FactoryBuilding) building;
-
     // Log source selection
-    logger.log("[source selection]: " + factory.getName() +
+    logger.log("[source selection]: " + building.getName() +
         " (" + sourcePolicy.getName() +
         ") has request for " + item.getName() +
         " on " + currentTime);
@@ -520,13 +518,11 @@ public class Simulation {
     if (verbosity < 2) {
       return;
     }
-    if (!building.getClass().equals(FactoryBuilding.class)) {
-      return; // Ignore calls from other types of building
+    if (building.getClass().equals(MineBuilding.class)) {
+      return; // Ignore calls from mines
     }
-    FactoryBuilding factory = (FactoryBuilding) building;
-
     // Log selection detail
-    logger.log("[" + factory.getName() + ":" + item.getName() + ":" + index +
+    logger.log("[" + building.getName() + ":" + item.getName() + ":" + index +
         "] For ingredient " + ingredient.getName());
 
     // Log sources with scores

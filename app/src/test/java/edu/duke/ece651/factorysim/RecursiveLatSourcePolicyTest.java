@@ -51,12 +51,10 @@ public class RecursiveLatSourcePolicyTest {
     sources.add(waterMine1);
     sources.add(waterMine2);
 
-    // Add a handle factory: recipe "handle"
     Recipe handleRecipe = TestUtils.makeTestRecipe("handle", 5, 1);
     ha = new MineBuilding(handleRecipe, "Ha", simulation);
     sources.add(ha);
 
-    // Another "handle" factory, different latency
     Recipe shortHandleRecipe = TestUtils.makeTestRecipe("handle", 1, 1);
     MineBuilding handleFactory2 = new MineBuilding(shortHandleRecipe, "Ha2", simulation);
     sources.add(handleFactory2);
@@ -116,7 +114,6 @@ public class RecursiveLatSourcePolicyTest {
     Item wood = new Item("wood");
     List<Building> availableSources = doorFactory.getAvailableSourcesForItem(wood);
     Building result = policy.selectSource(wood, availableSources);
-    // The only wood producer from the setUp is woodMine ("W")
     assertSame(woodMine, result);
   }
 
@@ -141,7 +138,7 @@ public class RecursiveLatSourcePolicyTest {
     Request boltRequest = new Request(1, new Item("bolt"), boltRecipe, boltFactory, null);
     boltFactory.prependPendingRequest(boltRequest);
 
-    // door recipe (requires bolt?), lat=3
+    // door recipe (requires bolt), lat=3
     Recipe doorRecipe = TestUtils.makeTestRecipe("door", 1, 3);
     FactoryBuilding doorFactory = new FactoryBuilding(new Type("doorMaker", List.of(doorRecipe)),
         "DoorFactory", List.of(boltFactory), simulation);
@@ -152,7 +149,6 @@ public class RecursiveLatSourcePolicyTest {
     Building selected = policy.selectSource(new Item("door"), List.of(doorFactory), (b, score) -> {
     });
 
-    // Only one building => doorFactory, so we expect "DoorFactory"
     assertEquals("DoorFactory", selected.getName());
   }
 
@@ -333,11 +329,13 @@ public class RecursiveLatSourcePolicyTest {
   private static class TestSourceBuilding extends TestUtils.MockBuilding {
     private Item ingredient;
     private int latency;
+
     public TestSourceBuilding(String name, Item ingredient, int latency) {
       super(name);
       this.ingredient = ingredient;
       this.latency = latency;
     }
+
     @Override
     public Recipe getRecipeForItem(Item item) {
       return TestUtils.makeTestRecipe("cat", latency, 0);
@@ -375,5 +373,89 @@ public class RecursiveLatSourcePolicyTest {
     usage.addStorageUsed(testItem, shortPath, 5);
     usage.clearReservations(longerPrefix);
     assertEquals(5, usage.getStorageUsed(testItem, shortPath));
+  }
+
+  @Test
+  public void test_estimate_storage_with_stock() {
+    Item testItem = new Item("screw");
+    Recipe screwRecipe = TestUtils.makeTestRecipe("screw", 3, 0);
+
+    TestUtils.MockSimulation mockSim = new TestUtils.MockSimulation() {
+      @Override
+      public Recipe getRecipeForItem(Item item) {
+        return screwRecipe;
+      }
+    };
+
+    StorageBuilding storageBuilding = new StorageBuilding(
+        "ScrewStorage",
+        new ArrayList<>(),
+        mockSim,
+        testItem,
+        10,
+        1.0);
+    storageBuilding.addToStorage(testItem, 5);
+    Request request = new Request(1, testItem, screwRecipe, storageBuilding, null);
+    List<RecursiveLatSourcePolicy.BuildingId> storagePath = new ArrayList<>();
+    storagePath.add(new RecursiveLatSourcePolicy.BuildingId(storageBuilding, "storage-id"));
+    RecursiveLatSourcePolicy.Usage storageUsage = new RecursiveLatSourcePolicy.Usage();
+    int estimate = policy.estimate(request, storageBuilding, storageUsage, storagePath);
+    assertEquals(0, estimate);
+    assertEquals(1, storageUsage.getStorageUsed(testItem, storagePath));
+  }
+
+  @Test
+  public void test_estimate_storage_multiple_requests() {
+    Item testItem = new Item("bolt");
+    TestUtils.MockSimulation mockSim = new TestUtils.MockSimulation() {
+      @Override
+      public Recipe getRecipeForItem(Item item) {
+        return TestUtils.makeTestRecipe("bolt", 3, 0);
+      }
+    };
+
+    StorageBuilding storageBuilding = new StorageBuilding(
+        "BoltStorage",
+        new ArrayList<>(),
+        mockSim,
+        testItem,
+        10,
+        1.0);
+    storageBuilding.addToStorage(testItem, 2);
+    Recipe recipe = TestUtils.makeTestRecipe("bolt", 3, 0);
+    Request request = new Request(1, testItem, recipe, storageBuilding, null);
+    List<RecursiveLatSourcePolicy.BuildingId> storagePath = new ArrayList<>();
+    storagePath.add(new RecursiveLatSourcePolicy.BuildingId(storageBuilding, "storage-id"));
+    RecursiveLatSourcePolicy.Usage storageUsage = new RecursiveLatSourcePolicy.Usage();
+    int estimate1 = policy.estimate(request, storageBuilding, storageUsage, storagePath);
+    assertEquals(0, estimate1);
+    assertEquals(1, storageUsage.getStorageUsed(testItem, storagePath));
+    int estimate2 = policy.estimate(request, storageBuilding, storageUsage, storagePath);
+    assertEquals(0, estimate2);
+    assertEquals(2, storageUsage.getStorageUsed(testItem, storagePath));
+    int estimate3 = policy.estimate(request, storageBuilding, storageUsage, storagePath);
+    assertTrue(estimate3 > 0); // Not immediately available
+  }
+
+  @Test
+  public void test_estimate_storage_different_item() {
+    Item storageItem = new Item("nail");
+    StorageBuilding storageBuilding = new StorageBuilding(
+        "NailStorage",
+        new ArrayList<>(),
+        new TestUtils.MockSimulation(),
+        storageItem,
+        10,
+        1.0);
+    storageBuilding.addToStorage(storageItem, 5);
+    Item requestItem = new Item("screw");
+    Recipe recipe = TestUtils.makeTestRecipe("screw", 3, 0);
+    Request request = new Request(1, requestItem, recipe, storageBuilding, null);
+    List<RecursiveLatSourcePolicy.BuildingId> storagePath = new ArrayList<>();
+    storagePath.add(new RecursiveLatSourcePolicy.BuildingId(storageBuilding, "storage-id"));
+    RecursiveLatSourcePolicy.Usage storageUsage = new RecursiveLatSourcePolicy.Usage();
+    int estimate = policy.estimate(request, storageBuilding, storageUsage, storagePath);
+    assertTrue(estimate > 0);
+    assertEquals(0, storageUsage.getStorageUsed(storageItem, storagePath));
   }
 }
