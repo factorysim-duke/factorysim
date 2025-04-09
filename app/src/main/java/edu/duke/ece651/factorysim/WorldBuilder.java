@@ -285,20 +285,21 @@ public class WorldBuilder {
   private static Coordinate findValidLocation(Set<Coordinate> usedCoordinates) {
     int maxX = boardWidth;
     int maxY = boardHeight;
-    //List<Coordinate> candidates = new ArrayList<>();
-
+    // List<Coordinate> candidates = new ArrayList<>();
+    Coordinate choice = null;
     for (int x = 0; x < maxX; x++) {
       for (int y = 0; y < maxY; y++) {
         Coordinate location = new Coordinate(x, y);
         if (isNotTooCloseToOthers(location, usedCoordinates) &&
             isNotTooFarFromOthers(location, usedCoordinates)) {
-          return location;
+          choice = location;
+          break;
         }
       }
     }
-    return null;
-    //Random random = new Random();
-    //return candidates.get(random.nextInt(candidates.size()));
+    return choice;
+    // Random random = new Random();
+    // return candidates.get(random.nextInt(candidates.size()));
   }
 
   /**
