@@ -1,0 +1,199 @@
+{
+  "types": [
+    {
+      "name": "door",
+      "recipes": [
+        "door"
+      ]
+    },
+    {
+      "name": "handle",
+      "recipes": [
+        "handle1",
+        "handle2"
+      ]
+    },
+    {
+      "name": "hinge",
+      "recipes": [
+        "hinge1",
+        "hinge2"
+      ]
+    },
+    {
+      "name": "lock",
+      "recipes": [
+        "lock1",
+        "lock2"
+      ]
+    }
+  ],
+  "buildings": [
+    {
+      "name": "D",
+      "type": "door",
+      "sources": [
+        "W", "Ha1", "Ha2", "Hi1", "Hi2",
+        "WS"
+      ]
+    },
+    {
+      "name": "Ha1",
+      "type": "handle",
+      "sources": [
+        "M1", "L1","MS1", "MS2"
+      ]
+    },
+    {
+      "name": "Ha2",
+      "type": "handle",
+      "sources": [
+        "M2", "L2","MS1", "MS2"
+      ]
+    },
+    {
+      "name": "Hi1",
+      "type": "hinge",
+      "sources": [
+        "M1", "L1","MS1", "MS2"
+      ]
+    },
+    {
+      "name": "Hi2",
+      "type": "hinge",
+      "sources": [
+        "M2", "L2",
+        "MS1", "MS2"
+      ]
+    },
+    {
+      "name": "L1",
+      "type": "lock",
+      "sources": [
+        "M1", "M3",
+         "MS1", "MS2"
+      ]
+    },
+    {
+      "name": "L2",
+      "type": "lock",
+      "sources": [
+        "M2", "M3", "MS1", "MS2"
+      ]
+    },
+    {
+      "name": "W",
+      "mine": "wood",
+      "sources": []
+    },
+    {
+      "name": "M1",
+      "mine": "metal",
+      "sources": []
+    },
+    {
+      "name": "M2",
+      "mine": "metal",
+      "sources": []
+    },
+    {
+      "name": "M3",
+      "mine": "metal",
+      "sources": []
+    },
+    {
+      "name": "WS",
+      "stores": "wood",
+      "capacity": 80,
+      "priority": 1.5,
+      "sources": [
+        "W"
+      ]
+    },
+    {
+      "name": "MS1",
+      "stores": "metal",
+      "capacity": 100,
+      "priority": 1.7,
+      "sources": [
+        "M1", "M2", "M3"
+      ]
+    },
+    {
+      "name": "MS2",
+      "stores": "metal",
+      "capacity": 120,
+      "priority": 3.9,
+      "sources": [
+        "M1", "M2", "M3"
+      ]
+    }
+  ],
+  "recipes": [
+    {
+      "output": "door",
+      "ingredients": {
+        "wood": 1,
+        "handle1": 1,
+        "handle2": 1,
+        "hinge1": 2,
+        "hinge2": 1
+      },
+      "latency": 15
+    },
+    {
+      "output": "handle1",
+      "ingredients": {
+        "metal": 1,
+        "lock1": 2
+      },
+      "latency": 3
+    },
+    {
+      "output": "handle2",
+      "ingredients": {
+        "metal": 3
+      },
+      "latency": 8
+    },
+    {
+      "output": "hinge1",
+      "ingredients": {
+        "metal": 1,
+        "lock2": 1
+      },
+      "latency": 10
+    },
+    {
+      "output": "hinge2",
+      "ingredients": {
+        "metal": 2
+      },
+      "latency": 2
+    },
+    {
+      "output": "lock1",
+      "ingredients": {
+        "metal": 1
+      },
+      "latency": 4
+    },
+    {
+      "output": "lock2",
+      "ingredients": {
+        "metal": 3
+      },
+      "latency": 6
+    },
+    {
+      "output": "wood",
+      "ingredients": {},
+      "latency": 1
+    },
+    {
+      "output": "metal",
+      "ingredients": {},
+      "latency": 1
+    }
+  ]
+}

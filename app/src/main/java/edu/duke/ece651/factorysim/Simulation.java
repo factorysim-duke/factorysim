@@ -286,7 +286,10 @@ public class Simulation {
    * @return the recipe for the item.
    */
   public Recipe getRecipeForItem(Item item) {
-    return world.getRecipeForItem(item);
+    if (this.world == null) {
+        return null; 
+    }
+    return this.world.getRecipeForItem(item);
   }
 
   /**

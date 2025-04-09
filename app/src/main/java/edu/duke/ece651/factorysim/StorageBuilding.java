@@ -14,7 +14,6 @@ public class StorageBuilding extends Building {
   private final double priority;
   private int outstandingRequestNum;
   private int arrivingItemNum; // number of items arriving this cycle, which will become available next cycle
-  private final Recipe recipe;
   private int currentStockNum; // current stock is immediately available in the same cycle
 
   /**
@@ -38,7 +37,6 @@ public class StorageBuilding extends Building {
     this.priority = priority;
     this.outstandingRequestNum = 0;
     this.arrivingItemNum = 0;
-    this.recipe = simulation.getRecipeForItem(storageItem);
     this.currentStockNum = 0;
   }
 
@@ -171,6 +169,7 @@ public class StorageBuilding extends Building {
               (building, score) -> {
               });
           int orderNum = getSimulation().getOrderNum();
+          Recipe recipe = getSimulation().getRecipeForItem(storageItem);
           Request newRequest = new Request(orderNum, storageItem, recipe, selectedSource, this);
           outstandingRequestNum++;
           selectedSource.addRequest(newRequest);
@@ -266,7 +265,7 @@ public class StorageBuilding extends Building {
     if (currentStockNum > 0) {
       // if we have items in stock, return negative latency
       // latency = -(recipe latency * number of items in stock)
-      int recipeLatency = recipe.getLatency();
+      int recipeLatency = getSimulation().getRecipeForItem(storageItem).getLatency();
       return -(recipeLatency * currentStockNum);
     } else {
       // if no stock, behave like factory
