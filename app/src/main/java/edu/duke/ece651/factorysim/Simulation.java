@@ -427,11 +427,10 @@ public class Simulation {
     if (building.getClass().equals(MineBuilding.class)) {
       return; // Ignore calls from mines
     }
-    String buildingType = building instanceof FactoryBuilding ? "factory" : "storage";
     // FactoryBuilding factory = (FactoryBuilding) building;
 
     // Log recipe selection
-    logger.log("[recipe selection]: " + buildingType + " " + building.getName() +
+    logger.log("[recipe selection]: " + building.getName() +
         " has " + requestPolicy.getName() +
         " on cycle " + currentTime);
 
