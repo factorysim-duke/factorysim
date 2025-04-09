@@ -266,7 +266,7 @@ public class StorageBuilding extends Building {
     if (currentStockNum > 0) {
       // if we have items in stock, return negative latency
       // latency = -(recipe latency * number of items in stock)
-      int recipeLatency = recipe != null ? recipe.getLatency() : 1;
+      int recipeLatency = recipe.getLatency();
       return -(recipeLatency * currentStockNum);
     } else {
       // if no stock, behave like factory
