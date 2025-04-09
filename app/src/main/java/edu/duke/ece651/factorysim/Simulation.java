@@ -522,9 +522,8 @@ public class Simulation {
     if (building.getClass().equals(MineBuilding.class)) {
       return; // Ignore calls from mines
     }
-    String buildingType = building instanceof FactoryBuilding ? "factory" : "storage";
     // Log selection detail
-    logger.log("[" + buildingType + " " + building.getName() + ":" + item.getName() + ":" + index +
+    logger.log("[" + building.getName() + ":" + item.getName() + ":" + index +
         "] For ingredient " + ingredient.getName());
 
     // Log sources with scores
