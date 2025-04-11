@@ -1,0 +1,16 @@
+{
+  "buildings": [
+    {
+      "name": "MetalStorage",
+      "stores": "metal"
+    }
+  ],
+  "types": [],
+  "recipes": [
+    {
+      "output": "metal",
+      "ingredients": {},
+      "latency": 1
+    }
+  ]
+}

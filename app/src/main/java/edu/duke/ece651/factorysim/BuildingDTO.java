@@ -15,6 +15,9 @@ public class BuildingDTO {
   public Map<String, Integer> storage;
   public Integer x;
   public Integer y;
+  public String stores;
+  public Integer capacity;
+  public Double priority;
 
   /**
    * Gets the source building names for a building.

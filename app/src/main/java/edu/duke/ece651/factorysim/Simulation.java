@@ -289,7 +289,7 @@ public class Simulation {
    * @return the recipe for the item.
    */
   public Recipe getRecipeForItem(Item item) {
-    return world.getRecipeForItem(item);
+    return this.world.getRecipeForItem(item);
   }
 
   /**
@@ -427,15 +427,15 @@ public class Simulation {
     if (verbosity < 2) {
       return;
     }
-    if (!building.getClass().equals(FactoryBuilding.class)) {
-      return; // Ignore calls from other types of building
+    if (building.getClass().equals(MineBuilding.class)) {
+      return; // Ignore calls from mines
     }
-    FactoryBuilding factory = (FactoryBuilding) building;
+    // FactoryBuilding factory = (FactoryBuilding) building;
 
     // Log recipe selection
-    logger.log("[recipe selection]: factory " + factory.getName() +
-            " has " + requestPolicy.getName() +
-            " on cycle " + currentTime);
+    logger.log("[recipe selection]: " + building.getName() +
+        " has " + requestPolicy.getName() +
+        " on cycle " + currentTime);
 
     // Log each request's information
     int selectedIndex = 0;
@@ -490,16 +490,14 @@ public class Simulation {
     if (verbosity < 2) {
       return;
     }
-    if (!building.getClass().equals(FactoryBuilding.class)) {
-      return; // Ignore calls from other types of building
+    if (building.getClass().equals(MineBuilding.class)) {
+      return; // Ignore calls from mines
     }
-    FactoryBuilding factory = (FactoryBuilding) building;
-
     // Log source selection
-    logger.log("[source selection]: " + factory.getName() +
-            " (" + sourcePolicy.getName() +
-            ") has request for " + item.getName() +
-            " on " + currentTime);
+    logger.log("[source selection]: " + building.getName() +
+        " (" + sourcePolicy.getName() +
+        ") has request for " + item.getName() +
+        " on " + currentTime);
   }
 
   /**
@@ -523,14 +521,12 @@ public class Simulation {
     if (verbosity < 2) {
       return;
     }
-    if (!building.getClass().equals(FactoryBuilding.class)) {
-      return; // Ignore calls from other types of building
+    if (building.getClass().equals(MineBuilding.class)) {
+      return; // Ignore calls from mines
     }
-    FactoryBuilding factory = (FactoryBuilding) building;
-
     // Log selection detail
-    logger.log("[" + factory.getName() + ":" + item.getName() + ":" + index +
-            "] For ingredient " + ingredient.getName());
+    logger.log("[" + building.getName() + ":" + item.getName() + ":" + index +
+        "] For ingredient " + ingredient.getName());
 
     // Log sources with scores
     for (Tuple<Building, Integer> source : sources) {
@@ -819,6 +815,7 @@ public class Simulation {
 
       // add the path to the tileMap
       world.tileMap.addPath(path);
+      // System.out.println(world.tileMap);
     }
     return true;
   }
