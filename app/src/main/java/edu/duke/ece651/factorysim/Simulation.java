@@ -55,6 +55,20 @@ public class Simulation {
   }
 
   /**
+   * Creates a simulation with an injected world.
+   *
+   * @param world     a `World` instance that's already constructed.
+   * @param verbosity the initial verbosity.
+   * @param logger    the injected logger.
+   */
+  public Simulation(World world, int verbosity, Logger logger) {
+    this.currentTime = 0;
+    this.world = world;
+    this.verbosity = verbosity;
+    this.logger = logger;
+  }
+
+  /**
    * Sets the policy for the given type and target.
    *
    * @param policy the policy to set
