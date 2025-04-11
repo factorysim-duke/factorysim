@@ -218,4 +218,62 @@ public class StorageBuildingTest {
     assertNotNull(storageJson);
     assertEquals(0, storageJson.entrySet().size());
   }
+
+  @Test
+  public void testGetNumOfPendingRequests_withStock() {
+    TestUtils.MockSimulation sim = new TestUtils.MockSimulation();
+    Item door = new Item("door");
+    StorageBuilding sb = new StorageBuilding("test", new ArrayList<>(), sim, door, 100, 0.5);
+    sb.addToStorage(door, 10);
+    sb.step();
+    assertEquals(-10, sb.getNumOfPendingRequests());
+  }
+
+  @Test
+  public void testGetNumOfPendingRequests_noStock() {
+    TestUtils.MockSimulation sim = new TestUtils.MockSimulation();
+    Item door = new Item("door");
+    StorageBuilding sb = new StorageBuilding("test", new ArrayList<>(), sim, door, 100, 0.5);
+    Request r1 = new Request(1, door, sim.getRecipeForItem(door), sb, null);
+    Request r2 = new Request(2, door, sim.getRecipeForItem(door), sb, null);
+    sb.getPendingRequests().add(r1);
+    sb.getPendingRequests().add(r2);
+    assertEquals(2, sb.getNumOfPendingRequests());
+  }
+
+  @Test
+  public void testSumRemainingLatencies_withStock() {
+    TestUtils.MockSimulation sim = new TestUtils.MockSimulation();
+    Item door = new Item("door");
+    StorageBuilding sb = new StorageBuilding("test", new ArrayList<>(), sim, door, 100, 0.5);
+    sb.addToStorage(door, 10);
+    sb.step();
+    int recipeLatency = 1;
+    recipeLatency = sim.getRecipeForItem(door).getLatency();
+
+    int expected = -(recipeLatency * 10);
+    assertEquals(expected, sb.sumRemainingLatencies());
+  }
+
+  @Test
+  public void testSumRemainingLatencies_noStock() {
+    TestUtils.MockSimulation sim = new TestUtils.MockSimulation();
+    Item door = new Item("door");
+    StorageBuilding sb = new StorageBuilding("test", new ArrayList<>(), sim, door, 100, 0.5);
+    Request r = new Request(1, door, sim.getRecipeForItem(door), sb, null);
+    sb.getPendingRequests().add(r);
+    assertEquals(r.getRemainingSteps(), sb.sumRemainingLatencies());
+  }
+
+  @Test
+  public void testGetNumOfPendingRequests_stockOverridesPending() {
+    TestUtils.MockSimulation sim = new TestUtils.MockSimulation();
+    Item door = new Item("door");
+    StorageBuilding sb = new StorageBuilding("test", new ArrayList<>(), sim, door, 100, 0.5);
+    Request r1 = new Request(1, door, sim.getRecipeForItem(door), sb, null);
+    sb.getPendingRequests().add(r1);
+    sb.addToStorage(door, 5);
+    sb.step();
+    assertEquals(-5, sb.getNumOfPendingRequests());
+  }
 }

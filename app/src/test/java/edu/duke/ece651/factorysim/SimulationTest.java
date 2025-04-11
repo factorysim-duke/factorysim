@@ -10,6 +10,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class SimulationTest {
   Simulation sim = new Simulation("src/test/resources/inputs/doors1.json");
+  ByteArrayOutputStream logOutput = new ByteArrayOutputStream();
+  Logger testLogger = new StreamLogger(new PrintStream(logOutput));
 
   @Test
   public void test_step() {
@@ -496,8 +498,6 @@ public class SimulationTest {
   public void test_connectBuildings_validAndCache() {
     Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
 
-    ByteArrayOutputStream logOutput = new ByteArrayOutputStream();
-    Logger testLogger = new StreamLogger(new PrintStream(logOutput));
     simulation.setLogger(testLogger);
 
     boolean firstConnection = simulation.connectBuildings("D", "W");
@@ -517,8 +517,6 @@ public class SimulationTest {
   public void test_connectBuildings_noValidPath() {
     Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
 
-    ByteArrayOutputStream logOutput = new ByteArrayOutputStream();
-    Logger testLogger = new StreamLogger(new PrintStream(logOutput));
     simulation.setLogger(testLogger);
 
     Coordinate src = simulation.getBuildingLocation("W");
