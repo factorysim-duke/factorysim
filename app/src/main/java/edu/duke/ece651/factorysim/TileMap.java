@@ -165,6 +165,20 @@ public class TileMap {
     }
 
     /**
+     * Retrieves all flow values for a given direction at a coordinate.
+     *
+     * @param coord the coordinate to inspect.
+     * @return flow values.
+     * @throws IllegalArgumentException if coordinate is out of bounds.
+     */
+    public int[] getFlows(Coordinate coord) {
+      if (!isInsideMap(coord)) {
+        throw new IllegalArgumentException("Coordinate out of bounds: " + coord);
+      }
+      return pathFlows.get(coord);
+    }
+
+    /**
      * Sets the flow in a particular direction at a given coordinate.
      *
      * @param c the coordinate
