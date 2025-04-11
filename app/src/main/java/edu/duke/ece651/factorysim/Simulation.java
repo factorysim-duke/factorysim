@@ -814,6 +814,39 @@ public class Simulation {
   }
 
   /**
+   * Attempts to connect two buildings using the shortest valid path on the map.
+   * If a valid path already exists in the cache, it is reused. Otherwise, a new path is found
+   * and added to the path list and the tile map.
+   *
+   * @param srcBuilding is the source building to connect.
+   * @param dstBuilding is the destination building to connect.
+   * @return connected `Path` instance if the buildings are successfully connected.
+   * @throws IllegalArgumentException if no valid path can be found between the buildings.
+   */
+  public Path connectBuildings(Building srcBuilding, Building dstBuilding) {
+    Coordinate src = srcBuilding.getLocation();
+    Coordinate dst = dstBuilding.getLocation();
+    for (Path p : pathList){
+      if (p.isMatch(src, dst)){
+        return p;
+      }
+    }
+    Path path = PathFinder.findPath(src, dst, world.tileMap);
+    if (path == null) {
+      throw new IllegalArgumentException("Cannot connect " + srcBuilding.getName() + " to " + dstBuilding.getName() + ": No valid path.");
+    } else {
+      path.dump();
+      // add the path to the cache
+      pathList.add(path);
+
+      // add the path to the tileMap
+      world.tileMap.addPath(path);
+      // System.out.println(world.tileMap);
+    }
+    return path;
+  }
+
+  /**
    * Attempts to connect two buildings by name using the shortest valid path on the map.
    * If a valid path already exists in the cache, it is reused. Otherwise, a new path is found
    * and added to the path list and the tile map.
@@ -824,27 +857,31 @@ public class Simulation {
    * @throws IllegalArgumentException if no valid path can be found between the buildings
    */
   public boolean connectBuildings(String sourceName, String destName) {
-    Coordinate src = getBuildingLocation(sourceName);
-    Coordinate dst = getBuildingLocation(destName);
-    for(Path p: pathList){
-      if(p.isMatch(src, dst)){
-        return true;
-      }
-    }
-    Path path = PathFinder.findPath(src, dst, world.tileMap);
-    if (path == null) {
-      throw new IllegalArgumentException("Cannot connect " + sourceName + " to " + destName + ": No valid path.");
-    } else {
-        path.dump();
-      // add the path to the cache
-      pathList.add(path);
-
-      // add the path to the tileMap
-      world.tileMap.addPath(path);
-      // System.out.println(world.tileMap);
-    }
-    return true;
+    return connectBuildings(world.getBuildingFromName(sourceName), world.getBuildingFromName(destName)) != null;
   }
+
+//  public boolean connectBuildings(String sourceName, String destName) {
+//    Coordinate src = getBuildingLocation(sourceName);
+//    Coordinate dst = getBuildingLocation(destName);
+//    for(Path p: pathList){
+//      if(p.isMatch(src, dst)){
+//        return true;
+//      }
+//    }
+//    Path path = PathFinder.findPath(src, dst, world.tileMap);
+//    if (path == null) {
+//      throw new IllegalArgumentException("Cannot connect " + sourceName + " to " + destName + ": No valid path.");
+//    } else {
+//        path.dump();
+//      // add the path to the cache
+//      pathList.add(path);
+//
+//      // add the path to the tileMap
+//      world.tileMap.addPath(path);
+//      // System.out.println(world.tileMap);
+//    }
+//    return true;
+//  }
 
   /**
    * Adds a delivery to the delivery schedule if a valid path exists between source and destination buildings.
