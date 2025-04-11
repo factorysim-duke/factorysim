@@ -1,5 +1,7 @@
 package edu.duke.ece651.factorysim;
 
+import com.google.gson.JsonObject;
+
 import java.util.HashMap;
 import java.util.List;
 

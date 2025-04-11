@@ -24,6 +24,7 @@ public class Simulation {
 
   private Logger logger;
   private final Map<Coordinate, Map<Coordinate, Path>> pathList = new HashMap<>();
+  DeliverySchedule deliverySchedule = new DeliverySchedule();
 
   /**
    * Creates a simulation from a JSON configuration file.
@@ -192,9 +193,11 @@ public class Simulation {
       throw new IllegalArgumentException("The number of step must be positive and not too large.");
     }
     for (int i = 0; i < n; i++) {
+      deliverySchedule.step();
       for (Building building : world.getBuildings()) {
         building.step();
       }
+
       currentTime++;
     }
   }
@@ -318,7 +321,7 @@ public class Simulation {
 
   /**
    * Gets the logger.
-   * 
+   *
    * @return the logger.
    */
   public Logger getLogger() {
@@ -327,7 +330,7 @@ public class Simulation {
 
   /**
    * Sets the logger.
-   * 
+   *
    * @param logger is the new content of the logger.
    */
   public void setLogger(Logger logger) {
@@ -346,8 +349,8 @@ public class Simulation {
     }
 
     String m = "[order complete] Order " + completed.getOrderNum() +
-        " completed (" + completed.getItem().getName() +
-        ") at time " + currentTime;
+            " completed (" + completed.getItem().getName() +
+            ") at time " + currentTime;
     logger.log(m);
   }
 
@@ -366,8 +369,8 @@ public class Simulation {
     }
 
     String m = "[ingredient assignment]: " + item.getName() +
-        " assigned to " + assigned.getName() +
-        " to deliver to " + deliverTo.getName();
+            " assigned to " + assigned.getName() +
+            " to deliver to " + deliverTo.getName();
     logger.log(m);
   }
 
@@ -386,9 +389,9 @@ public class Simulation {
 
     // Log ingredient delivery info
     String m = "[ingredient delivered]: " + item.getName() +
-        " to " + to.getName() +
-        " from " + from.getName() +
-        " on cycle " + getCurrentTime();
+            " to " + to.getName() +
+            " from " + from.getName() +
+            " on cycle " + getCurrentTime();
     logger.log(m);
 
     // Log ready ingredients (only when `to` is a factory since only factory have
@@ -418,9 +421,9 @@ public class Simulation {
    * @param selectedRequest is the selected request instance.
    */
   public void onRecipeSelected(Building building,
-      RequestPolicy requestPolicy,
-      List<Request> requests,
-      Request selectedRequest) {
+                               RequestPolicy requestPolicy,
+                               List<Request> requests,
+                               Request selectedRequest) {
     if (verbosity < 2) {
       return;
     }
@@ -482,8 +485,8 @@ public class Simulation {
    * @param item         is the item that's requested so sourcing happens.
    */
   public void onSourceSelected(Building building,
-      SourcePolicy sourcePolicy,
-      Item item) {
+                               SourcePolicy sourcePolicy,
+                               Item item) {
     if (verbosity < 2) {
       return;
     }
@@ -510,11 +513,11 @@ public class Simulation {
    * @param selectedSource is the selected source building.
    */
   public void onIngredientSourceSelected(Building building,
-      Item item,
-      int index,
-      Item ingredient,
-      List<Tuple<Building, Integer>> sources,
-      Building selectedSource) {
+                                         Item item,
+                                         int index,
+                                         Item ingredient,
+                                         List<Tuple<Building, Integer>> sources,
+                                         Building selectedSource) {
     if (verbosity < 2) {
       return;
     }
@@ -580,6 +583,7 @@ public class Simulation {
       }
       state.add("requests", requestArray);
 
+      state.add("tileMap", world.tileMap.toJson());
       gson.toJson(state, writer);
       logger.log("Simulation saved to " + fileName);
     } catch (IOException e) {
@@ -615,7 +619,7 @@ public class Simulation {
     Gson gson = new Gson();
 
     String json = new BufferedReader(reader)
-        .lines().collect(Collectors.joining(System.lineSeparator()));
+            .lines().collect(Collectors.joining(System.lineSeparator()));
 
     ConfigData configData = JsonLoader.loadConfigDataFromReader(new StringReader(json));
     this.world = WorldBuilder.buildWorld(configData, this);
@@ -771,7 +775,7 @@ public class Simulation {
 
   /**
    * Gets the location of a building from the location map.
-   * 
+   *
    * @param buildingName is the name of building to look up.
    * @return the corresponding location.
    */
@@ -797,18 +801,14 @@ public class Simulation {
   public boolean connectBuildings(String sourceName, String destName) {
     Coordinate src = getBuildingLocation(sourceName);
     Coordinate dst = getBuildingLocation(destName);
-
+    if(pathList.containsKey(src) && pathList.get(src).containsKey(dst)){
+        return true;
+    }
     Path path = PathFinder.findPath(src, dst, world.tileMap);
     if (path == null) {
-      logger.log("Cannot connect " + sourceName + " to " + destName + ": No valid path.");
-      return false;
+      throw new IllegalArgumentException("Cannot connect " + sourceName + " to " + destName + ": No valid path.");
     } else {
-      path.dump();
-      // check if the path is already in the pathList
-      if (pathList.containsKey(src) && pathList.get(src).containsKey(dst)) {
-        logger.log("Path already exists in cache.");
-        return true;
-      }
+        path.dump();
       // add the path to the cache
       pathList.putIfAbsent(src, new HashMap<>());
       pathList.get(src).put(dst, path);
@@ -820,4 +820,14 @@ public class Simulation {
     return true;
   }
 
+
+  public void addDelivery(Building src, Building dst, Item item, int quantity) {
+    if (pathList.containsKey(src.getLocation()) && pathList.get(src.getLocation()).containsKey(dst.getLocation())) {
+        Path path = pathList.get(src.getLocation()).get(dst.getLocation());
+        Delivery d=new Delivery(src,dst, item, quantity, path.getDeliveryTime());
+        deliverySchedule.addDelivery(d);
+    } else {
+      throw new IllegalArgumentException("building " + src.getName() + " and " + dst.getName() + " are not connected");
+    }
+  }
 }

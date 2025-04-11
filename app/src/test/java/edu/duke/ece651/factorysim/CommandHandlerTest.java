@@ -16,6 +16,11 @@ public class CommandHandlerTest {
         assertThrows(IllegalArgumentException.class, () -> { commandHandler.execute("unknown 1 2 'A B C'"); });
 
         // Valid commands
+        assertDoesNotThrow(() -> { commandHandler.execute("connect 'Hi' to 'D'"); });
+        assertDoesNotThrow(() -> { commandHandler.execute("connect 'Ha' to 'D'"); });
+        assertDoesNotThrow(() -> { commandHandler.execute("connect 'W' to 'D'"); });
+        assertDoesNotThrow(() -> { commandHandler.execute("connect 'M' to 'Ha'"); });
+        assertDoesNotThrow(() -> { commandHandler.execute("connect 'M' to 'Hi'"); });
         assertDoesNotThrow(() -> { commandHandler.execute("request 'door' from 'D'"); });
         assertDoesNotThrow(() -> { commandHandler.execute("step 3"); });
         assertDoesNotThrow(() -> { commandHandler.execute("finish"); });

@@ -47,15 +47,20 @@ public class PathFinder {
                     continue;
                 }
 
-                // if the next tile is a building and not the destination, skip it
                 TileType nextTileType = tileMap.getTileType(nextCoord);
-                if (nextTileType == TileType.BUILDING && !nextCoord.equals(destination)) {
-                    continue;
+                if (nextTileType == TileType.BUILDING) {
+                    // if the next tile is a building and not the destination, skip it
+                    if(!nextCoord.equals(destination))
+                    {
+                        continue;
+                    }
                 }
-
-                // if current tile corresponding dir is already flow in, skip it
-                if (tileMap.getFlow(current.coord, dir) == -1) {
-                    continue;
+                else
+                {
+                    // if current tile corresponding dir is already flow in, skip it
+                    if (tileMap.getFlow(current.coord, dir) == -1) {
+                        continue;
+                    }
                 }
 
                 int nextNewTiles = current.newTiles + (nextTileType == TileType.ROAD ? 1 : 0);

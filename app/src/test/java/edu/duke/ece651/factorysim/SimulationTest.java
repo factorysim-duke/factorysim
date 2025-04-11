@@ -40,6 +40,11 @@ public class SimulationTest {
   public void test_all_requests_finished() {
     sim.makeUserRequest("door", "D");
     assertFalse(sim.allRequestsFinished());
+    sim.connectBuildings("W", "D");
+    sim.connectBuildings("Hi", "D");
+    sim.connectBuildings("Ha", "D");
+    sim.connectBuildings("M", "Ha");
+    sim.connectBuildings("M", "Hi");
     sim.finish();
     assertTrue(sim.allRequestsFinished());
   }
@@ -120,6 +125,11 @@ public class SimulationTest {
     ByteArrayOutputStream stream = new ByteArrayOutputStream();
     Logger logger = new StreamLogger(stream);
     Simulation sim = new Simulation("src/test/resources/inputs/doors1.json", 1, logger);
+    sim.connectBuildings("W", "D");
+    sim.connectBuildings("Hi", "D");
+    sim.connectBuildings("Ha", "D");
+    sim.connectBuildings("M", "Ha");
+    sim.connectBuildings("M", "Hi");
 
     // 0> request 'door' from 'D'
     sim.makeUserRequest("door", "D");
@@ -139,21 +149,21 @@ public class SimulationTest {
     // Use `System.lineSeparator()` so tests can pass on Windows
     sim.step(50);
     expected =
-        "[ingredient delivered]: wood to D from W on cycle 1" + System.lineSeparator() +
-        "[ingredient delivered]: metal to Ha from M on cycle 1" + System.lineSeparator() +
+        "[ingredient delivered]: wood to D from W on cycle 6" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Ha from M on cycle 6" + System.lineSeparator() +
         "    0: handle is ready" + System.lineSeparator() +
-        "[ingredient delivered]: metal to Hi from M on cycle 3" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Hi from M on cycle 6" + System.lineSeparator() +
         "    0: hinge is ready" + System.lineSeparator() +
-        "[ingredient delivered]: hinge to D from Hi on cycle 5" + System.lineSeparator() +
-        "[ingredient delivered]: metal to Hi from M on cycle 5" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Hi from M on cycle 8" + System.lineSeparator() +
         "    0: hinge is ready" + System.lineSeparator() +
-        "[ingredient delivered]: hinge to D from Hi on cycle 7" + System.lineSeparator() +
-        "[ingredient delivered]: handle to D from Ha on cycle 7" + System.lineSeparator() +
-        "[ingredient delivered]: metal to Hi from M on cycle 7" + System.lineSeparator() +
+        "[ingredient delivered]: hinge to D from Hi on cycle 10" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Hi from M on cycle 10" + System.lineSeparator() +
         "    0: hinge is ready" + System.lineSeparator() +
-        "[ingredient delivered]: hinge to D from Hi on cycle 9" + System.lineSeparator() +
+        "[ingredient delivered]: hinge to D from Hi on cycle 12" + System.lineSeparator() +
+        "[ingredient delivered]: handle to D from Ha on cycle 12" + System.lineSeparator() +
+        "[ingredient delivered]: hinge to D from Hi on cycle 14" + System.lineSeparator() +
         "    0: door is ready" + System.lineSeparator() +
-        "[order complete] Order 0 completed (door) at time 21" + System.lineSeparator();
+        "[order complete] Order 0 completed (door) at time 26" + System.lineSeparator();
     assertEquals(expected, stream.toString());
     stream.reset();
 
@@ -168,7 +178,11 @@ public class SimulationTest {
     ByteArrayOutputStream stream = new ByteArrayOutputStream();
     Logger logger = new StreamLogger(stream);
     Simulation sim = new Simulation("src/test/resources/inputs/doors1.json", 2, logger);
-
+    sim.connectBuildings("W", "D");
+    sim.connectBuildings("Hi", "D");
+    sim.connectBuildings("Ha", "D");
+    sim.connectBuildings("M", "Ha");
+    sim.connectBuildings("M", "Hi");
     // 0> request 'door' from 'D'
     sim.makeUserRequest("door", "D");
     String expected = "[source selection]: D (qlen) has request for door on 0" + System.lineSeparator() +
@@ -486,16 +500,15 @@ public class SimulationTest {
 
     boolean firstConnection = simulation.connectBuildings("D", "W");
     assertTrue(firstConnection);
+    firstConnection = simulation.connectBuildings("W", "D");
+    assertTrue(firstConnection);
 
     String logs = logOutput.toString();
     assertFalse(logs.contains("Path already exists in cache."));
 
     logOutput.reset();
-    boolean secondConnection = simulation.connectBuildings("D", "W");
+    boolean secondConnection = simulation.connectBuildings("W", "D");
     assertTrue(secondConnection);
-
-    logs = logOutput.toString();
-    assertTrue(logs.contains("Path already exists in cache."));
   }
 
   @Test
@@ -504,8 +517,8 @@ public class SimulationTest {
 
     simulation.setLogger(testLogger);
 
-    Coordinate src = simulation.getBuildingLocation("D");
-    Coordinate dst = simulation.getBuildingLocation("W");
+    Coordinate src = simulation.getBuildingLocation("W");
+    Coordinate dst = simulation.getBuildingLocation("D");
 
     // set all tiles to building except src and dst
     for (int x = 0; x < simulation.getWorld().getTileMap().getWidth(); x++) {
@@ -517,10 +530,42 @@ public class SimulationTest {
       }
     }
 
-    boolean result = simulation.connectBuildings("D", "W");
-    assertFalse(result);
+
+    assertThrows(IllegalArgumentException.class, () -> simulation.connectBuildings("W", "D"));
+
+    Building W = simulation.getWorld().getBuildingFromName("W");
+    Building D = simulation.getWorld().getBuildingFromName("D");
+    Item wood = new Item("wood");
+    Delivery d=new Delivery(W,D,wood,1,5);
+    assertThrows(IllegalArgumentException.class, () -> sim.addDelivery(W,D,wood,1));
+  }
+
+  @Test
+  public void test_connectBuildings_cacheMissingEntry() throws Exception {
+    Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+
+    ByteArrayOutputStream logOutput = new ByteArrayOutputStream();
+    Logger testLogger = new StreamLogger(new PrintStream(logOutput));
+    simulation.setLogger(testLogger);
+
+    boolean firstConnection = simulation.connectBuildings("W", "D");
+    assertTrue(firstConnection);
+
+    java.lang.reflect.Field field = Simulation.class.getDeclaredField("pathList");
+    field.setAccessible(true);
+    Map<Coordinate, Map<Coordinate, Path>> pathList = (Map<Coordinate, Map<Coordinate, Path>>) field.get(simulation);
+    Coordinate src = simulation.getBuildingLocation("W");
+    Coordinate dst = simulation.getBuildingLocation("D");
+
+    if (pathList.containsKey(src)) {
+      pathList.get(src).remove(dst);
+    }
+
+    logOutput.reset();
+    boolean secondConnection = simulation.connectBuildings("W", "D");
+    assertTrue(secondConnection);
 
     String logs = logOutput.toString();
-    assertTrue(logs.contains("Cannot connect D to W: No valid path."));
+    assertFalse(logs.contains("Path already exists in cache."));
   }
 }
