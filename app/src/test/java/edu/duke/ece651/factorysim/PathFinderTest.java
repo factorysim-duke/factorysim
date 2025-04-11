@@ -2,6 +2,7 @@ package edu.duke.ece651.factorysim;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -177,7 +178,9 @@ class PathFinderTest {
             Coordinate from = steps.get(i);
             Coordinate to = steps.get(i + 1);
             int dir = PathFinder.getDirection(from, to);
-            assertNotEquals(-1, tileMap.getFlow(from, dir), "Flow direction should not be -1");
+            if (i != 0 && i != steps.size() - 2) {
+                assertNotEquals(-1, tileMap.getFlow(from, dir), "Flow direction should be -1 for middle steps");
+            }
         }
 
         int expectedNewTileCount = 0;
@@ -187,5 +190,65 @@ class PathFinderTest {
             }
         }
         assertEquals(expectedNewTileCount, path.getNewTileCount(), "New tile count should match expected value");
+    }
+
+    @Test
+    public void test_findPath_both_ways() {
+        TileMap tileMap = new TileMap(5, 5);
+        System.out.println(tileMap);
+
+        Coordinate p1 = new Coordinate(0, 0);
+        Coordinate p2 = new Coordinate(1, 0);
+        Coordinate p3 = new Coordinate(2, 0);
+        Coordinate p4 = new Coordinate(3, 0);
+        Coordinate p5 = new Coordinate(4, 0);
+
+        tileMap.setTileType(p1, TileType.BUILDING);
+        tileMap.setTileType(p2, TileType.BUILDING);
+        tileMap.setTileType(p3, TileType.BUILDING);
+        tileMap.setTileType(p4, TileType.BUILDING);
+        tileMap.setTileType(p5, TileType.BUILDING);
+
+        Path path = PathFinder.findPath(p1, p3, tileMap);
+
+        // add path
+        assertNotNull(path, "Should find a path");
+        tileMap.addPath(path);
+
+        path = PathFinder.findPath(p3, p5, tileMap);
+
+        // add path
+        assertNotNull(path, "Should find a path");
+        tileMap.addPath(path);
+
+        System.out.println(tileMap);
+
+        assertEquals(TileType.BUILDING, tileMap.getTileType(p1));
+        assertEquals(TileType.BUILDING, tileMap.getTileType(p2));
+        assertEquals(TileType.BUILDING, tileMap.getTileType(p3));
+        assertEquals(TileType.BUILDING, tileMap.getTileType(p4));
+        assertEquals(TileType.BUILDING, tileMap.getTileType(p5));
+        assertEquals(TileType.PATH, tileMap.getTileType(new Coordinate(0,1)));
+        assertEquals(TileType.PATH, tileMap.getTileType(new Coordinate(1,1)));
+        assertEquals(TileType.PATH, tileMap.getTileType(new Coordinate(2,1)));
+        assertEquals(TileType.PATH, tileMap.getTileType(new Coordinate(3,1)));
+        assertEquals(TileType.PATH, tileMap.getTileType(new Coordinate(4,1)));
+
+        assertEquals(2, tileMap.getFlow(p1, 2));
+        assertEquals(2, tileMap.getFlow(p3, 2));
+        assertEquals(2, tileMap.getFlow(p5, 2));
+        assertEquals(2, tileMap.getFlow(new Coordinate(0,1), 0));
+        assertEquals(1, tileMap.getFlow(new Coordinate(0,1), 1));
+        assertEquals(-1, tileMap.getFlow(new Coordinate(1,1), 3));
+        assertEquals(1, tileMap.getFlow(new Coordinate(1,1), 1));
+        assertEquals(-1, tileMap.getFlow(new Coordinate(2,1), 3));
+        assertEquals(2, tileMap.getFlow(new Coordinate(2,1), 0));
+        assertEquals(1, tileMap.getFlow(new Coordinate(2,1), 1));
+        assertEquals(-1, tileMap.getFlow(new Coordinate(3,1), 3));
+        assertEquals(1, tileMap.getFlow(new Coordinate(3,1), 1));
+        assertEquals(-1, tileMap.getFlow(new Coordinate(4,1), 3));
+        assertEquals(2, tileMap.getFlow(new Coordinate(4,1), 0));
+
+
     }
 }

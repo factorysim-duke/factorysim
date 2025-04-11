@@ -46,6 +46,10 @@ public class Path {
         return getTotalLength() + getNewTileCount();
     }
 
+    public int getDeliveryTime(){
+        return getTotalLength()-2;
+    }
+
     public void dump() {
         System.out.println("Path from " + steps.get(0) + " to " + steps.get(steps.size()-1));
         System.out.println("Total steps: " + getTotalLength());

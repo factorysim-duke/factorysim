@@ -164,6 +164,17 @@ public abstract class Building {
    * @param quantity    is the quantity of item to be delivered.
    */
   public void deliverTo(Building destination, Item item, int quantity) {
+    simulation.addDelivery(this, destination, item, quantity);
+  }
+
+  /**
+   * Delivers things to another building.
+   *
+   * @param destination is the destination building.
+   * @param item        is the item to be delivered.
+   * @param quantity    is the quantity of item to be delivered.
+   */
+  public void deliverTo(Building destination, Item item, int quantity,boolean usePath) {
     destination.addToStorage(item, quantity);
   }
 
@@ -353,7 +364,7 @@ public abstract class Building {
       // deliver
       Building destinationBuilding = currentRequest.getDeliverTo();
       deliverTo(destinationBuilding, output, 1);
-      simulation.onIngredientDelivered(currentRequest.getItem(), destinationBuilding, this); // notify simulation
+//      simulation.onIngredientDelivered(currentRequest.getItem(), destinationBuilding, this); // notify simulation
 
       // update our own storage
       takeFromStorage(output, 1);
@@ -489,7 +500,7 @@ public abstract class Building {
 
     // Process current request by one step
     if (currentRequest.process()) {
-      deliverTo(currentRequest.getDeliverTo(), currentRequest.getItem(), 1);
+      deliverTo(currentRequest.getDeliverTo(), currentRequest.getItem(), 1,false);
 
       // Current request is completed, setting it to null to indicate no request
       // processing for the next step

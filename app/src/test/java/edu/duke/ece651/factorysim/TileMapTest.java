@@ -1,5 +1,6 @@
 package edu.duke.ece651.factorysim;
 
+import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -198,12 +199,43 @@ class TileMapTest {
         assertEquals(TileType.PATH, tileMap.getTileType(p3));
         assertEquals(TileType.BUILDING, tileMap.getTileType(p4));
 
-        assertEquals(1, tileMap.getFlow(p1, 2));
-        assertEquals(-1, tileMap.getFlow(p2, 0));
+        assertEquals(2, tileMap.getFlow(p1, 2));
+        assertEquals(2, tileMap.getFlow(p2, 0));
         assertEquals(1, tileMap.getFlow(p2, 2));
         assertEquals(-1, tileMap.getFlow(p3, 0));
-        assertEquals(1, tileMap.getFlow(p3, 2));
-        assertEquals(-1, tileMap.getFlow(p4, 0));
+        assertEquals(2, tileMap.getFlow(p3, 2));
+        assertEquals(2, tileMap.getFlow(p4, 0));
+    }
+
+    @Test
+    public void test_addPath_valid_close() {
+        TileMap tileMap = new TileMap(5, 5);
+        System.out.println(tileMap);
+
+        Coordinate p1 = new Coordinate(1, 1);
+        Coordinate p4 = new Coordinate(1, 2);
+
+        tileMap.setTileType(p1, TileType.BUILDING);
+        tileMap.setTileType(p4, TileType.BUILDING);
+
+        DummyPath path = new DummyPath(
+                Arrays.asList(p1, p4),
+                Arrays.asList(2, -1)
+        );
+
+        assertEquals(TileType.BUILDING, tileMap.getTileType(p1));
+        assertEquals(TileType.BUILDING, tileMap.getTileType(p4));
+
+        // add path
+        tileMap.addPath(path);
+
+        System.out.println(tileMap);
+
+        assertEquals(TileType.BUILDING, tileMap.getTileType(p1));
+        assertEquals(TileType.BUILDING, tileMap.getTileType(p4));
+
+        assertEquals(2, tileMap.getFlow(p1, 2));
+        assertEquals(2, tileMap.getFlow(p4, 0));
     }
 
     @Test
@@ -244,5 +276,27 @@ class TileMapTest {
         String expectedMessage = "Flow conflict";
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains(expectedMessage));
+    }
+    @Test
+    public void toJson(){
+        TileMap map = new TileMap(3, 3);
+        PathFinder pathFinder = new PathFinder();
+        Coordinate start = new Coordinate(0, 0);
+        map.setTileType(start, TileType.BUILDING);
+        Coordinate end = new Coordinate(0, 1);
+        map.setTileType(end, TileType.BUILDING);
+        Path path = pathFinder.findPath(start, end, map);
+        Path path2 = pathFinder.findPath(end, start, map);
+        map.addPath(path);
+        map.addPath(path2);
+        System.out.println(map);
+        JsonObject json = map.toJson();
+        System.out.println(json);
+        String expectedJson = "{\n" +"" +
+                "  \"width\": 3,\n" +
+                "  \"height\": 3,\n" +
+                "  \"tiles\": [\n" +
+
+                "}";
     }
 }

@@ -1,5 +1,8 @@
 package edu.duke.ece651.factorysim;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 import java.util.*;
 
 public class TileMap {
@@ -75,10 +78,10 @@ public class TileMap {
                     center = 'P';
                 }
                 int[] flows = pathFlows.get(c);
-                char arrowUp = flows[0] == 1 ? '^' : (flows[0] == -1 ? 'v' : ' ');
-                char arrowRight = flows[1] == 1 ? '>' : (flows[1] == -1 ? '<' : ' ');
-                char arrowDown = flows[2] == 1 ? 'v' : (flows[2] == -1 ? '^' : ' ');
-                char arrowLeft = flows[3] == 1 ? '<' : (flows[3] == -1 ? '>' : ' ');
+                char arrowUp =      flows[0] == 2 ? '|' : (flows[0] == 1 ? '^' : (flows[0] == -1 ? 'v' : ' '));
+                char arrowRight =   flows[1] == 2 ? '=' : (flows[1] == 1 ? '>' : (flows[1] == -1 ? '<' : ' '));
+                char arrowDown =    flows[2] == 2 ? '|' : (flows[2] == 1 ? 'v' : (flows[2] == -1 ? '^' : ' '));
+                char arrowLeft =    flows[3] == 2 ? '=' : (flows[3] == 1 ? '<' : (flows[3] == -1 ? '>' : ' '));
 
                 String[] tileRep = new String[5];
                 tileRep[0] = "+-----+";
@@ -145,10 +148,21 @@ public class TileMap {
 
             Coordinate to = from.getNextCoord(dir);
 
-            setFlow(from, dir, 1);
+            // allow start and end to flow both ways
+            if (i == 0 || i == steps.size() - 2)
+            {
+                setFlow(from, dir, 2);
 
-            int opp = (dir + 2) % 4;
-            setFlow(to, opp, -1);
+                int opp = (dir + 2) % 4;
+                setFlow(to, opp, 2);
+            }
+            else
+            {
+                setFlow(from, dir, 1);
+
+                int opp = (dir + 2) % 4;
+                setFlow(to, opp, -1);
+            }
 
             if (getTileType(from) != TileType.BUILDING) {
                 setTileType(from, TileType.PATH);
@@ -159,4 +173,28 @@ public class TileMap {
         }
     }
 
+    public JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        json.addProperty("width", width);
+        json.addProperty("height", height);
+
+        JsonArray tileArr=new JsonArray();
+        for(Map.Entry<Coordinate,TileType>entry:tileMap.entrySet()) {
+            Coordinate c= entry.getKey();
+            JsonObject tileObj=new JsonObject();
+            tileObj.addProperty("x", c.getX());
+            tileObj.addProperty("y",c.getY());
+            tileObj.addProperty("type", entry.getValue().toString());
+            int[]flow=pathFlows.get(c);
+            JsonArray flowArr=new JsonArray();
+            for (int j : flow) {
+                flowArr.add(j);
+            }
+            tileObj.add("flow",flowArr);
+            tileArr.add(tileObj);
+        }
+        json.add("tiles", tileArr);
+
+        return json;
+    }
 }

@@ -91,7 +91,6 @@ public class MineBuilding extends Building {
       json.addProperty("x", this.getLocation().getX());
       json.addProperty("y", this.getLocation().getY());
     }
-
     return json;
   }
 

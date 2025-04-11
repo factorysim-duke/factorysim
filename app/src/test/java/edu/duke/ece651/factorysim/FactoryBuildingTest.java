@@ -82,12 +82,12 @@ public class FactoryBuildingTest {
     assertEquals(-1, factory.getStorageNumberOf(d));
     assertEquals(-1, factory.getStorageNumberOf(a));
 
-    mineA.deliverTo(factory, a, 2);
+    mineA.deliverTo(factory, a, 2,false);
     assertEquals(2, factory.getStorageNumberOf(a));
     assertEquals(-1, factory.getStorageNumberOf(b));
     assertEquals(-1, factory.getStorageNumberOf(c));
 
-    mineC.deliverTo(factory, c, 3);
+    mineC.deliverTo(factory, c, 3,false);
     assertEquals(3, factory.getStorageNumberOf(c));
 
     factory.takeFromStorage(a, 2);
@@ -95,8 +95,8 @@ public class FactoryBuildingTest {
     assertEquals(1, factory.getStorageNumberOf(c));
     assertEquals(-1, factory.getStorageNumberOf(a));
 
-    mineB.deliverTo(factory, b, 4);
-    mineB.deliverTo(factory, b, 10);
+    mineB.deliverTo(factory, b, 4,false);
+    mineB.deliverTo(factory, b, 10,false);
     assertEquals(14, factory.getStorageNumberOf(b));
 
     assertThrows(IllegalArgumentException.class, () -> factory.takeFromStorage(d, 3));
