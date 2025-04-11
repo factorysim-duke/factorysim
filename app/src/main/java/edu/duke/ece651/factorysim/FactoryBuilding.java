@@ -78,6 +78,11 @@ public class FactoryBuilding extends Building {
     return remainingLatency;
   }
 
+    /**
+     * Converts the factory building to a JSON object.
+     *
+     * @return a JsonObject representing the factory building.
+     */
   @Override
   public JsonObject toJson() {
     JsonObject json = new JsonObject();

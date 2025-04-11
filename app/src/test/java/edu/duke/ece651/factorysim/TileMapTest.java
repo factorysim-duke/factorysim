@@ -1,11 +1,14 @@
 package edu.duke.ece651.factorysim;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
-import java.util.List;
-import java.util.Arrays;
+
+import java.util.*;
 
 class TileMapTest {
 
@@ -277,26 +280,52 @@ class TileMapTest {
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains(expectedMessage));
     }
-    @Test
-    public void toJson(){
-        TileMap map = new TileMap(3, 3);
-        PathFinder pathFinder = new PathFinder();
-        Coordinate start = new Coordinate(0, 0);
-        map.setTileType(start, TileType.BUILDING);
-        Coordinate end = new Coordinate(0, 1);
-        map.setTileType(end, TileType.BUILDING);
-        Path path = pathFinder.findPath(start, end, map);
-        Path path2 = pathFinder.findPath(end, start, map);
-        map.addPath(path);
-        map.addPath(path2);
-        System.out.println(map);
-        JsonObject json = map.toJson();
-        System.out.println(json);
-        String expectedJson = "{\n" +"" +
-                "  \"width\": 3,\n" +
-                "  \"height\": 3,\n" +
-                "  \"tiles\": [\n" +
 
-                "}";
+    @Test
+    public void testToJson() {
+        TileMap tm = new TileMap(2, 2);
+        JsonObject json = tm.toJson();
+
+        // test the width and height fields.
+        assertTrue(json.has("width"));
+        assertTrue(json.has("height"));
+        assertEquals(2, json.get("width").getAsInt());
+        assertEquals(2, json.get("height").getAsInt());
+
+        // Check the "tiles" array.
+        assertTrue(json.has("tiles"));
+        JsonArray tiles = json.getAsJsonArray("tiles");
+        assertEquals(4, tiles.size());
+
+        Set<String> foundCoords = new HashSet<>();
+
+        // check each tile object.
+        for (JsonElement element : tiles) {
+            assertTrue(element.isJsonObject(), "Each tile should be a JsonObject");
+            JsonObject tileObj = element.getAsJsonObject();
+
+            assertTrue(tileObj.has("x"));
+            assertTrue(tileObj.has("y"));
+            assertTrue(tileObj.has("type"));
+            assertTrue(tileObj.has("flow"));
+
+            int x = tileObj.get("x").getAsInt();
+            int y = tileObj.get("y").getAsInt();
+            foundCoords.add(x + "," + y);
+
+            // test road by default
+            String type = tileObj.get("type").getAsString();
+            assertEquals("ROAD", type);
+
+            // test flow array are 0s.
+            JsonArray flowArr = tileObj.getAsJsonArray("flow");
+            assertEquals(4, flowArr.size());
+            for (int i = 0; i < 4; i++) {
+                assertEquals(0, flowArr.get(i).getAsInt());
+            }
+        }
+
+        Set<String> expectedCoords = new HashSet<>(Arrays.asList("0,0", "0,1", "1,0", "1,1"));
+        assertEquals(expectedCoords, foundCoords);
     }
 }

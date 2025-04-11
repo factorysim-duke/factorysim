@@ -148,7 +148,7 @@ public class StorageBuilding extends Building {
         Building destination = request.getDeliverTo();
         deliverTo(destination, storageItem, 1);
         takeFromStorage(storageItem, 1);
-        getSimulation().onIngredientDelivered(storageItem, destination, this);
+//        getSimulation().onIngredientDelivered(storageItem, destination, this);
       }
     }
 

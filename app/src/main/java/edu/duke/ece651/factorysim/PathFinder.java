@@ -1,7 +1,11 @@
 package edu.duke.ece651.factorysim;
 
 import java.util.*;
-
+/**
+ * A utility class responsible for finding a path between two coordinates on a tile map.
+ * The path must avoid obstacles, reuse existing roads when possible, and minimize a cost metric
+ * based on path length and number of new tiles created.
+ */
 public class PathFinder {
     private static class Node {
         Coordinate coord;
@@ -20,6 +24,15 @@ public class PathFinder {
         }
     }
 
+    /**
+     * Attempts to find a valid path between the source and destination coordinates on the given tile map.
+     * The path is built to avoid buildings, reuse roads, and minimize the total cost (steps + new tiles).
+     *
+     * @param source the starting coordinate
+     * @param destination the ending coordinate
+     * @param tileMap the tile map with current layout of buildings and roads
+     * @return a Path object representing the found path, or null if no path exists
+     */
     public static Path findPath(Coordinate source, Coordinate destination, TileMap tileMap) {
         PriorityQueue<Node> pq = new PriorityQueue<>(Comparator.comparingInt(Node::getCost));
         Set<Coordinate> visited = new HashSet<>();
@@ -75,6 +88,14 @@ public class PathFinder {
         return null;
     }
 
+    /**
+     * Returns the direction code (0=up, 1=right, 2=down, 3=left) from one coordinate to another.
+     *
+     * @param from the starting coordinate
+     * @param to the destination coordinate
+     * @return the direction integer
+     * @throws IllegalArgumentException if the coordinates are not adjacent
+     */
     protected static int getDirection(Coordinate from, Coordinate to) {
         int dx = to.getX() - from.getX();
         int dy = to.getY() - from.getY();
@@ -85,6 +106,13 @@ public class PathFinder {
         throw new IllegalArgumentException("Invalid move from " + from + " to " + to);
     }
 
+    /**
+     * Builds a Path object from the final node by tracing back through the parent links.
+     *
+     * @param endNode the final node of the path
+     * @param tileMap the tile map used to check if a tile is newly built
+     * @return a Path object representing the full route from source to destination
+     */
     private static Path buildPath(Node endNode, TileMap tileMap) {
         List<Node> nodeList = new ArrayList<>();
         Node current = endNode;

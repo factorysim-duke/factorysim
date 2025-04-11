@@ -10,5 +10,4 @@ public class ConfigData {
     public List<RecipeDTO> recipes;
     public List<TypeDTO> types;
     public List<BuildingDTO> buildings;
-
 }
