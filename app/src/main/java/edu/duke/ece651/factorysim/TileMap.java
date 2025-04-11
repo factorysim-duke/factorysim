@@ -5,20 +5,27 @@ import com.google.gson.JsonObject;
 
 import java.util.*;
 
+/**
+ * Represents the grid-based map used in the factory simulation.
+ * It stores tile types (e.g., ROAD, PATH, BUILDING) and directional flow for each tile.
+ * Also supports visual rendering, path addition, and JSON serialization.
+ */
 public class TileMap {
 
     private final Map<Coordinate, TileType> tileMap;
     // directions: 0 = up, 1 = right, 2 = down, 3 = left
-    // flow: -1 = flow in, 0 = no flow, 1 = flow out
+    // flow: -1 = flow in, 0 = no flow, 1 = flow out, 2 = flow both ways
     // [-1, 0, 1, 0] means flow in from up, no flow from right, flow out to down, no flow from left
     private final Map<Coordinate, int[]> pathFlows;
     private final int width;
     private final int height;
 
+    /** @return width of the tile map */
     public int getWidth() {
         return width;
     }
 
+    /** @return height of the tile map */
     public int getHeight() {
         return height;
     }
@@ -31,6 +38,7 @@ public class TileMap {
         initializeTileMap();
     }
 
+    /** Initializes the tile map with ROAD type tiles and no flow. */
     private void initializeTileMap() {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
@@ -40,14 +48,33 @@ public class TileMap {
         }
     }
 
+    /**
+     * Checks whether a coordinate lies within the map bounds.
+     *
+     * @param c the coordinate to check
+     * @return true if inside map bounds, false otherwise
+     */
     public boolean isInsideMap(Coordinate c) {
         return c.getX() >= 0 && c.getX() < width && c.getY() >= 0 && c.getY() < height;
     }
 
+    /**
+     * Returns the type of a tile at the given coordinate.
+     *
+     * @param c coordinate to check
+     * @return tile type, or null if out of bounds
+     */
     public TileType getTileType(Coordinate c) {
         return tileMap.getOrDefault(c, null);
     }
 
+    /**
+     * Sets the type of a tile at a given coordinate.
+     *
+     * @param c coordinate of the tile
+     * @param type tile type to set
+     * @throws IllegalArgumentException if coordinate is out of bounds
+     */
     public void setTileType(Coordinate c, TileType type) {
         if (!isInsideMap(c)) {
             throw new IllegalArgumentException("Coordinate out of bounds: " + c);
@@ -55,6 +82,12 @@ public class TileMap {
         tileMap.put(c, type);
     }
 
+    /**
+     * Checks whether a tile is available for building a new path.
+     *
+     * @param c the coordinate to check
+     * @return true if the tile is a ROAD, false otherwise
+     */
     public boolean isAvailable(Coordinate c) {
         TileType type = getTileType(c);
         return type == TileType.ROAD;
@@ -116,6 +149,14 @@ public class TileMap {
         return finalOutput.toString();
     }
 
+    /**
+     * Retrieves the flow value for a given direction at a coordinate.
+     *
+     * @param coord the coordinate to inspect
+     * @param directionIndex direction index (0=up, ..., 3=left)
+     * @return flow value
+     * @throws IllegalArgumentException if coordinate is out of bounds
+     */
     public int getFlow(Coordinate coord, int directionIndex) {
         if (!isInsideMap(coord)) {
             throw new IllegalArgumentException("Coordinate out of bounds: " + coord);
@@ -123,6 +164,14 @@ public class TileMap {
         return pathFlows.get(coord)[directionIndex];
     }
 
+    /**
+     * Sets the flow in a particular direction at a given coordinate.
+     *
+     * @param c the coordinate
+     * @param dir direction (0=up, ..., 3=left)
+     * @param flow flow value to set (-1, 0, 1, or 2)
+     * @throws IllegalArgumentException if conflicting flow already exists
+     */
     public void setFlow(Coordinate c, int dir, int flow) {
         int existing = getFlow(c, dir);
         if (existing != 0 && existing != flow) {
@@ -134,6 +183,13 @@ public class TileMap {
         }
     }
 
+    /**
+     * Adds a path to the map by updating tile types and flow directions accordingly.
+     * Reuses or extends roads with correct flow semantics.
+     *
+     * @param path the Path object representing the route to add
+     * @throws IllegalArgumentException if step count and flow count mismatch
+     */
     public void addPath(Path path) {
         List<Coordinate> steps = path.getSteps();
         List<Integer> dirs = path.getFlowDirections();
@@ -173,6 +229,12 @@ public class TileMap {
         }
     }
 
+    /**
+     * Serializes the current tile map to a JSON object.
+     * Includes width, height, tile types, and flow data.
+     *
+     * @return a JsonObject representing the map
+     */
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("width", width);
@@ -194,7 +256,6 @@ public class TileMap {
             tileArr.add(tileObj);
         }
         json.add("tiles", tileArr);
-
         return json;
     }
 }

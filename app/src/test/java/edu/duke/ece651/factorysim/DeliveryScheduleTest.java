@@ -1,5 +1,6 @@
 package edu.duke.ece651.factorysim;
 
+import com.google.gson.JsonArray;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,5 +38,15 @@ class DeliveryScheduleTest {
         deliverySchedule.addDelivery(delivery);
         deliverySchedule.step();
         assertEquals(4, delivery.deliveryTime);
+    }
+    @Test
+    void test_toJson(){
+        Delivery delivery=new Delivery(W, D, metal, 1, 5);
+        deliverySchedule.addDelivery(delivery);
+        JsonArray json=deliverySchedule.toJson();
+        assertEquals(1,json.size());
+        assertEquals("metal",json.get(0).getAsJsonObject().get("item").getAsString());
+        assertEquals(1,json.get(0).getAsJsonObject().get("quantity").getAsInt());
+        assertEquals(5,json.get(0).getAsJsonObject().get("deliveryTime").getAsInt());
     }
 }

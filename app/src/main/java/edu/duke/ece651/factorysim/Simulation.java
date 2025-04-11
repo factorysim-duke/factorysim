@@ -23,7 +23,7 @@ public class Simulation {
   private int verbosity;
 
   private Logger logger;
-  private final Map<Coordinate, Map<Coordinate, Path>> pathList = new HashMap<>();
+  private final List<Path> pathList = new ArrayList<>();
   DeliverySchedule deliverySchedule = new DeliverySchedule();
 
   /**
@@ -596,8 +596,9 @@ public class Simulation {
         }
       }
       state.add("requests", requestArray);
-
       state.add("tileMap", world.tileMap.toJson());
+      state.add("paths", pathListToJson());
+      state.add("deliveries", deliverySchedule.toJson());
       gson.toJson(state, writer);
       logger.log("Simulation saved to " + fileName);
     } catch (IOException e) {
@@ -812,11 +813,23 @@ public class Simulation {
     return world;
   }
 
+  /**
+   * Attempts to connect two buildings by name using the shortest valid path on the map.
+   * If a valid path already exists in the cache, it is reused. Otherwise, a new path is found
+   * and added to the path list and the tile map.
+   *
+   * @param sourceName the name of the source building
+   * @param destName the name of the destination building
+   * @return true if the buildings are successfully connected
+   * @throws IllegalArgumentException if no valid path can be found between the buildings
+   */
   public boolean connectBuildings(String sourceName, String destName) {
     Coordinate src = getBuildingLocation(sourceName);
     Coordinate dst = getBuildingLocation(destName);
-    if(pathList.containsKey(src) && pathList.get(src).containsKey(dst)){
+    for(Path p: pathList){
+      if(p.isMatch(src, dst)){
         return true;
+      }
     }
     Path path = PathFinder.findPath(src, dst, world.tileMap);
     if (path == null) {
@@ -824,8 +837,7 @@ public class Simulation {
     } else {
         path.dump();
       // add the path to the cache
-      pathList.putIfAbsent(src, new HashMap<>());
-      pathList.get(src).put(dst, path);
+      pathList.add(path);
 
       // add the path to the tileMap
       world.tileMap.addPath(path);
@@ -834,14 +846,50 @@ public class Simulation {
     return true;
   }
 
-
+  /**
+   * Adds a delivery to the delivery schedule if a valid path exists between source and destination buildings.
+   *
+   * @param src the source building
+   * @param dst the destination building
+   * @param item the item to be delivered
+   * @param quantity the quantity of the item to be delivered
+   * @throws IllegalArgumentException if there is no connection between the source and destination
+   */
   public void addDelivery(Building src, Building dst, Item item, int quantity) {
-    if (pathList.containsKey(src.getLocation()) && pathList.get(src.getLocation()).containsKey(dst.getLocation())) {
-        Path path = pathList.get(src.getLocation()).get(dst.getLocation());
-        Delivery d=new Delivery(src,dst, item, quantity, path.getDeliveryTime());
+    boolean isConnected = false;
+    for(Path p: pathList){
+      if(p.isMatch(src.getLocation(), dst.getLocation())){
+        Delivery d=new Delivery(src,dst, item, quantity, p.getDeliveryTime());
         deliverySchedule.addDelivery(d);
-    } else {
+        isConnected = true;
+        break;
+      }
+    }
+    if (!isConnected) {
       throw new IllegalArgumentException("building " + src.getName() + " and " + dst.getName() + " are not connected");
     }
+//    if (pathList.containsKey(src.getLocation()) && pathList.get(src.getLocation()).containsKey(dst.getLocation())) {
+//        Path path = pathList.get(src.getLocation()).get(dst.getLocation());
+//        Delivery d=new Delivery(src,dst, item, quantity, path.getDeliveryTime());
+//        deliverySchedule.addDelivery(d);
+//    } else {
+//      throw new IllegalArgumentException("building " + src.getName() + " and " + dst.getName() + " are not connected");
+//    }
   }
+
+  /**
+   * Converts the cached list of paths into a JSON array.
+   * Each path is serialized with coordinate steps, flow directions, and new tiles.
+   *
+   * @return a JsonArray containing all paths in the system
+   */
+    public JsonArray pathListToJson() {
+      JsonArray pathArr = new JsonArray();
+      for (Path p : pathList) {
+        JsonObject pathObj = p.toJson();
+        pathArr.add(pathObj);
+      }
+      return pathArr;
+    }
+
 }
