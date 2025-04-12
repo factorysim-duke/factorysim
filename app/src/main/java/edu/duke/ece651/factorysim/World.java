@@ -183,14 +183,24 @@ public class World {
 
   // TODO: Write tests for the following two methods
   /**
+   * Check if a location is occupied by any building in the world.
+   *
+   * @param c is the location to check.
+   * @return whether the location is occupied by any building in the world.
+   */
+  public boolean isOccupied(Coordinate c) {
+    return locationMap.containsValue(c);
+  }
+
+  /**
    * Tries to add an existing building to the world.
    *
    * @param building is the building instance to add.
-   * @param location is the location to add the building.
    * @return true if building is added successfully, false otherwise.
    */
-  public boolean tryAddBuilding(Building building, Coordinate location) {
-    if (locationMap.containsValue(location)) {
+  public boolean tryAddBuilding(Building building) {
+    Coordinate location = building.getLocation();
+    if (isOccupied(location)) {
       return false;
     }
     buildings.add(building);
