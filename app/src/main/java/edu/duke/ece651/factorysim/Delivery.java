@@ -1,6 +1,9 @@
 package edu.duke.ece651.factorysim;
 
 import com.google.gson.JsonObject;
+
+import java.util.List;
+
 /**
  * Represents a delivery of a specific item from a source building to a destination building.
  * Each delivery contains an item, its quantity, and a remaining delivery time.
@@ -11,6 +14,9 @@ public class Delivery {
     final Item item;
     final int quantity;
     int deliveryTime;
+    int pathIndex;
+    int stepIndex;
+    Coordinate currentCoordinate;
     /**
      * Constructs a Delivery object with specified source, destination, item, quantity, and delivery time.
      *
@@ -26,6 +32,30 @@ public class Delivery {
         this.item = item;
         this.quantity = quantity;
         this.deliveryTime = deliveryTime;
+        this.pathIndex = 0;
+        this.stepIndex=0;
+        this.currentCoordinate=source.getLocation();
+    }
+    public Delivery(Building source, Building destination, Item item, int quantity, int deliveryTime,int pathIndex) {
+        this.source = source;
+        this.destination = destination;
+        this.item = item;
+        this.quantity = quantity;
+        this.deliveryTime = deliveryTime;
+        this.pathIndex = pathIndex;
+        this.stepIndex=0;
+        this.currentCoordinate=source.getLocation();
+    }
+
+    public Delivery(Building source, Building destination, Item item, int quantity, int deliveryTime,int pathIndex,int stepIndex,Coordinate currentCoordinate) {
+        this.source = source;
+        this.destination = destination;
+        this.item = item;
+        this.quantity = quantity;
+        this.deliveryTime = deliveryTime;
+        this.pathIndex = pathIndex;
+        this.stepIndex=stepIndex;
+        this.currentCoordinate=currentCoordinate;
     }
 
     /**
@@ -34,6 +64,7 @@ public class Delivery {
     public void step() {
         if (deliveryTime > 0) {
             deliveryTime--;
+            stepIndex++;
         }
     }
 
@@ -55,6 +86,13 @@ public class Delivery {
         source.getSimulation().onIngredientDelivered(item, destination, source);
     }
 
+    public void updateCurrentCoordinate(List<Path> pathList) {
+        currentCoordinate= pathList.get(pathIndex).getSteps().get(stepIndex);
+    }
+
+    public Coordinate getCurrentCoordinate() {
+        return currentCoordinate;
+    }
     /**
      * Converts the delivery details to a JSON object for serialization or display.
      *
@@ -68,6 +106,10 @@ public class Delivery {
         json.addProperty("item", item.getName());
         json.addProperty("quantity", quantity);
         json.addProperty("deliveryTime", deliveryTime);
+        json.addProperty("pathIndex", pathIndex);
+        json.addProperty("stepIndex", stepIndex);
+        json.addProperty("x", currentCoordinate.getX());
+        json.addProperty("y", currentCoordinate.getY());
         return json;
     }
 }

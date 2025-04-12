@@ -207,11 +207,10 @@ public class Simulation {
       throw new IllegalArgumentException("The number of step must be positive and not too large.");
     }
     for (int i = 0; i < n; i++) {
-      deliverySchedule.step();
+      deliverySchedule.step(pathList);
       for (Building building : world.getBuildings()) {
         building.step();
       }
-
       currentTime++;
     }
   }
@@ -591,13 +590,13 @@ public class Simulation {
         if (building.getCurrentRequest() != null) {
           requestArray.add(building.getCurrentRequest().toJson());
         }
-        if (/* building.getPendingRequest() != null && */!building.getPendingRequest().isEmpty()) {
+        if (!building.getPendingRequest().isEmpty()) {
           building.getPendingRequest().forEach(request -> requestArray.add(request.toJson()));
         }
       }
       state.add("requests", requestArray);
-      state.add("tileMap", world.tileMap.toJson());
-      state.add("paths", pathListToJson());
+//      state.add("tileMap", world.tileMap.toJson());
+      state.add("connections", pathListToJson());
       state.add("deliveries", deliverySchedule.toJson());
       gson.toJson(state, writer);
       logger.log("Simulation saved to " + fileName);
@@ -658,6 +657,28 @@ public class Simulation {
       requestsArray = requestsElement.getAsJsonArray();
     }
     buildRequests(requestsArray);
+    JsonElement deliveriesElement = state.get("deliveries");
+    if (deliveriesElement != null) {
+      buildDeliveries(deliveriesElement.getAsJsonArray());
+    }
+
+  }
+
+  private void buildDeliveries(JsonArray jsonDeliveries) {
+    for(JsonElement element : jsonDeliveries) {
+      JsonObject ob = element.getAsJsonObject();
+      Building source = world.getBuildingFromName(ob.get("source").getAsString());
+      Building destination = world.getBuildingFromName(ob.get("destination").getAsString());
+        Item item = new Item(ob.get("item").getAsString());
+        int quantity = ob.get("quantity").getAsInt();
+        int deliveryTime = ob.get("deliveryTime").getAsInt();
+        int pathIndex = ob.get("pathIndex").getAsInt();
+        int stepIndex = ob.get("stepIndex").getAsInt();
+        Coordinate currentCoordinate = new Coordinate(ob.get("x").getAsInt(),
+                ob.get("y").getAsInt());
+        Delivery delivery = new Delivery(source, destination, item, quantity, deliveryTime, pathIndex, stepIndex, currentCoordinate);
+        deliverySchedule.addDelivery(delivery);
+    }
   }
 
   /**
@@ -894,9 +915,9 @@ public class Simulation {
    */
   public void addDelivery(Building src, Building dst, Item item, int quantity) {
     boolean isConnected = false;
-    for(Path p: pathList){
-      if(p.isMatch(src.getLocation(), dst.getLocation())){
-        Delivery d=new Delivery(src,dst, item, quantity, p.getDeliveryTime());
+    for(int i=0;i<pathList.size();i++){
+      if(pathList.get(i).isMatch(src.getLocation(), dst.getLocation())){
+        Delivery d=new Delivery(src,dst, item, quantity, pathList.get(i).getDeliveryTime(),i);
         deliverySchedule.addDelivery(d);
         isConnected = true;
         break;
@@ -923,10 +944,32 @@ public class Simulation {
     public JsonArray pathListToJson() {
       JsonArray pathArr = new JsonArray();
       for (Path p : pathList) {
-        JsonObject pathObj = p.toJson();
+        JsonObject pathObj = new JsonObject();
+        String source=getBuildingNameByCoordinate(p.getSteps().getFirst());
+        String destination=getBuildingNameByCoordinate(p.getSteps().getLast());
+        pathObj.addProperty("source", source);
+        pathObj.addProperty("destination", destination);
         pathArr.add(pathObj);
       }
       return pathArr;
     }
 
+    public String getBuildingNameByCoordinate(Coordinate coordinate) {
+        for (Building building : world.getBuildings()) {
+            if (building.getLocation().equals(coordinate)) {
+                return building.getName();
+            }
+        }
+        return null;
+    }
+
+
+    public List<Coordinate> getDeliveryCoordinates() {
+        return deliverySchedule.getCurrentCoordinates();
+    }
+
+
+    public List<Path> getPathList() {
+        return pathList;
+    }
 }

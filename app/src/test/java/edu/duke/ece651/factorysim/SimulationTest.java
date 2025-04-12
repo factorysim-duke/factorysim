@@ -562,7 +562,7 @@ public class SimulationTest {
     JsonArray jsonArray = simulation.pathListToJson();
     assertEquals(pathList.size(), jsonArray.size());
     JsonObject pathJson = jsonArray.get(0).getAsJsonObject();
-    assertTrue(pathJson.has("flowDirections"));
+
 //
 //    logOutput.reset();
 //    boolean secondConnection = simulation.connectBuildings("W", "D");
@@ -571,6 +571,7 @@ public class SimulationTest {
 //    String logs = logOutput.toString();
 //    assertFalse(logs.contains("Path already exists in cache."));
   }
+
 
 
 

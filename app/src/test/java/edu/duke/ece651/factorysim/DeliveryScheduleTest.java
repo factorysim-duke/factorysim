@@ -34,10 +34,17 @@ class DeliveryScheduleTest {
 
     @Test
     void step() {
-        Delivery delivery=new Delivery(W, D, metal, 1, 5);
+        sim.connectBuildings("W", "D");
+        Delivery delivery = new Delivery(W, D, metal, 1, 5);
+        Delivery d2 = new Delivery(W, D, wood, 1, 5, 0, 0, W.getLocation());
         deliverySchedule.addDelivery(delivery);
-        deliverySchedule.step();
+        deliverySchedule.addDelivery(d2);
+        assertEquals(W.getLocation(), deliverySchedule.getCurrentCoordinates().get(0));
+        deliverySchedule.step(sim.getPathList());
         assertEquals(4, delivery.deliveryTime);
+        assertEquals(4, d2.deliveryTime);
+        assertEquals(2, deliverySchedule.getCurrentCoordinates().size());
+        assertEquals(sim.getPathList().get(0).getSteps().get(1), deliverySchedule.getCurrentCoordinates().get(0));
     }
     @Test
     void test_toJson(){

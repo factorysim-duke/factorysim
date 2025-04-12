@@ -35,7 +35,7 @@ public class DeliverySchedule {
      * Each delivery is updated (its delivery time is decreased), and if any delivery arrives,
      * it is processed and removed from the schedule.
      */
-    public void step() {
+    public void step(List<Path> pathList) {
         List<Delivery> deliveriesToRemove = new ArrayList<>();
         for (Delivery delivery : deliveryList) {
             delivery.step();
@@ -47,6 +47,17 @@ public class DeliverySchedule {
         for (Delivery delivery : deliveriesToRemove) {
             deliveryList.remove(delivery);
         }
+        for (Delivery delivery : deliveryList) {
+            delivery.updateCurrentCoordinate(pathList);
+        }
+    }
+
+    public List<Coordinate> getCurrentCoordinates() {
+        List<Coordinate> coordinates = new ArrayList<>();
+        for (Delivery delivery : deliveryList) {
+            coordinates.add(delivery.getCurrentCoordinate());
+        }
+        return coordinates;
     }
 
     /**

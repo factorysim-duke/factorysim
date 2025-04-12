@@ -20,11 +20,11 @@ public class Path {
         this.newTiles = new HashSet<>();
         this.flowDirections = new ArrayList<>();
     }
-    public Path(List<Coordinate> steps, Set<Coordinate> newTiles, List<Integer> flowDirections) {
-        this.steps = steps;
-        this.newTiles = newTiles;
-        this.flowDirections = flowDirections;
-    }
+//    public Path(List<Coordinate> steps, Set<Coordinate> newTiles, List<Integer> flowDirections) {
+//        this.steps = steps;
+//        this.newTiles = newTiles;
+//        this.flowDirections = flowDirections;
+//    }
 
     /**
      * Adds a new coordinate step to the end of the path.
@@ -122,44 +122,44 @@ public class Path {
                 ", cost=" + getCost();
     }
 
-    /**
-     * Converts the path to a JSON object containing:
-     * - steps: list of coordinates
-     * - newTiles: set of newly built tiles
-     * - flowDirections: list of flow directions between tiles
-     *
-     * @return a JsonObject representing the path
-     */
-    public JsonObject toJson() {
-        JsonObject json = new JsonObject();
-
-        // Add steps array
-        JsonArray stepsArray = new JsonArray();
-        for (Coordinate c : steps) {
-            JsonObject coordJson = new JsonObject();
-            coordJson.addProperty("x", c.getX());
-            coordJson.addProperty("y", c.getY());
-            stepsArray.add(coordJson);
-        }
-        json.add("steps", stepsArray);
-
-        // Add newTiles array
-        JsonArray newTilesArray = new JsonArray();
-        for (Coordinate c : newTiles) {
-            JsonObject coordJson = new JsonObject();
-            coordJson.addProperty("x", c.getX());
-            coordJson.addProperty("y", c.getY());
-            newTilesArray.add(coordJson);
-        }
-        json.add("newTiles", newTilesArray);
-
-        // Add flowDirections array
-        JsonArray flowDirArray = new JsonArray();
-        for (Integer dir : flowDirections) {
-            flowDirArray.add(dir);
-        }
-        json.add("flowDirections", flowDirArray);
-        return json;
-    }
+//    /**
+//     * Converts the path to a JSON object containing:
+//     * - steps: list of coordinates
+//     * - newTiles: set of newly built tiles
+//     * - flowDirections: list of flow directions between tiles
+//     *
+//     * @return a JsonObject representing the path
+//     */
+//    public JsonObject toJson() {
+//        JsonObject json = new JsonObject();
+//
+//        // Add steps array
+//        JsonArray stepsArray = new JsonArray();
+//        for (Coordinate c : steps) {
+//            JsonObject coordJson = new JsonObject();
+//            coordJson.addProperty("x", c.getX());
+//            coordJson.addProperty("y", c.getY());
+//            stepsArray.add(coordJson);
+//        }
+//        json.add("steps", stepsArray);
+//
+//        // Add newTiles array
+//        JsonArray newTilesArray = new JsonArray();
+//        for (Coordinate c : newTiles) {
+//            JsonObject coordJson = new JsonObject();
+//            coordJson.addProperty("x", c.getX());
+//            coordJson.addProperty("y", c.getY());
+//            newTilesArray.add(coordJson);
+//        }
+//        json.add("newTiles", newTilesArray);
+//
+//        // Add flowDirections array
+//        JsonArray flowDirArray = new JsonArray();
+//        for (Integer dir : flowDirections) {
+//            flowDirArray.add(dir);
+//        }
+//        json.add("flowDirections", flowDirArray);
+//        return json;
+//    }
 }
 
