@@ -11,6 +11,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 public class StorageBuildingTest {
+  Simulation sim=new Simulation("src/test/resources/inputs/doors1.json");
   public StorageBuilding makeTestStorageBuilding(String name, Item item, int capacity, double priority) {
     Item a = new Item("a");
     Item b = new Item("b");
@@ -18,14 +19,14 @@ public class StorageBuildingTest {
     Recipe recipeA = new Recipe(a, new HashMap<>(), 1);
     Recipe recipeB = new Recipe(b, new HashMap<>(), 3);
     Recipe recipeC = new Recipe(c, new HashMap<>(), 5);
-    MineBuilding mineA = new MineBuilding(recipeA, "mineA", new TestUtils.MockSimulation());
-    MineBuilding mineB = new MineBuilding(recipeB, "mineB", new TestUtils.MockSimulation());
-    MineBuilding mineC = new MineBuilding(recipeC, "mineC", new TestUtils.MockSimulation());
+    MineBuilding mineA = new MineBuilding(recipeA, "mineA",sim);
+    MineBuilding mineB = new MineBuilding(recipeB, "mineB", sim);
+    MineBuilding mineC = new MineBuilding(recipeC, "mineC", sim);
     ArrayList<Building> sources = new ArrayList<>();
     sources.add(mineA);
     sources.add(mineB);
     sources.add(mineC);
-    return new StorageBuilding(name, sources, new TestUtils.MockSimulation(), item, capacity, priority);
+    return new StorageBuilding(name, sources, sim, item, capacity, priority);
   }
 
   @Test
@@ -68,11 +69,16 @@ public class StorageBuildingTest {
   @Test
   public void test_step_ingredient_delivery() {
     Item door = new Item("door");
-    TestUtils.MockSimulation mockSim = new TestUtils.MockSimulation();
+
 
     StorageBuilding testBuilding = makeTestStorageBuilding("test", door, 100, 0.5);
     FactoryBuilding destinationBuilding = new FactoryBuilding(new Type("DoorFactory", List.of()), "doorFactory",
-        List.of(testBuilding), mockSim);
+        List.of(testBuilding), sim);
+    testBuilding.setLocation(new Coordinate(50, 0));
+    destinationBuilding.setLocation(new Coordinate(60, 2));
+    sim.getWorld().tryAddBuilding(testBuilding);
+    sim.getWorld().tryAddBuilding(destinationBuilding);
+
     testBuilding.addToStorage(door, 10);
     testBuilding.step();
     assertEquals(10, testBuilding.getCurrentStockNum());
@@ -80,11 +86,10 @@ public class StorageBuildingTest {
     Recipe doorRecipe = TestUtils.makeTestRecipe("door", 0, 1);
     Request ingredientRequest = new Request(2, door, doorRecipe, testBuilding, destinationBuilding);
     testBuilding.getPendingRequest().add(ingredientRequest);
-    //step make mistake, can use add building to solve
-    testBuilding.deliverTo(destinationBuilding, door, 1,false);
-    testBuilding.takeFromStorage(door, 1);
+    sim.connectBuildings(testBuilding,destinationBuilding);
+    testBuilding.step();
     assertEquals(9, testBuilding.getCurrentStockNum());
-    assertEquals(1, destinationBuilding.getStorageNumberOf(door));
+    assertEquals(-1, destinationBuilding.getStorageNumberOf(door));
   }
 
   @Test
