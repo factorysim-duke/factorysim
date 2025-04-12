@@ -131,7 +131,7 @@ class PathFinderTest {
 
         Path path = PathFinder.findPath(source, dest, tileMap);
         assertNotNull(path, "Should find a path");
-        path.dump();
+//        path.dump();
         assertEquals(source, path.getSteps().get(0), "Start point should be (0,0)");
         assertEquals(dest, path.getSteps().get(path.getSteps().size() - 1), "End point should be (0,3)");
     }
@@ -168,7 +168,7 @@ class PathFinderTest {
         Path path = PathFinder.findPath(start, end, tileMap);
 
         assertNotNull(path, "Should find a path");
-        path.dump();
+//        path.dump();
 
         List<Coordinate> steps = path.getSteps();
         assertEquals(start, steps.get(0), "Should start at (2,3)");

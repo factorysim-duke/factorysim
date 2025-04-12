@@ -1,52 +1,82 @@
 {
-    "types" : [
+    "types": [
         {
-            "name" : "Hw",
-            "recipes" : [
+            "name": "Hw",
+            "recipes": [
                 "handle",
                 "hinge"
             ]
         }
     ],
-    "buildings" : [
+    "buildings": [
         {
-            "name" : "Hw1",
-            "type" : "Hw",
-            "sources" : [
+            "name": "Hw1",
+            "type": "Hw",
+            "sources": [
                 "M1",
                 "M2"
             ]
         },
         {
-            "name" : "M1",
-            "mine" : "metal",
-            "sources" : []
+            "name": "M1",
+            "mine": "metal",
+            "sources": []
         },
         {
-            "name" : "M2",
-            "mine" : "metal",
-            "sources" : []
+            "name": "M2",
+            "mine": "metal",
+            "sources": []
         }
     ],
-    "recipes" : [
+    "connections": [
         {
-            "output" : "handle",
-            "ingredients" : {
-                "metal" : 1
-            },
-            "latency" : 5
+            "source": "W",
+            "destination": "D"
         },
         {
-            "output" : "hinge",
-            "ingredients" : {
-                "metal" : 1
-            },
-            "latency" : 1
+            "source": "M",
+            "destination": "Hi"
         },
         {
-            "output" : "metal",
-            "ingredients" : {},
-            "latency" : 1
+            "source": "M",
+            "destination": "Ha"
+        },
+        {
+            "source": "Hi",
+            "destination": "D"
+        },
+        {
+            "source": "Ha",
+            "destination": "D"
+        },
+        {
+            "source": "W",
+            "destination": "Ba"
+        },
+        {
+            "source": "Ba",
+            "destination": "D"
+        }
+    ],
+    "recipes": [
+        {
+            "output": "handle",
+            "ingredients": {
+                "metal": 1
+            },
+            "latency": 5
+        },
+        {
+            "output": "hinge",
+            "ingredients": {
+                "metal": 1
+            },
+            "latency": 1
+        },
+        {
+            "output": "metal",
+            "ingredients": {},
+            "latency": 1
         }
     ]
 }

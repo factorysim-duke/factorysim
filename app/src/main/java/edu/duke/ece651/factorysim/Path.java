@@ -1,7 +1,6 @@
 package edu.duke.ece651.factorysim;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 
 import java.util.*;
 
@@ -90,18 +89,19 @@ public class Path {
         return getTotalLength()-2;
     }
 
-    /**
-     * Prints debugging information about the path to standard output.
-     */
-    public void dump() {
-        System.out.println("Path from " + steps.get(0) + " to " + steps.get(steps.size()-1));
-        System.out.println("Total steps: " + getTotalLength());
-        System.out.println("New tiles: " + getNewTileCount());
-        System.out.println("Steps:");
-        for (Coordinate step : steps) {
-            System.out.println(step);
-        }
-    }
+//    /**
+//     * Prints debugging information about the path to the provided logger.
+//     */
+//    public void dump() {
+//            System.out.println("Path from " + steps.get(0) + " to " + steps.get(steps.size()-1));
+//            System.out.println("Total steps: " + getTotalLength());
+//            System.out.println("New tiles: " + getNewTileCount());
+//            System.out.println("Steps:");
+//            for (Coordinate step : steps) {
+//                System.out.println(step);
+//            }
+//    }
+
 
     /**
      * Checks if the path starts and ends at the specified coordinates.

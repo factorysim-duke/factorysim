@@ -35,7 +35,64 @@ public class WorldBuilder {
     world.generateLocationMap();
     world.setTileMapDimensions(boardWidth, boardHeight);
     world.updateTileMap();
+
+    // connect buildings if connections are specified in the JSON
+    if (configData.connections != null && !configData.connections.isEmpty()) {
+      buildConnections(configData.connections, simulation);
+    }
+
     return world;
+  }
+
+  /**
+   * Builds connections between buildings using the ConnectionDTOs.
+   * 
+   * @param connectionDTOs is the list of connection data transfer objects.
+   * @param simulation     is the simulation where the connections will be
+   *                       created.
+   */
+  private static void buildConnections(List<ConnectionDTO> connectionDTOs, Simulation simulation) {
+    Logger logger = simulation.getLogger();
+    int verbosity = simulation.getVerbosity();
+    
+    // store connection DTOs for later processing if world isn't ready
+    if (simulation.getWorld() == null) {
+      if (verbosity > 0) {
+        logger.log("Warning: World not set in simulation yet; connections will be established later.");
+      }
+      return;
+    }
+
+    for (ConnectionDTO connectionDTO : connectionDTOs) {
+      String sourceName = connectionDTO.getSource();
+      String destName = connectionDTO.getDestination();
+
+      try {
+        World world = simulation.getWorld();
+        Building sourceBuilding = world.getBuildingFromName(sourceName);
+        Building destBuilding = world.getBuildingFromName(destName);
+        if (sourceBuilding == null) {
+          if (verbosity > 0) {
+            logger.log("Failed to create connection: Source building '" + sourceName + "' does not exist.");
+          }
+          continue;
+        }
+        if (destBuilding == null) {
+          if (verbosity > 0) {
+            logger.log("Failed to create connection: Destination building '" + destName + "' does not exist.");
+          }
+          continue;
+        }
+        // both buildings exist, try to connect them
+        simulation.connectBuildings(sourceName, destName);
+      } catch (IllegalArgumentException e) {
+        // log the error but continue with other connections
+        if (verbosity > 0) {
+          logger.log("Failed to create connection from " + sourceName +
+              " to " + destName + ": " + e.getMessage());
+        }
+      }
+    }
   }
 
   /**

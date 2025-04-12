@@ -17,12 +17,6 @@
             ]
         },
         {
-            "name": "ball",
-            "recipes": [
-                "ball"
-            ]
-        },
-        {
             "name": "handle",
             "recipes": [
                 "handle"
@@ -67,14 +61,6 @@
             "mine": "metal",
             "sources": [],
             "storage": {}
-        },
-        {
-            "name": "Ba",
-            "type": "ball",
-            "sources": [
-                "W"
-            ],
-            "storage": {}
         }
     ],
     "connections": [
@@ -97,14 +83,6 @@
         {
             "source": "Ha",
             "destination": "D"
-        },
-        {
-            "source": "W",
-            "destination": "Ba"
-        },
-        {
-            "source": "Ba",
-            "destination": "D"
         }
     ],
     "recipes": [
@@ -113,16 +91,9 @@
             "ingredients": {
                 "wood": 1,
                 "handle": 1,
-                "hinge": 3
+                "hinge": 2
             },
-            "latency": 12
-        },
-        {
-            "output": "ball",
-            "ingredients": {
-                "wood": 3
-            },
-            "latency": 3
+            "latency": 10
         },
         {
             "output": "hinge",

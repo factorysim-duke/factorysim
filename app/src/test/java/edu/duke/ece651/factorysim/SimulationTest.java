@@ -1,6 +1,8 @@
 package edu.duke.ece651.factorysim;
 
 import java.io.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
 
 import com.google.gson.JsonArray;
@@ -570,6 +572,72 @@ public class SimulationTest {
 //
 //    String logs = logOutput.toString();
 //    assertFalse(logs.contains("Path already exists in cache."));
+  }
+
+    @Test
+    public void test_getBuildingNameByCoordinate() {
+        Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+        String b=sim.getBuildingNameByCoordinate(new Coordinate(9,9));
+        assertNull(b);
+    }
+
+    @Test
+    public void test_getDeliveryCoordinates() {
+        Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+        assertEquals(0,sim.getDeliveryCoordinates().size());
+        Building W = simulation.getWorld().getBuildingFromName("W");
+        Building D = simulation.getWorld().getBuildingFromName("D");
+        Item wood = new Item("wood");
+        Delivery d=new Delivery(W,D,wood,1,5);
+        simulation.connectBuildings(W,D);
+        simulation.addDelivery(W,D,wood,1);
+        List<Coordinate> coordinates = simulation.getDeliveryCoordinates();
+        assertEquals(1, coordinates.size());
+        assertEquals(W.getLocation(), coordinates.get(0));
+    }
+
+  @Test
+  public void testBuildDeliveries() throws Exception {
+    JsonArray deliveries = new JsonArray();
+
+    JsonObject d1 = new JsonObject();
+    d1.addProperty("source", "W");
+    d1.addProperty("destination", "D");
+    d1.addProperty("item", "metal");
+    d1.addProperty("quantity", 1);
+    d1.addProperty("deliveryTime", 5);
+    d1.addProperty("pathIndex", 0);
+    d1.addProperty("stepIndex", 0);
+    d1.addProperty("x", 1);
+    d1.addProperty("y", 2);
+
+    deliveries.add(d1);
+
+    Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+
+    Field f = Simulation.class.getDeclaredField("deliverySchedule");
+    f.setAccessible(true);
+    DeliverySchedule schedule = (DeliverySchedule) f.get(simulation);
+
+    assertEquals(0, schedule.toJson().size());
+
+    Method method = Simulation.class.getDeclaredMethod("buildDeliveries", JsonArray.class);
+    method.setAccessible(true);
+    method.invoke(simulation, deliveries);
+
+    JsonArray jsonAfter = schedule.toJson();
+    assertEquals(1, jsonAfter.size());
+
+    JsonObject deliveryJson = jsonAfter.get(0).getAsJsonObject();
+    assertEquals("W", deliveryJson.get("source").getAsString());
+    assertEquals("D", deliveryJson.get("destination").getAsString());
+    assertEquals("metal", deliveryJson.get("item").getAsString());
+    assertEquals(1, deliveryJson.get("quantity").getAsInt());
+    assertEquals(5, deliveryJson.get("deliveryTime").getAsInt());
+    assertEquals(0, deliveryJson.get("pathIndex").getAsInt());
+    assertEquals(0, deliveryJson.get("stepIndex").getAsInt());
+    assertEquals(1, deliveryJson.get("x").getAsInt());
+    assertEquals(2, deliveryJson.get("y").getAsInt());
   }
 
 
