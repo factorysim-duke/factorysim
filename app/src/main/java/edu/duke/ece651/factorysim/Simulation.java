@@ -40,8 +40,12 @@ public class Simulation {
     this.world = WorldBuilder.buildWorld(configData, this);
     // this.nextOrderNum = 0;
     this.verbosity = verbosity;
-
     this.logger = logger;
+
+    // Establish connections after world is fully initialized
+    if (configData.connections != null && !configData.connections.isEmpty()) {
+      establishConnections(configData.connections);
+    }
   }
 
   /**
@@ -363,8 +367,8 @@ public class Simulation {
     }
 
     String m = "[order complete] Order " + completed.getOrderNum() +
-            " completed (" + completed.getItem().getName() +
-            ") at time " + currentTime;
+        " completed (" + completed.getItem().getName() +
+        ") at time " + currentTime;
     logger.log(m);
   }
 
@@ -383,8 +387,8 @@ public class Simulation {
     }
 
     String m = "[ingredient assignment]: " + item.getName() +
-            " assigned to " + assigned.getName() +
-            " to deliver to " + deliverTo.getName();
+        " assigned to " + assigned.getName() +
+        " to deliver to " + deliverTo.getName();
     logger.log(m);
   }
 
@@ -403,9 +407,9 @@ public class Simulation {
 
     // Log ingredient delivery info
     String m = "[ingredient delivered]: " + item.getName() +
-            " to " + to.getName() +
-            " from " + from.getName() +
-            " on cycle " + getCurrentTime();
+        " to " + to.getName() +
+        " from " + from.getName() +
+        " on cycle " + getCurrentTime();
     logger.log(m);
 
     // Log ready ingredients (only when `to` is a factory since only factory have
@@ -435,9 +439,9 @@ public class Simulation {
    * @param selectedRequest is the selected request instance.
    */
   public void onRecipeSelected(Building building,
-                               RequestPolicy requestPolicy,
-                               List<Request> requests,
-                               Request selectedRequest) {
+      RequestPolicy requestPolicy,
+      List<Request> requests,
+      Request selectedRequest) {
     if (verbosity < 2) {
       return;
     }
@@ -499,8 +503,8 @@ public class Simulation {
    * @param item         is the item that's requested so sourcing happens.
    */
   public void onSourceSelected(Building building,
-                               SourcePolicy sourcePolicy,
-                               Item item) {
+      SourcePolicy sourcePolicy,
+      Item item) {
     if (verbosity < 2) {
       return;
     }
@@ -527,11 +531,11 @@ public class Simulation {
    * @param selectedSource is the selected source building.
    */
   public void onIngredientSourceSelected(Building building,
-                                         Item item,
-                                         int index,
-                                         Item ingredient,
-                                         List<Tuple<Building, Integer>> sources,
-                                         Building selectedSource) {
+      Item item,
+      int index,
+      Item ingredient,
+      List<Tuple<Building, Integer>> sources,
+      Building selectedSource) {
     if (verbosity < 2) {
       return;
     }
@@ -634,7 +638,7 @@ public class Simulation {
     Gson gson = new Gson();
 
     String json = new BufferedReader(reader)
-            .lines().collect(Collectors.joining(System.lineSeparator()));
+        .lines().collect(Collectors.joining(System.lineSeparator()));
 
     ConfigData configData = JsonLoader.loadConfigDataFromReader(new StringReader(json));
     this.world = WorldBuilder.buildWorld(configData, this);
@@ -809,31 +813,63 @@ public class Simulation {
     return world.tileMap.getTileType(coordinate);
   }
 
+  /**
+   * Gets the world managed by this simulation.
+   * 
+   * @return the world object.
+   */
   public World getWorld() {
     return world;
   }
 
   /**
+   * Establishes connections between buildings based on the provided connection
+   * data.
+   * 
+   * @param connections is a list of connection data transfer objects.
+   * @throws IllegalArgumentException if buildings cannot be connected.
+   */
+  public void establishConnections(List<ConnectionDTO> connections) {
+    if (connections == null || connections.isEmpty()) {
+      return;
+    }
+
+    for (ConnectionDTO connection : connections) {
+      try {
+        connectBuildings(connection.getSource(), connection.getDestination());
+      } catch (IllegalArgumentException e) {
+        // log error but continue with other connections
+        System.err.println("Failed to establish connection from " + connection.getSource() +
+            " to " + connection.getDestination() + ": " + e.getMessage());
+      }
+    }
+  }
+
+  /**
    * Attempts to connect two buildings using the shortest valid path on the map.
-   * If a valid path already exists in the cache, it is reused. Otherwise, a new path is found
+   * If a valid path already exists in the cache, it is reused. Otherwise, a new
+   * path is found
    * and added to the path list and the tile map.
    *
    * @param srcBuilding is the source building to connect.
    * @param dstBuilding is the destination building to connect.
-   * @return connected `Path` instance if the buildings are successfully connected.
-   * @throws IllegalArgumentException if no valid path can be found between the buildings.
+   * @return connected `Path` instance if the buildings are successfully
+   *         connected.
+   * @throws IllegalArgumentException if no valid path can be found between the
+   *                                  buildings.
    */
   public Path connectBuildings(Building srcBuilding, Building dstBuilding) {
     Coordinate src = srcBuilding.getLocation();
     Coordinate dst = dstBuilding.getLocation();
-    for (Path p : pathList){
-      if (p.isMatch(src, dst)){
+    for (Path p : pathList) {
+      if (p.isMatch(src, dst)) {
         return p;
       }
     }
     Path path = PathFinder.findPath(src, dst, world.tileMap);
     if (path == null) {
-      throw new IllegalArgumentException("Cannot connect " + srcBuilding.getName() + " to " + dstBuilding.getName() + ": No valid path.");
+      throw new IllegalArgumentException(
+          "Cannot connect " + srcBuilding.getName() + " to " + dstBuilding.getName() + ": No valid path.");
     } else {
       path.dump();
       // add the path to the cache
@@ -847,56 +883,62 @@ public class Simulation {
   }
 
   /**
-   * Attempts to connect two buildings by name using the shortest valid path on the map.
-   * If a valid path already exists in the cache, it is reused. Otherwise, a new path is found
+   * Attempts to connect two buildings by name using the shortest valid path on
+   * the map.
+   * If a valid path already exists in the cache, it is reused. Otherwise, a new
+   * path is found
    * and added to the path list and the tile map.
    *
    * @param sourceName the name of the source building
-   * @param destName the name of the destination building
+   * @param destName   the name of the destination building
    * @return true if the buildings are successfully connected
-   * @throws IllegalArgumentException if no valid path can be found between the buildings
+   * @throws IllegalArgumentException if no valid path can be found between the
+   *                                  buildings
    */
   public boolean connectBuildings(String sourceName, String destName) {
     return connectBuildings(world.getBuildingFromName(sourceName), world.getBuildingFromName(destName)) != null;
   }
 
-//  public boolean connectBuildings(String sourceName, String destName) {
-//    Coordinate src = getBuildingLocation(sourceName);
-//    Coordinate dst = getBuildingLocation(destName);
-//    for(Path p: pathList){
-//      if(p.isMatch(src, dst)){
-//        return true;
-//      }
-//    }
-//    Path path = PathFinder.findPath(src, dst, world.tileMap);
-//    if (path == null) {
-//      throw new IllegalArgumentException("Cannot connect " + sourceName + " to " + destName + ": No valid path.");
-//    } else {
-//        path.dump();
-//      // add the path to the cache
-//      pathList.add(path);
-//
-//      // add the path to the tileMap
-//      world.tileMap.addPath(path);
-//      // System.out.println(world.tileMap);
-//    }
-//    return true;
-//  }
+  // public boolean connectBuildings(String sourceName, String destName) {
+  // Coordinate src = getBuildingLocation(sourceName);
+  // Coordinate dst = getBuildingLocation(destName);
+  // for(Path p: pathList){
+  // if(p.isMatch(src, dst)){
+  // return true;
+  // }
+  // }
+  // Path path = PathFinder.findPath(src, dst, world.tileMap);
+  // if (path == null) {
+  // throw new IllegalArgumentException("Cannot connect " + sourceName + " to " +
+  // destName + ": No valid path.");
+  // } else {
+  // path.dump();
+  // // add the path to the cache
+  // pathList.add(path);
+  //
+  // // add the path to the tileMap
+  // world.tileMap.addPath(path);
+  // // System.out.println(world.tileMap);
+  // }
+  // return true;
+  // }
 
   /**
-   * Adds a delivery to the delivery schedule if a valid path exists between source and destination buildings.
+   * Adds a delivery to the delivery schedule if a valid path exists between
+   * source and destination buildings.
    *
-   * @param src the source building
-   * @param dst the destination building
-   * @param item the item to be delivered
+   * @param src      the source building
+   * @param dst      the destination building
+   * @param item     the item to be delivered
    * @param quantity the quantity of the item to be delivered
-   * @throws IllegalArgumentException if there is no connection between the source and destination
+   * @throws IllegalArgumentException if there is no connection between the source
+   *                                  and destination
    */
   public void addDelivery(Building src, Building dst, Item item, int quantity) {
     boolean isConnected = false;
-    for(Path p: pathList){
-      if(p.isMatch(src.getLocation(), dst.getLocation())){
-        Delivery d=new Delivery(src,dst, item, quantity, p.getDeliveryTime());
+    for (Path p : pathList) {
+      if (p.isMatch(src.getLocation(), dst.getLocation())) {
+        Delivery d = new Delivery(src, dst, item, quantity, p.getDeliveryTime());
         deliverySchedule.addDelivery(d);
         isConnected = true;
         break;
@@ -905,28 +947,31 @@ public class Simulation {
     if (!isConnected) {
       throw new IllegalArgumentException("building " + src.getName() + " and " + dst.getName() + " are not connected");
     }
-//    if (pathList.containsKey(src.getLocation()) && pathList.get(src.getLocation()).containsKey(dst.getLocation())) {
-//        Path path = pathList.get(src.getLocation()).get(dst.getLocation());
-//        Delivery d=new Delivery(src,dst, item, quantity, path.getDeliveryTime());
-//        deliverySchedule.addDelivery(d);
-//    } else {
-//      throw new IllegalArgumentException("building " + src.getName() + " and " + dst.getName() + " are not connected");
-//    }
+    // if (pathList.containsKey(src.getLocation()) &&
+    // pathList.get(src.getLocation()).containsKey(dst.getLocation())) {
+    // Path path = pathList.get(src.getLocation()).get(dst.getLocation());
+    // Delivery d=new Delivery(src,dst, item, quantity, path.getDeliveryTime());
+    // deliverySchedule.addDelivery(d);
+    // } else {
+    // throw new IllegalArgumentException("building " + src.getName() + " and " +
+    // dst.getName() + " are not connected");
+    // }
   }
 
   /**
    * Converts the cached list of paths into a JSON array.
-   * Each path is serialized with coordinate steps, flow directions, and new tiles.
+   * Each path is serialized with coordinate steps, flow directions, and new
+   * tiles.
    *
    * @return a JsonArray containing all paths in the system
    */
-    public JsonArray pathListToJson() {
-      JsonArray pathArr = new JsonArray();
-      for (Path p : pathList) {
-        JsonObject pathObj = p.toJson();
-        pathArr.add(pathObj);
-      }
-      return pathArr;
+  public JsonArray pathListToJson() {
+    JsonArray pathArr = new JsonArray();
+    for (Path p : pathList) {
+      JsonObject pathObj = p.toJson();
+      pathArr.add(pathObj);
     }
+    return pathArr;
+  }
 
 }

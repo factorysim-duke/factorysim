@@ -54,6 +54,28 @@
       "sources": []
     }
   ],
+  "connections": [
+    {
+      "source": "W",
+      "destination": "D"
+    },
+    {
+      "source": "M",
+      "destination": "Hi"
+    },
+    {
+      "source": "M",
+      "destination": "Ha"
+    },
+    {
+      "source": "Hi",
+      "destination": "D"
+    },
+    {
+      "source": "Ha",
+      "destination": "D"
+    }
+  ],
   "recipes": [
     {
       "output": "door",
