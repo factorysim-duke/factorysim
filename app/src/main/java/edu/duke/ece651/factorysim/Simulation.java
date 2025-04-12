@@ -668,6 +668,13 @@ public class Simulation {
 
   }
 
+  /**
+   * Reconstructs the list of deliveries from a JSON array.
+   * Each delivery includes its source, destination, item, quantity,
+   * current delivery time, path position, and current coordinate.
+   *
+   * @param jsonDeliveries the JSON array containing delivery information
+   */
   private void buildDeliveries(JsonArray jsonDeliveries) {
     for(JsonElement element : jsonDeliveries) {
       JsonObject ob = element.getAsJsonObject();
@@ -992,6 +999,11 @@ public class Simulation {
       return pathArr;
     }
 
+  /**
+   * Returns building name by coordinate.
+   *
+   * @return a building name
+   */
     public String getBuildingNameByCoordinate(Coordinate coordinate) {
         for (Building building : world.getBuildings()) {
             if (building.getLocation().equals(coordinate)) {
@@ -1002,11 +1014,23 @@ public class Simulation {
     }
 
 
+  /**
+   * Returns the current delivery coordinates in the system.
+   * Each coordinate represents the current position of a delivery item.
+   *
+   * @return a list of coordinates representing delivery positions
+   */
     public List<Coordinate> getDeliveryCoordinates() {
         return deliverySchedule.getCurrentCoordinates();
     }
 
 
+  /**
+   * Returns the list of all existing paths in the system.
+   * Each path represents a connection between two buildings via tiles.
+   *
+   * @return a list of all established paths
+   */
     public List<Path> getPathList() {
         return pathList;
     }
