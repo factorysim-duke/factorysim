@@ -684,6 +684,16 @@ public class Simulation {
   }
 
   /**
+   * Loads a simulation saved in JSON format from a JSON string.
+   *
+   * @param json is the JSON string (not file name).
+   */
+  public void loadFromJsonString(String json) {
+    StringReader reader = new StringReader(json);
+    loadFromReader(reader);
+  }
+
+  /**
    * Reconstructs the list of deliveries from a JSON array.
    * Each delivery includes its source, destination, item, quantity,
    * current delivery time, path position, and current coordinate.
