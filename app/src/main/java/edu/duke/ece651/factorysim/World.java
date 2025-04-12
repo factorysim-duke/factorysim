@@ -180,4 +180,42 @@ public class World {
   public void setTileMapDimensions(int width, int height) {
     this.tileMap = new TileMap(width, height);
   }
+
+  // TODO: Write tests for the following two methods
+  /**
+   * Tries to add an existing building to the world.
+   *
+   * @param building is the building instance to add.
+   * @param location is the location to add the building.
+   * @return true if building is added successfully, false otherwise.
+   */
+  public boolean tryAddBuilding(Building building, Coordinate location) {
+    if (locationMap.containsValue(location)) {
+      return false;
+    }
+    buildings.add(building);
+    locationMap.put(building, location);
+    if (tileMap != null) {
+      tileMap.setTileType(location, TileType.BUILDING);
+    }
+    building.setLocation(location);
+    return true;
+  }
+
+  /**
+   * Checks if a building name is unique, if not, modifies it and returns a name
+   * with conflicts resolved.
+   *
+   * @param name is the name to resolve conflicts.
+   * @return resolved unique name.
+   */
+  public String resolveBuildingNameConflict(String name) {
+    String resolved = name;
+    int counter = 1;
+    while (hasBuilding(resolved)) {
+      resolved = name + "_" + counter;
+      counter++;
+    }
+    return resolved;
+  }
 }
