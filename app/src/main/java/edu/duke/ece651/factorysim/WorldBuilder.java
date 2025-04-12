@@ -45,6 +45,22 @@ public class WorldBuilder {
   }
 
   /**
+   * Builds an empty world.
+   *
+   * @param boardWidth is the width of the board.
+   * @param boardHeight is the height of the board.
+   * @return the World object.
+   */
+  public static World buildEmptyWorld(int boardWidth, int boardHeight) {
+    World world = new World();
+    world.setTypes(new ArrayList<>());
+    world.setRecipes(new ArrayList<>());
+    world.setBuildings(new ArrayList<>());
+    world.setTileMapDimensions(boardWidth, boardHeight);
+    return world;
+  }
+
+  /**
    * Builds connections between buildings using the ConnectionDTOs.
    * 
    * @param connectionDTOs is the list of connection data transfer objects.
