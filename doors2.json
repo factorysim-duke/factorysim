@@ -77,6 +77,36 @@
             "storage": {}
         }
     ],
+    "connections": [
+        {
+            "source": "W",
+            "destination": "D"
+        },
+        {
+            "source": "M",
+            "destination": "Hi"
+        },
+        {
+            "source": "M",
+            "destination": "Ha"
+        },
+        {
+            "source": "Hi",
+            "destination": "D"
+        },
+        {
+            "source": "Ha",
+            "destination": "D"
+        },
+        {
+            "source": "W",
+            "destination": "Ba"
+        },
+        {
+            "source": "Ba",
+            "destination": "D"
+        }
+    ],
     "recipes": [
         {
             "output": "door",

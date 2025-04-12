@@ -1,7 +1,6 @@
 package edu.duke.ece651.factorysim;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 
 import java.util.*;
 
@@ -91,16 +90,42 @@ public class Path {
     }
 
     /**
+     * Prints debugging information about the path to the provided logger.
+     * 
+     * @param logger is the logger to print to, or standard output if null.
+     * @param verbosity is the verbosity level to use.
+     */
+    public void dump(Logger logger, int verbosity) {
+        // only print path details if verbosity level is larger than 2
+        if (verbosity <= 2) {
+            return;
+        }
+        
+        if (logger == null) {
+            // use standard output if logger is null
+            System.out.println("Path from " + steps.get(0) + " to " + steps.get(steps.size()-1));
+            System.out.println("Total steps: " + getTotalLength());
+            System.out.println("New tiles: " + getNewTileCount());
+            System.out.println("Steps:");
+            for (Coordinate step : steps) {
+                System.out.println(step);
+            }
+        } else {
+            logger.log("Path from " + steps.get(0) + " to " + steps.get(steps.size()-1));
+            logger.log("Total steps: " + getTotalLength());
+            logger.log("New tiles: " + getNewTileCount());
+            logger.log("Steps:");
+            for (Coordinate step : steps) {
+                logger.log(step.toString());
+            }
+        }
+    }
+    
+    /**
      * Prints debugging information about the path to standard output.
      */
     public void dump() {
-        System.out.println("Path from " + steps.get(0) + " to " + steps.get(steps.size()-1));
-        System.out.println("Total steps: " + getTotalLength());
-        System.out.println("New tiles: " + getNewTileCount());
-        System.out.println("Steps:");
-        for (Coordinate step : steps) {
-            System.out.println(step);
-        }
+        dump(null, 0); // Default to verbosity level 2
     }
 
     /**

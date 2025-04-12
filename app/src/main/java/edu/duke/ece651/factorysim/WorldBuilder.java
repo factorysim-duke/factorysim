@@ -52,9 +52,14 @@ public class WorldBuilder {
    *                       created.
    */
   private static void buildConnections(List<ConnectionDTO> connectionDTOs, Simulation simulation) {
+    Logger logger = simulation.getLogger();
+    int verbosity = simulation.getVerbosity();
+    
     // store connection DTOs for later processing if world isn't ready
     if (simulation.getWorld() == null) {
-      System.err.println("Warning: World not set in simulation yet; connections will be established later.");
+      if (verbosity > 0) {
+        logger.log("Warning: World not set in simulation yet; connections will be established later.");
+      }
       return;
     }
 
@@ -67,19 +72,25 @@ public class WorldBuilder {
         Building sourceBuilding = world.getBuildingFromName(sourceName);
         Building destBuilding = world.getBuildingFromName(destName);
         if (sourceBuilding == null) {
-          System.err.println("Failed to create connection: Source building '" + sourceName + "' does not exist.");
+          if (verbosity > 0) {
+            logger.log("Failed to create connection: Source building '" + sourceName + "' does not exist.");
+          }
           continue;
         }
         if (destBuilding == null) {
-          System.err.println("Failed to create connection: Destination building '" + destName + "' does not exist.");
+          if (verbosity > 0) {
+            logger.log("Failed to create connection: Destination building '" + destName + "' does not exist.");
+          }
           continue;
         }
         // both buildings exist, try to connect them
         simulation.connectBuildings(sourceName, destName);
       } catch (IllegalArgumentException e) {
         // log the error but continue with other connections
-        System.err.println("Failed to create connection from " + sourceName +
-            " to " + destName + ": " + e.getMessage());
+        if (verbosity > 0) {
+          logger.log("Failed to create connection from " + sourceName +
+              " to " + destName + ": " + e.getMessage());
+        }
       }
     }
   }
