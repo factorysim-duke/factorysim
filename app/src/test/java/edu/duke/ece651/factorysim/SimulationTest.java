@@ -640,7 +640,13 @@ public class SimulationTest {
     assertEquals(2, deliveryJson.get("y").getAsInt());
   }
 
-
-
-
+  @Test
+  public void test_constructor_World_int_Logger() {
+    World world = WorldBuilder.buildEmptyWorld(10, 10);
+    Logger logger = new StreamLogger(System.out);
+    Simulation sim = new Simulation(world, 3, logger);
+    assertSame(world, sim.getWorld());
+    assertSame(logger, sim.getLogger());
+    assertEquals(3, sim.getVerbosity());
+  }
 }
