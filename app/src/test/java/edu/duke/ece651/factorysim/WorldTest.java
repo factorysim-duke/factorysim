@@ -25,4 +25,10 @@ public class WorldTest {
     assertNull(world.getBuildingFromName("Z"));
   }
 
+  @Test
+  public void test_resolveBuildingNameConflict() {
+    World world = WorldBuilder.buildWorld(TestUtils.loadConfigData("src/test/resources/inputs/doors1.json"), new TestUtils.MockSimulation());
+    assertEquals("deez", world.resolveBuildingNameConflict("deez"));
+    assertEquals("D_1", world.resolveBuildingNameConflict("D"));
+  }
 }
