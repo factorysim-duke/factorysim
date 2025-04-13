@@ -73,21 +73,6 @@ public class Simulation {
   }
 
   /**
-   * Constructs a `Simulation` instance from a JSON string (not JSON file name).
-   *
-   * @param json is the JSON string (not file name).
-   * @param verbosity is the initial verbosity level.
-   * @param logger is the injected logger.
-   * @return constructed `Simulation` instance.
-   */
-  public static Simulation createFromJsonString(String json, int verbosity, Logger logger) {
-    Simulation sim = new Simulation(WorldBuilder.buildEmptyWorld(1, 1), verbosity, logger);
-    StringReader reader = new StringReader(json);
-    sim.loadFromReader(reader);
-    return sim;
-  }
-
-  /**
    * Sets the policy for the given type and target.
    *
    * @param policy the policy to set
@@ -681,16 +666,6 @@ public class Simulation {
       buildDeliveries(deliveriesElement.getAsJsonArray());
     }
 
-  }
-
-  /**
-   * Loads a simulation saved in JSON format from a JSON string.
-   *
-   * @param json is the JSON string (not file name).
-   */
-  public void loadFromJsonString(String json) {
-    StringReader reader = new StringReader(json);
-    loadFromReader(reader);
   }
 
   /**
