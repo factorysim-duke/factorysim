@@ -181,7 +181,6 @@ public class World {
     this.tileMap = new TileMap(width, height);
   }
 
-  // TODO: Write tests for the following two methods
   /**
    * Check if a location is occupied by any building in the world.
    *
