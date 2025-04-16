@@ -18,6 +18,19 @@ public class Recipe {
   /**
    * Constructs a recipe.
    *
+   * @param output      is the item being created by the recipe.
+   * @param ingredients is the hashmap of ingredients required by the recipe.
+   * @param latency     is the integer value for how many time steps it takes
+   *                    for
+   *                    a building to perform this recipe.
+   */
+  public Recipe(Item output, HashMap<Item, Integer> ingredients, int latency) {
+    this(output, new LinkedHashMap<>(ingredients), latency, new LinkedHashMap<>());
+  }
+
+  /**
+   * Constructs a recipe.
+   *
    * @param output          is the item being created by the recipe.
    * @param ingredients     is the hashmap of ingredients required by the recipe.
    * @param latency         is the integer value for how many time steps it takes
@@ -87,6 +100,15 @@ public class Recipe {
   }
 
   /**
+   * Checks if the recipe produces waste byproducts.
+   *
+   * @return true if the recipe produces waste, false otherwise.
+   */
+  public boolean hasWasteByProducts() {
+    return !wasteByProducts.isEmpty();
+  }
+
+  /**
    * Converts the Recipe object to a JSON representation.
    *
    * @return a JsonObject representing the recipe.
@@ -100,6 +122,13 @@ public class Recipe {
     }
     json.add("ingredients", ingredientsJson);
     json.addProperty("latency", latency);
+    if (hasWasteByProducts()) {
+      JsonObject wasteJson = new JsonObject();
+      for (Map.Entry<Item, Integer> entry : wasteByProducts.entrySet()) {
+        wasteJson.addProperty(entry.getKey().getName(), entry.getValue());
+      }
+      json.add("waste", wasteJson);
+    }
     return json;
   }
 }
