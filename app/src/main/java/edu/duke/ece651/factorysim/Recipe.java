@@ -13,31 +13,41 @@ public class Recipe {
   private final Item output;
   private final LinkedHashMap<Item, Integer> ingredients;
   private final int latency;
+  private final LinkedHashMap<Item, Integer> wasteByProducts;
 
   /**
    * Constructs a recipe.
    *
-   * @param output      is the item being created by the recipe.
-   * @param ingredients is the hashmap of ingredients required by the recipe.
-   * @param latency     is the integer value for how many time steps it takes for
-   *                    a building to perform this recipe.
+   * @param output          is the item being created by the recipe.
+   * @param ingredients     is the hashmap of ingredients required by the recipe.
+   * @param latency         is the integer value for how many time steps it takes
+   *                        for
+   *                        a building to perform this recipe.
+   * @param wasteByProducts is the hashmap of waste byproducts created by the
+   *                        recipe.
    */
-  public Recipe(Item output, HashMap<Item, Integer> ingredients, int latency) {
-    this(output, new LinkedHashMap<>(ingredients), latency);
+  public Recipe(Item output, HashMap<Item, Integer> ingredients, int latency, HashMap<Item, Integer> wasteByProducts) {
+    this(output, new LinkedHashMap<>(ingredients), latency, new LinkedHashMap<>(wasteByProducts));
   }
 
   /**
    * Constructs a recipe.
    *
-   * @param output      is the item being created by the recipe.
-   * @param ingredients is the linked hashmap of ingredients required by the recipe.
-   * @param latency     is the integer value for how many time steps it takes for
-   *                    a building to perform this recipe.
+   * @param output          is the item being created by the recipe.
+   * @param ingredients     is the linked hashmap of ingredients required by the
+   *                        recipe.
+   * @param latency         is the integer value for how many time steps it takes
+   *                        for
+   *                        a building to perform this recipe.
+   * @param wasteByProducts is the hashmap of waste byproducts created by the
+   *                        recipe.
    */
-  public Recipe(Item output, LinkedHashMap<Item, Integer> ingredients, int latency) {
+  public Recipe(Item output, LinkedHashMap<Item, Integer> ingredients, int latency,
+      LinkedHashMap<Item, Integer> wasteByProducts) {
     this.output = output;
     this.ingredients = ingredients;
     this.latency = latency;
+    this.wasteByProducts = wasteByProducts;
   }
 
   /**
@@ -59,6 +69,15 @@ public class Recipe {
   }
 
   /**
+   * Gets the waste byproducts of the recipe.
+   *
+   * @return the hashmap of waste byproducts of the recipe.
+   */
+  public LinkedHashMap<Item, Integer> getWasteByProducts() {
+    return wasteByProducts;
+  }
+
+  /**
    * Gets the latency of the recipe.
    * 
    * @return the latency it takes for a building to perform this recipe.
@@ -73,11 +92,11 @@ public class Recipe {
    * @return a JsonObject representing the recipe.
    */
   public JsonObject toJson() {
-    JsonObject json=new JsonObject();
+    JsonObject json = new JsonObject();
     json.addProperty("output", output.getName());
     JsonObject ingredientsJson = new JsonObject();
-    for (Map.Entry<Item,Integer> entry:ingredients.entrySet()) {
-      ingredientsJson.addProperty(entry.getKey().getName(),entry.getValue());
+    for (Map.Entry<Item, Integer> entry : ingredients.entrySet()) {
+      ingredientsJson.addProperty(entry.getKey().getName(), entry.getValue());
     }
     json.add("ingredients", ingredientsJson);
     json.addProperty("latency", latency);
