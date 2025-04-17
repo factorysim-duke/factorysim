@@ -6,6 +6,8 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static edu.duke.ece651.factorysim.TileType.ROAD;
+
 /**
  * Runs the factory simulation, managing buildings and item production.
  */
@@ -928,6 +930,79 @@ public class Simulation {
     return path;
   }
 
+
+    /**
+     * Disconnects two buildings by removing the path between them.
+     * If the path is in use, it cannot be removed.
+     *
+     * @param srcBuilding is the source building to disconnect.
+     * @param dstBuilding is the destination building to disconnect.
+     * @return true if the buildings are successfully disconnected, false
+     *         otherwise.
+     */
+  public boolean disconnectBuildings(Building srcBuilding, Building dstBuilding) {
+    Coordinate src = srcBuilding.getLocation();
+    Coordinate dst = dstBuilding.getLocation();
+
+    Iterator<Path> iterator = pathList.iterator();
+    int index = 0;
+
+    while (iterator.hasNext()) {
+      Path path = iterator.next();
+
+      if (path.isMatch(src, dst)) {
+        if (deliverySchedule.checkUsingPath(index)) {
+          return false;
+        }
+
+        iterator.remove();
+
+        for (Coordinate step : getCoordinatesToRemove(path)) {
+          world.tileMap.setTileType(step, ROAD);
+        }
+        return true;
+      }
+      index++;
+    }
+
+    return false;
+  }
+
+    /**
+     * Gets the coordinates to remove from the tile map.
+     *
+     * @param path the path to check
+     * @return a list of coordinates to remove
+     */
+  public List<Coordinate> getCoordinatesToRemove(Path path) {
+    List<Coordinate> coordinates = new ArrayList<>();
+    for (Coordinate step : path.getSteps()) {
+      if (!checkUsage(step)) {
+        coordinates.add(step);
+      }
+    }
+    return coordinates;
+  }
+
+    /**
+     * Checks if a coordinate is used in any path or building.
+     *
+     * @param step the coordinate to check
+     * @return true if the coordinate is used, false otherwise
+     */
+  public boolean checkUsage(Coordinate step) {
+    if (getBuildingNameByCoordinate(step) != null) {
+      return true;
+    }
+    for (Path path : pathList) {
+      if (path.getSteps().contains(step)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
   /**
    * Attempts to connect two buildings by name using the shortest valid path on
    * the map.
@@ -945,6 +1020,19 @@ public class Simulation {
     return connectBuildings(world.getBuildingFromName(sourceName), world.getBuildingFromName(destName)) != null;
   }
 
+
+    /**
+     * Attempts to disconnect two buildings by name.
+     * If the path is in use, it cannot be removed.
+     *
+     * @param sourceName the name of the source building
+     * @param destName   the name of the destination building
+     * @return true if the buildings are successfully disconnected, false
+     *         otherwise
+     */
+  public boolean disconnectBuildings(String sourceName, String destName) {
+    return disconnectBuildings(world.getBuildingFromName(sourceName), world.getBuildingFromName(destName));
+  }
   // public boolean connectBuildings(String sourceName, String destName) {
   // Coordinate src = getBuildingLocation(sourceName);
   // Coordinate dst = getBuildingLocation(destName);
@@ -1057,4 +1145,6 @@ public class Simulation {
   public List<Path> getPathList() {
     return pathList;
   }
+
+
 }

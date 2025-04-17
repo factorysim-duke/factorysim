@@ -90,6 +90,16 @@ public class Delivery {
         currentCoordinate= pathList.get(pathIndex).getSteps().get(stepIndex);
     }
 
+    /**
+     * Checks if the delivery is using a specific path.
+     *
+     * @param pathIndex the index of the path to check
+     * @return true if the delivery is using the specified path; false otherwise
+     */
+    public boolean isUsingPath(int pathIndex) {
+        return this.pathIndex == pathIndex;
+    }
+
     public Coordinate getCurrentCoordinate() {
         return currentCoordinate;
     }

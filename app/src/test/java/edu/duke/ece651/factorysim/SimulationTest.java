@@ -513,6 +513,17 @@ public class SimulationTest {
     logOutput.reset();
     boolean secondConnection = simulation.connectBuildings("W", "D");
     assertTrue(secondConnection);
+    simulation.getPathList().getFirst().dump();
+    simulation.getPathList().getLast().dump();
+
+    assertTrue(simulation.checkUsage(new Coordinate(0,0)));
+    assertTrue(simulation.checkUsage(new Coordinate(0,1)));
+    boolean removeConnection = simulation.disconnectBuildings("W", "D");
+    assertFalse(simulation.checkUsage(new Coordinate(1,0)));
+    assertTrue(removeConnection);
+
+    boolean secondRemove = simulation.disconnectBuildings("W", "D");
+    assertFalse(secondRemove);
   }
 
   @Test
@@ -594,6 +605,9 @@ public class SimulationTest {
         List<Coordinate> coordinates = simulation.getDeliveryCoordinates();
         assertEquals(1, coordinates.size());
         assertEquals(W.getLocation(), coordinates.get(0));
+
+        boolean removeConnection = simulation.disconnectBuildings("W", "D");
+        assertFalse(removeConnection);
     }
 
   @Test

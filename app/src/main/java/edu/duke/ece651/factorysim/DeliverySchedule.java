@@ -61,6 +61,21 @@ public class DeliverySchedule {
     }
 
     /**
+     * Checks if any delivery in the schedule is using a specific path.
+     *
+     * @param pathIndex the index of the path to check
+     * @return true if any delivery is using the specified path, false otherwise
+     */
+    public boolean checkUsingPath(int pathIndex) {
+        for (Delivery delivery : deliveryList) {
+            if (delivery.isUsingPath(pathIndex)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Converts all current deliveries in the schedule to a JSON array.
      *
      * @return a JsonArray representing the list of deliveries in the schedule
