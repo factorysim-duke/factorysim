@@ -2,6 +2,7 @@ package edu.duke.ece651.factorysim;
 
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -236,5 +237,44 @@ public class WorldBuilderTest {
     assertTrue(storageBuilding instanceof StorageBuilding);
     StorageBuilding woodStorage = (StorageBuilding) storageBuilding;
     assertEquals("wood", woodStorage.getStorageItem().getName());
+  }
+
+  @Test
+  public void test_WorldBuilder_waste_disposal() {
+    ConfigData configData = TestUtils.loadConfigData("src/main/resources/electronics_with_waste.json");
+    assertNotNull(configData, "ConfigData should not be null");
+    Simulation simulation = new Simulation("src/main/resources/electronics_with_waste.json");
+    World world = simulation.getWorld();
+    Building woodWasteDisposal = world.getBuildingFromName("wood_waste_disposal");
+    Building electronicsWasteDisposal = world.getBuildingFromName("electronics_waste_disposal");
+    assertNotNull(woodWasteDisposal);
+    assertNotNull(electronicsWasteDisposal);
+    assertTrue(woodWasteDisposal instanceof WasteDisposalBuilding);
+    assertTrue(electronicsWasteDisposal instanceof WasteDisposalBuilding);
+    
+    WasteDisposalBuilding woodDisposal = (WasteDisposalBuilding) woodWasteDisposal;
+    WasteDisposalBuilding electronicsDisposal = (WasteDisposalBuilding) electronicsWasteDisposal;
+    List<Item> woodWasteTypes = woodDisposal.getWasteTypes();
+    List<Item> electronicsWasteTypes = electronicsDisposal.getWasteTypes();
+    assertEquals(1, woodWasteTypes.size());
+    assertEquals(2, electronicsWasteTypes.size());
+    
+    Item sawdust = new Item("sawdust");
+    Item electronicWaste = new Item("electronic_waste");
+    Item plasticScraps = new Item("plastic_scraps");
+    assertTrue(woodDisposal.canProduce(sawdust));
+    assertEquals(400, woodDisposal.getMaxCapacityFor(sawdust));
+    assertEquals(50, woodDisposal.getDisposalRateFor(sawdust));
+    assertEquals(2, woodDisposal.getDisposalTimeStepsFor(sawdust));
+    assertTrue(electronicsDisposal.canProduce(electronicWaste));
+    assertTrue(electronicsDisposal.canProduce(plasticScraps));
+    assertEquals(300, electronicsDisposal.getMaxCapacityFor(electronicWaste));
+    assertEquals(200, electronicsDisposal.getMaxCapacityFor(plasticScraps));
+    assertEquals(30, electronicsDisposal.getDisposalRateFor(electronicWaste));
+    assertEquals(25, electronicsDisposal.getDisposalRateFor(plasticScraps));
+    assertEquals(3, electronicsDisposal.getDisposalTimeStepsFor(electronicWaste));
+    assertEquals(1, electronicsDisposal.getDisposalTimeStepsFor(plasticScraps));
+    assertEquals(new Coordinate(50, 40), woodDisposal.getLocation());
+    assertEquals(new Coordinate(90, 40), electronicsDisposal.getLocation());
   }
 }
