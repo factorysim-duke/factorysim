@@ -557,6 +557,23 @@ public class Simulation {
   }
 
   /**
+   * Indicates when waste is delivered to a waste disposal building.
+   * 
+   * @param wasteType        is the item of waste delivered.
+   * @param quantity         is the quantity of waste delivered.
+   * @param disposalBuilding is the building receiving the waste.
+   * @param sourceBuilding   is the building that produced the waste.
+   */
+  public void onWasteDelivered(Item wasteType, int quantity, Building disposalBuilding, Building sourceBuilding) {
+    if (verbosity >= 1) {
+      logger.log("[waste delivered]: " + quantity + " " + wasteType.getName() +
+          " to " + disposalBuilding.getName() +
+          " from " + sourceBuilding.getName() +
+          " on cycle " + getCurrentTime());
+    }
+  }
+
+  /**
    * Saves the current simulation state to a file.
    *
    * @param fileName the name of the file to save to.
@@ -599,7 +616,7 @@ public class Simulation {
         }
       }
       state.add("requests", requestArray);
-//      state.add("tileMap", world.tileMap.toJson());
+      // state.add("tileMap", world.tileMap.toJson());
       state.add("connections", pathListToJson());
       state.add("deliveries", deliverySchedule.toJson());
       gson.toJson(state, writer);
@@ -676,19 +693,20 @@ public class Simulation {
    * @param jsonDeliveries the JSON array containing delivery information
    */
   private void buildDeliveries(JsonArray jsonDeliveries) {
-    for(JsonElement element : jsonDeliveries) {
+    for (JsonElement element : jsonDeliveries) {
       JsonObject ob = element.getAsJsonObject();
       Building source = world.getBuildingFromName(ob.get("source").getAsString());
       Building destination = world.getBuildingFromName(ob.get("destination").getAsString());
-        Item item = new Item(ob.get("item").getAsString());
-        int quantity = ob.get("quantity").getAsInt();
-        int deliveryTime = ob.get("deliveryTime").getAsInt();
-        int pathIndex = ob.get("pathIndex").getAsInt();
-        int stepIndex = ob.get("stepIndex").getAsInt();
-        Coordinate currentCoordinate = new Coordinate(ob.get("x").getAsInt(),
-                ob.get("y").getAsInt());
-        Delivery delivery = new Delivery(source, destination, item, quantity, deliveryTime, pathIndex, stepIndex, currentCoordinate);
-        deliverySchedule.addDelivery(delivery);
+      Item item = new Item(ob.get("item").getAsString());
+      int quantity = ob.get("quantity").getAsInt();
+      int deliveryTime = ob.get("deliveryTime").getAsInt();
+      int pathIndex = ob.get("pathIndex").getAsInt();
+      int stepIndex = ob.get("stepIndex").getAsInt();
+      Coordinate currentCoordinate = new Coordinate(ob.get("x").getAsInt(),
+          ob.get("y").getAsInt());
+      Delivery delivery = new Delivery(source, destination, item, quantity, deliveryTime, pathIndex, stepIndex,
+          currentCoordinate);
+      deliverySchedule.addDelivery(delivery);
     }
   }
 
@@ -901,7 +919,7 @@ public class Simulation {
       throw new IllegalArgumentException(
           "Cannot connect " + srcBuilding.getName() + " to " + dstBuilding.getName() + ": No valid path.");
     } else {
-//      path.dump();
+      // path.dump();
       // add the path to the cache
       pathList.add(path);
 
@@ -913,56 +931,62 @@ public class Simulation {
   }
 
   /**
-   * Attempts to connect two buildings by name using the shortest valid path on the map.
-   * If a valid path already exists in the cache, it is reused. Otherwise, a new path is found
+   * Attempts to connect two buildings by name using the shortest valid path on
+   * the map.
+   * If a valid path already exists in the cache, it is reused. Otherwise, a new
+   * path is found
    * and added to the path list and the tile map.
    *
    * @param sourceName the name of the source building
    * @param destName   the name of the destination building
    * @return true if the buildings are successfully connected
-   * @throws IllegalArgumentException if no valid path can be found between the buildings
+   * @throws IllegalArgumentException if no valid path can be found between the
+   *                                  buildings
    */
   public boolean connectBuildings(String sourceName, String destName) {
     return connectBuildings(world.getBuildingFromName(sourceName), world.getBuildingFromName(destName)) != null;
   }
 
-//  public boolean connectBuildings(String sourceName, String destName) {
-//    Coordinate src = getBuildingLocation(sourceName);
-//    Coordinate dst = getBuildingLocation(destName);
-//    for(Path p: pathList){
-//      if(p.isMatch(src, dst)){
-//        return true;
-//      }
-//    }
-//    Path path = PathFinder.findPath(src, dst, world.tileMap);
-//    if (path == null) {
-//      throw new IllegalArgumentException("Cannot connect " + sourceName + " to " + destName + ": No valid path.");
-//    } else {
-//        path.dump();
-//      // add the path to the cache
-//      pathList.add(path);
-//
-//      // add the path to the tileMap
-//      world.tileMap.addPath(path);
-//      // System.out.println(world.tileMap);
-//    }
-//    return true;
-//  }
+  // public boolean connectBuildings(String sourceName, String destName) {
+  // Coordinate src = getBuildingLocation(sourceName);
+  // Coordinate dst = getBuildingLocation(destName);
+  // for(Path p: pathList){
+  // if(p.isMatch(src, dst)){
+  // return true;
+  // }
+  // }
+  // Path path = PathFinder.findPath(src, dst, world.tileMap);
+  // if (path == null) {
+  // throw new IllegalArgumentException("Cannot connect " + sourceName + " to " +
+  // destName + ": No valid path.");
+  // } else {
+  // path.dump();
+  // // add the path to the cache
+  // pathList.add(path);
+  //
+  // // add the path to the tileMap
+  // world.tileMap.addPath(path);
+  // // System.out.println(world.tileMap);
+  // }
+  // return true;
+  // }
 
   /**
-   * Adds a delivery to the delivery schedule if a valid path exists between source and destination buildings.
+   * Adds a delivery to the delivery schedule if a valid path exists between
+   * source and destination buildings.
    *
    * @param src      the source building
    * @param dst      the destination building
    * @param item     the item to be delivered
    * @param quantity the quantity of the item to be delivered
-   * @throws IllegalArgumentException if there is no connection between the source and destination
+   * @throws IllegalArgumentException if there is no connection between the source
+   *                                  and destination
    */
   public void addDelivery(Building src, Building dst, Item item, int quantity) {
     boolean isConnected = false;
-    for(int i=0;i<pathList.size();i++){
-      if(pathList.get(i).isMatch(src.getLocation(), dst.getLocation())){
-        Delivery d=new Delivery(src,dst, item, quantity, pathList.get(i).getDeliveryTime(),i);
+    for (int i = 0; i < pathList.size(); i++) {
+      if (pathList.get(i).isMatch(src.getLocation(), dst.getLocation())) {
+        Delivery d = new Delivery(src, dst, item, quantity, pathList.get(i).getDeliveryTime(), i);
         deliverySchedule.addDelivery(d);
         isConnected = true;
         break;
@@ -971,48 +995,50 @@ public class Simulation {
     if (!isConnected) {
       throw new IllegalArgumentException("building " + src.getName() + " and " + dst.getName() + " are not connected");
     }
-//    if (pathList.containsKey(src.getLocation()) && pathList.get(src.getLocation()).containsKey(dst.getLocation())) {
-//        Path path = pathList.get(src.getLocation()).get(dst.getLocation());
-//        Delivery d=new Delivery(src,dst, item, quantity, path.getDeliveryTime());
-//        deliverySchedule.addDelivery(d);
-//    } else {
-//      throw new IllegalArgumentException("building " + src.getName() + " and " + dst.getName() + " are not connected");
-//    }
+    // if (pathList.containsKey(src.getLocation()) &&
+    // pathList.get(src.getLocation()).containsKey(dst.getLocation())) {
+    // Path path = pathList.get(src.getLocation()).get(dst.getLocation());
+    // Delivery d=new Delivery(src,dst, item, quantity, path.getDeliveryTime());
+    // deliverySchedule.addDelivery(d);
+    // } else {
+    // throw new IllegalArgumentException("building " + src.getName() + " and " +
+    // dst.getName() + " are not connected");
+    // }
   }
 
   /**
    * Converts the cached list of paths into a JSON array.
-   * Each path is serialized with coordinate steps, flow directions, and new tiles.
+   * Each path is serialized with coordinate steps, flow directions, and new
+   * tiles.
    *
    * @return a JsonArray containing all paths in the system
    */
-    public JsonArray pathListToJson() {
-      JsonArray pathArr = new JsonArray();
-      for (Path p : pathList) {
-        JsonObject pathObj = new JsonObject();
-        String source=getBuildingNameByCoordinate(p.getSteps().getFirst());
-        String destination=getBuildingNameByCoordinate(p.getSteps().getLast());
-        pathObj.addProperty("source", source);
-        pathObj.addProperty("destination", destination);
-        pathArr.add(pathObj);
-      }
-      return pathArr;
+  public JsonArray pathListToJson() {
+    JsonArray pathArr = new JsonArray();
+    for (Path p : pathList) {
+      JsonObject pathObj = new JsonObject();
+      String source = getBuildingNameByCoordinate(p.getSteps().getFirst());
+      String destination = getBuildingNameByCoordinate(p.getSteps().getLast());
+      pathObj.addProperty("source", source);
+      pathObj.addProperty("destination", destination);
+      pathArr.add(pathObj);
     }
+    return pathArr;
+  }
 
   /**
    * Returns building name by coordinate.
    *
    * @return a building name
    */
-    public String getBuildingNameByCoordinate(Coordinate coordinate) {
-        for (Building building : world.getBuildings()) {
-            if (building.getLocation().equals(coordinate)) {
-                return building.getName();
-            }
-        }
-        return null;
+  public String getBuildingNameByCoordinate(Coordinate coordinate) {
+    for (Building building : world.getBuildings()) {
+      if (building.getLocation().equals(coordinate)) {
+        return building.getName();
+      }
     }
-
+    return null;
+  }
 
   /**
    * Returns the current delivery coordinates in the system.
@@ -1020,10 +1046,9 @@ public class Simulation {
    *
    * @return a list of coordinates representing delivery positions
    */
-    public List<Coordinate> getDeliveryCoordinates() {
-        return deliverySchedule.getCurrentCoordinates();
-    }
-
+  public List<Coordinate> getDeliveryCoordinates() {
+    return deliverySchedule.getCurrentCoordinates();
+  }
 
   /**
    * Returns the list of all existing paths in the system.
@@ -1031,7 +1056,7 @@ public class Simulation {
    *
    * @return a list of all established paths
    */
-    public List<Path> getPathList() {
-        return pathList;
-    }
+  public List<Path> getPathList() {
+    return pathList;
+  }
 }
