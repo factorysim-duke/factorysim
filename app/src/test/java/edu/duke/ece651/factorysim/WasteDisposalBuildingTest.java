@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.google.gson.JsonObject;
 
@@ -142,5 +143,51 @@ public class WasteDisposalBuildingTest {
     assertEquals(2, sawdustJson.get("timeSteps").getAsInt());
     assertEquals(10, json.get("x").getAsInt());
     assertEquals(10, json.get("y").getAsInt());
+  }
+
+  private static class TestBuilding extends FactoryBuilding {
+    public TestBuilding(Type factoryType, String name, List<Building> sources, Simulation simulation) {
+      super(factoryType, name, sources, simulation);
+    }
+
+    @Override
+    public void deliverTo(Building destination, Item item, int quantity) {
+      destination.addToStorage(item, quantity);
+    }
+  }
+
+  @Test
+  public void test_building_with_waste_byproducts_from_json() {
+    Simulation jsonSimulation = new Simulation("src/main/resources/electronics_with_waste.json", 0,
+        new StreamLogger(System.out));
+    World world = jsonSimulation.getWorld();
+    Building originalFurnitureFactory = world.getBuildingFromName("furniture_factory");
+    WasteDisposalBuilding woodWasteDisposal = (WasteDisposalBuilding) world.getBuildingFromName("wood_waste_disposal");
+    Item wood = new Item("wood");
+    Item chair = new Item("chair");
+    Item sawdust = new Item("sawdust");
+    Recipe chairRecipe = world.getRecipeForItem(chair);
+
+    assertTrue(chairRecipe.hasWasteByProducts());
+    assertTrue(chairRecipe.getWasteByProducts().containsKey(sawdust));
+    assertEquals(20, chairRecipe.getWasteByProducts().get(sawdust));
+
+    Type factoryType = ((FactoryBuilding) originalFurnitureFactory).getFactoryType();
+    TestBuilding furnitureFactory = new TestBuilding(factoryType, "test_furniture_factory",
+        originalFurnitureFactory.getSources(), jsonSimulation);
+    furnitureFactory.setLocation(originalFurnitureFactory.getLocation());
+    List<Building> buildings = new ArrayList<>(world.getBuildings());
+    buildings.add(furnitureFactory);
+    world.setBuildings(buildings);
+    furnitureFactory.addToStorage(wood, 2);
+    Request chairRequest = new Request(1, chair, chairRecipe, furnitureFactory, null);
+    furnitureFactory.setCurrentRequest(chairRequest);
+    chairRequest.setRemainingSteps(0);
+
+    assertEquals(-1, woodWasteDisposal.getStorageNumberOf(sawdust));
+    furnitureFactory.finishCurrentRequest();
+    assertEquals(20, woodWasteDisposal.getStorageNumberOf(sawdust));
+    assertEquals(1, furnitureFactory.getStorageNumberOf(chair));
+    assertNull(furnitureFactory.getCurrentRequest());
   }
 }

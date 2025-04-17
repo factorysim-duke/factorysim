@@ -361,7 +361,7 @@ public abstract class Building {
     Item output = currentRequest.getItem();
     addToStorage(output, 1);
     
-    // dandle waste byproducts if exist
+    // handle waste byproducts if exist
     if (recipe.hasWasteByProducts()) {
       // find waste disposal buildings and allocate waste
       for (Map.Entry<Item, Integer> wasteEntry : recipe.getWasteByProducts().entrySet()) {
