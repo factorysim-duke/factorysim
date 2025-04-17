@@ -176,6 +176,11 @@ public abstract class Building {
    */
   public void deliverTo(Building destination, Item item, int quantity, boolean usePath) {
     destination.addToStorage(item, quantity);
+    
+    // if the destination is a waste disposal building, notify simulation about waste delivery
+    if (destination instanceof WasteDisposalBuilding) {
+      simulation.onWasteDelivered(item, quantity, destination, this);
+    }
   }
 
   /**
@@ -369,6 +374,7 @@ public abstract class Building {
         int quantity = wasteEntry.getValue();
         // find a waste disposal building that can handle this waste
         WasteDisposalBuilding disposalBuilding = findWasteDisposalBuilding(wasteType, quantity);
+        
         // if no waste disposal building can handle this waste, keep request active
         if (disposalBuilding == null) {
           return;
