@@ -174,8 +174,13 @@ public abstract class Building {
    * @param item        is the item to be delivered.
    * @param quantity    is the quantity of item to be delivered.
    */
-  public void deliverTo(Building destination, Item item, int quantity,boolean usePath) {
+  public void deliverTo(Building destination, Item item, int quantity, boolean usePath) {
     destination.addToStorage(item, quantity);
+    
+    // if the destination is a waste disposal building, notify simulation about waste delivery
+    if (destination instanceof WasteDisposalBuilding) {
+      simulation.onWasteDelivered(item, quantity, destination, this);
+    }
   }
 
   /**
@@ -355,16 +360,39 @@ public abstract class Building {
    * Finishes the current request by adjusting relavant statues.
    */
   public void finishCurrentRequest() {
+    Recipe recipe = currentRequest.getRecipe();
+
     // add the output item to storage
     Item output = currentRequest.getItem();
     addToStorage(output, 1);
+
+    // handle waste byproducts if exist
+    if (recipe.hasWasteByProducts()) {
+      // find waste disposal buildings and allocate waste
+      for (Map.Entry<Item, Integer> wasteEntry : recipe.getWasteByProducts().entrySet()) {
+        Item wasteType = wasteEntry.getKey();
+        int quantity = wasteEntry.getValue();
+        // find a waste disposal building that can handle this waste
+        WasteDisposalBuilding disposalBuilding = findWasteDisposalBuilding(wasteType, quantity);
+        
+        // if no waste disposal building can handle this waste, keep request active
+        if (disposalBuilding == null) {
+          return;
+        }
+        // reserve capacity and deliver waste
+        disposalBuilding.reserveCapacity(wasteType, quantity);
+        deliverTo(disposalBuilding, wasteType, quantity, false);
+      }
+    }
+
     // if the request is not user request (has deliverTo destination building),
     // deliver the output item
     if (currentRequest.isUserRequest() == false) {
       // deliver
       Building destinationBuilding = currentRequest.getDeliverTo();
       deliverTo(destinationBuilding, output, 1);
-//      simulation.onIngredientDelivered(currentRequest.getItem(), destinationBuilding, this); // notify simulation
+      // simulation.onIngredientDelivered(currentRequest.getItem(),
+      // destinationBuilding, this); // notify simulation
 
       // update our own storage
       takeFromStorage(output, 1);
@@ -373,6 +401,26 @@ public abstract class Building {
       simulation.onRequestCompleted(currentRequest);
     }
     currentRequest = null;
+  }
+
+  /**
+   * Finds a waste disposal building that can handle the specified waste type item
+   * and quantity.
+   *
+   * @param wasteType is the waste type to dispose of.
+   * @param quantity  is the quantity of waste to dispose of.
+   * @return an available waste disposal building, or null if none is found.
+   */
+  private WasteDisposalBuilding findWasteDisposalBuilding(Item wasteType, int quantity) {
+    for (Building building : simulation.getWorld().getBuildings()) {
+      if (building instanceof WasteDisposalBuilding) {
+        WasteDisposalBuilding disposalBuilding = (WasteDisposalBuilding) building;
+        if (disposalBuilding.canProduce(wasteType) && disposalBuilding.hasCapacityFor(wasteType, quantity)) {
+          return disposalBuilding;
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -500,7 +548,7 @@ public abstract class Building {
 
     // Process current request by one step
     if (currentRequest.process()) {
-      deliverTo(currentRequest.getDeliverTo(), currentRequest.getItem(), 1,false);
+      deliverTo(currentRequest.getDeliverTo(), currentRequest.getItem(), 1, false);
 
       // Current request is completed, setting it to null to indicate no request
       // processing for the next step

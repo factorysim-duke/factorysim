@@ -1,0 +1,148 @@
+{
+  "recipes": [
+    {
+      "output": "wood",
+      "ingredients": {},
+      "latency": 2
+    },
+    {
+      "output": "metal",
+      "ingredients": {},
+      "latency": 3
+    },
+    {
+      "output": "plastic",
+      "ingredients": {},
+      "latency": 2
+    },
+    {
+      "output": "chair",
+      "ingredients": {
+        "wood": 2
+      },
+      "latency": 5,
+      "waste": {
+        "sawdust": 20
+      }
+    },
+    {
+      "output": "table",
+      "ingredients": {
+        "wood": 4
+      },
+      "latency": 8,
+      "waste": {
+        "sawdust": 35
+      }
+    },
+    {
+      "output": "electronics",
+      "ingredients": {
+        "metal": 2,
+        "plastic": 3
+      },
+      "latency": 10,
+      "waste": {
+        "electronic_waste": 15,
+        "plastic_scraps": 10
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "furniture",
+      "recipes": ["chair", "table"]
+    },
+    {
+      "name": "electronics",
+      "recipes": ["electronics"]
+    }
+  ],
+  "buildings": [
+    {
+      "name": "wood_mine",
+      "mine": "wood",
+      "x": 10,
+      "y": 10
+    },
+    {
+      "name": "metal_mine",
+      "mine": "metal",
+      "x": 20,
+      "y": 10
+    },
+    {
+      "name": "plastic_mine",
+      "mine": "plastic",
+      "x": 30,
+      "y": 10
+    },
+    {
+      "name": "furniture_factory",
+      "type": "furniture",
+      "sources": ["wood_mine"],
+      "x": 50,
+      "y": 20
+    },
+    {
+      "name": "electronics_factory",
+      "type": "electronics",
+      "sources": ["metal_mine", "plastic_mine"],
+      "x": 70,
+      "y": 20
+    }
+  ],
+  "wasteDisposals": [
+    {
+      "name": "wood_waste_disposal",
+      "x": 50,
+      "y": 40,
+      "wasteTypes": {
+        "sawdust": {
+          "capacity": 400,
+          "disposalRate": 50,
+          "timeSteps": 2
+        }
+      }
+    },
+    {
+      "name": "electronics_waste_disposal",
+      "x": 90,
+      "y": 40,
+      "wasteTypes": {
+        "electronic_waste": {
+          "capacity": 300,
+          "disposalRate": 30,
+          "timeSteps": 3
+        },
+        "plastic_scraps": {
+          "capacity": 200,
+          "disposalRate": 25,
+          "timeSteps": 1
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "source": "wood_mine",
+      "destination": "furniture_factory"
+    },
+    {
+      "source": "metal_mine",
+      "destination": "electronics_factory"
+    },
+    {
+      "source": "plastic_mine",
+      "destination": "electronics_factory"
+    },
+    {
+      "source": "furniture_factory",
+      "destination": "wood_waste_disposal"
+    },
+    {
+      "source": "electronics_factory",
+      "destination": "electronics_waste_disposal"
+    }
+  ]
+}

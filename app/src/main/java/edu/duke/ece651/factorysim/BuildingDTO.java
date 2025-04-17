@@ -1,5 +1,6 @@
 package edu.duke.ece651.factorysim;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -22,9 +23,14 @@ public class BuildingDTO {
   /**
    * Gets the source building names for a building.
    * 
-   * @return the list of source building names of the building.
+   * @return the list of source building names of the building, or an empty list
+   *         if sources is null.
    */
   public List<String> getSources() {
-    return sources;
+    if (sources == null) {
+      return new ArrayList<>();
+    } else {
+      return sources;
+    }
   }
 }
