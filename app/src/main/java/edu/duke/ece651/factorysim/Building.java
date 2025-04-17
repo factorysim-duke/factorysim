@@ -168,11 +168,12 @@ public abstract class Building {
   }
 
   /**
-   * Delivers things to another building.
+   * Delivers things to another building. Do not use it, this is only for testing.
    *
    * @param destination is the destination building.
    * @param item        is the item to be delivered.
    * @param quantity    is the quantity of item to be delivered.
+   * @param usePath     must be false.
    */
   public void deliverTo(Building destination, Item item, int quantity, boolean usePath) {
     destination.addToStorage(item, quantity);
