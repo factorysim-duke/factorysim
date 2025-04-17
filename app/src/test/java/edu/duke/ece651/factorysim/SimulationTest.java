@@ -513,8 +513,8 @@ public class SimulationTest {
     logOutput.reset();
     boolean secondConnection = simulation.connectBuildings("W", "D");
     assertTrue(secondConnection);
-    simulation.getPathList().getFirst().dump();
-    simulation.getPathList().getLast().dump();
+//    simulation.getPathList().getFirst().dump();
+//    simulation.getPathList().getLast().dump();
 
     assertTrue(simulation.checkUsage(new Coordinate(0,0)));
     assertTrue(simulation.checkUsage(new Coordinate(0,1)));
