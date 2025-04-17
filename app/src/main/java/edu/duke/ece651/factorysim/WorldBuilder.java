@@ -138,9 +138,24 @@ public class WorldBuilder {
         Item ingredient = new Item(entry.getKey());
         ingredients.put(ingredient, entry.getValue());
       }
+      
+      // Create the waste byproducts map if present
+      LinkedHashMap<Item, Integer> wasteByProducts = new LinkedHashMap<>();
+      if (recipeDTO.waste != null) {
+        for (Map.Entry<String, Integer> entry : recipeDTO.waste.entrySet()) {
+          Item wasteItem = new Item(entry.getKey());
+          wasteByProducts.put(wasteItem, entry.getValue());
+        }
+      }
 
       // Create the recipe
-      Recipe recipe = new Recipe(output, ingredients, recipeDTO.latency);
+      Recipe recipe;
+      if (wasteByProducts.isEmpty()) {
+        recipe = new Recipe(output, ingredients, recipeDTO.latency);
+      } else {
+        recipe = new Recipe(output, ingredients, recipeDTO.latency, wasteByProducts);
+      }
+      
       recipes.put(recipeDTO.output, recipe);
     }
 
