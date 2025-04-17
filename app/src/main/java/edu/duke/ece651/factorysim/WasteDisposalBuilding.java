@@ -73,9 +73,11 @@ public class WasteDisposalBuilding extends Building {
     int currentStorage = getStorageNumberOf(wasteType);
     if (currentStorage == -1)
       currentStorage = 0;
+
     int reserved = reservedCapacityMap.getOrDefault(wasteType, 0);
-    int maxCapacityMapNum = maxCapacityMap.get(wasteType);
-    return (currentStorage + reserved + quantity) <= maxCapacityMapNum;
+    int maxCapacity = maxCapacityMap.get(wasteType);
+
+    return (currentStorage + reserved + quantity) <= maxCapacity;
   }
 
   /**
@@ -113,7 +115,7 @@ public class WasteDisposalBuilding extends Building {
   public void step() {
     super.step();
 
-    // process waste disposal
+    // process each waste type item
     for (Item wasteType : maxCapacityMap.keySet()) {
       processWasteType(wasteType);
     }
@@ -121,37 +123,46 @@ public class WasteDisposalBuilding extends Building {
 
   /**
    * Process a specific waste type item.
+   * The processing follows this pattern:
+   * 1. If there is no waste being processed, try to start a new batch
+   * 2. If there is waste being processed, increment the progress counter
+   * 3. Only when the required time steps are completed, actually dispose of the
+   * waste
    *
-   * @param wasteType is the waste type item to process.
+   * @param wasteType is the waste type  item to process.
    */
   private void processWasteType(Item wasteType) {
-    int currentQuantity = getStorageNumberOf(wasteType);
-    if (currentQuantity <= 0) {
+    int timeStepsNeeded = totalDisposalTimeStepsNeededMap.get(wasteType);
+    int rate = disposalRateMap.get(wasteType);
+    int currentProcessing = processingWasteMap.get(wasteType);
+    int currentProgress = currentDisposalProgressMap.get(wasteType);
+
+    // if we are already processing waste...
+    if (currentProcessing > 0) {
+      // increment the progress
+      currentProgress++;
+      currentDisposalProgressMap.put(wasteType, currentProgress);
+
+      // if we have completed the required time steps
+      if (currentProgress >= timeStepsNeeded) {
+        // remove the waste from storage
+        takeFromStorage(wasteType, currentProcessing);
+        // reset counters
+        processingWasteMap.put(wasteType, 0);
+        currentDisposalProgressMap.put(wasteType, 0);
+      }
       return;
     }
 
-    // if not currently processing this waste item, start a new batch
-    if (processingWasteMap.get(wasteType) == 0) {
-      int rate = disposalRateMap.get(wasteType);
-      int quantityToProcess = Math.min(currentQuantity, rate);
-      if (quantityToProcess > 0) {
-        processingWasteMap.put(wasteType, quantityToProcess);
-        currentDisposalProgressMap.put(wasteType, totalDisposalTimeStepsNeededMap.get(wasteType));
-        // remove waste from storage into processing
-        takeFromStorage(wasteType, quantityToProcess);
-      }
-    }
+    // if we are not processing anything, check if we can start a new batch
+    int currentStorage = getStorageNumberOf(wasteType);
+    if (currentStorage > 0) {
+      // calculate how much to process (no more than rate)
+      int amountToProcess = Math.min(currentStorage, rate);
 
-    // if already processing, decrease the time step counter
-    int progress = currentDisposalProgressMap.get(wasteType);
-    if (progress > 0 && processingWasteMap.get(wasteType) > 0) {
-      progress--;
-      currentDisposalProgressMap.put(wasteType, progress);
-
-      // if the disposal is complete, reset processing
-      if (progress == 0) {
-        processingWasteMap.put(wasteType, 0);
-      }
+      // start processing (but don't remove from storage yet)
+      processingWasteMap.put(wasteType, amountToProcess);
+      currentDisposalProgressMap.put(wasteType, 1);
     }
   }
 
