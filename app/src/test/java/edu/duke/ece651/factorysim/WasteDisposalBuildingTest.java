@@ -145,17 +145,6 @@ public class WasteDisposalBuildingTest {
     assertEquals(10, json.get("y").getAsInt());
   }
 
-  private static class TestBuilding extends FactoryBuilding {
-    public TestBuilding(Type factoryType, String name, List<Building> sources, Simulation simulation) {
-      super(factoryType, name, sources, simulation);
-    }
-
-    @Override
-    public void deliverTo(Building destination, Item item, int quantity) {
-      destination.addToStorage(item, quantity);
-    }
-  }
-
   @Test
   public void test_building_with_waste_byproducts_from_json() {
     Simulation jsonSimulation = new Simulation("src/main/resources/electronics_with_waste.json", 0,
@@ -173,7 +162,7 @@ public class WasteDisposalBuildingTest {
     assertEquals(20, chairRecipe.getWasteByProducts().get(sawdust));
 
     Type factoryType = ((FactoryBuilding) originalFurnitureFactory).getFactoryType();
-    TestBuilding furnitureFactory = new TestBuilding(factoryType, "test_furniture_factory",
+    FactoryBuilding furnitureFactory = new FactoryBuilding(factoryType, "test_furniture_factory",
         originalFurnitureFactory.getSources(), jsonSimulation);
     furnitureFactory.setLocation(originalFurnitureFactory.getLocation());
     List<Building> buildings = new ArrayList<>(world.getBuildings());
