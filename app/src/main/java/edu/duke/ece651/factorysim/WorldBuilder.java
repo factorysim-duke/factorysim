@@ -27,6 +27,13 @@ public class WorldBuilder {
     Map<String, Recipe> recipes = buildRecipes(configData.recipes);
     Map<String, Type> types = buildTypes(configData.types, recipes);
     Map<String, Building> buildings = buildBuildings(configData.buildings, types, recipes, simulation);
+
+    // build waste disposal buildings if applicable
+    if (configData.wasteDisposals != null && !configData.wasteDisposals.isEmpty()) {
+      Map<String, Building> wasteDisposals = buildWasteDisposalBuildings(configData.wasteDisposals, simulation);
+      buildings.putAll(wasteDisposals);
+    }
+
     validateBuildingsIngredients(buildings, types);
     World world = new World();
     world.setTypes(new ArrayList<>(types.values()));
@@ -47,7 +54,7 @@ public class WorldBuilder {
   /**
    * Builds an empty world.
    *
-   * @param boardWidth is the width of the board.
+   * @param boardWidth  is the width of the board.
    * @param boardHeight is the height of the board.
    * @return the World object.
    */
@@ -70,7 +77,7 @@ public class WorldBuilder {
   private static void buildConnections(List<ConnectionDTO> connectionDTOs, Simulation simulation) {
     Logger logger = simulation.getLogger();
     int verbosity = simulation.getVerbosity();
-    
+
     // store connection DTOs for later processing if world isn't ready
     if (simulation.getWorld() == null) {
       if (verbosity > 0) {
@@ -138,7 +145,7 @@ public class WorldBuilder {
         Item ingredient = new Item(entry.getKey());
         ingredients.put(ingredient, entry.getValue());
       }
-      
+
       // Create the waste byproducts map if present
       LinkedHashMap<Item, Integer> wasteByProducts = new LinkedHashMap<>();
       if (recipeDTO.waste != null) {
@@ -155,7 +162,7 @@ public class WorldBuilder {
       } else {
         recipe = new Recipe(output, ingredients, recipeDTO.latency, wasteByProducts);
       }
-      
+
       recipes.put(recipeDTO.output, recipe);
     }
 
@@ -424,5 +431,74 @@ public class WorldBuilder {
       }
     }
     return false;
+  }
+
+  /**
+   * Builds waste disposal buildings from the WasteDisposalDTOs.
+   *
+   * @param wasteDisposalDTOs is the list of waste disposal building
+   *                          configurations.
+   * @param simulation        is the simulation where the buildings will be
+   *                          created.
+   * @return a Map of waste disposal buildings.
+   */
+  private static Map<String, Building> buildWasteDisposalBuildings(List<WasteDisposalDTO> wasteDisposalDTOs,
+      Simulation simulation) {
+    Map<String, Building> wasteDisposals = new HashMap<>();
+    Set<String> usedNames = new HashSet<>();
+    Set<Coordinate> usedCoordinates = new HashSet<>();
+    List<Building> buildingsWithoutLocations = new ArrayList<>();
+    for (WasteDisposalDTO dto : wasteDisposalDTOs) {
+      Utils.validNameAndUnique(dto.name, usedNames);
+      usedNames.add(dto.name);
+      LinkedHashMap<Item, Integer> wasteCapacity = new LinkedHashMap<>();
+      LinkedHashMap<Item, Integer> disposalRates = new LinkedHashMap<>();
+      LinkedHashMap<Item, Integer> timeSteps = new LinkedHashMap<>();
+      // process each waste type item's configuration
+      for (Map.Entry<String, WasteDisposalDTO.WasteConfig> entry : dto.wasteTypes.entrySet()) {
+        String wasteName = entry.getKey();
+        WasteDisposalDTO.WasteConfig config = entry.getValue();
+        Item wasteItem = new Item(wasteName);
+        if (config.capacity <= 0) {
+          throw new IllegalArgumentException("Waste disposal building '" + dto.name
+              + "' has invalid capacity for waste type '" + wasteName + "': " + config.capacity);
+        }
+        if (config.disposalRate <= 0) {
+          throw new IllegalArgumentException("Waste disposal building '" + dto.name
+              + "' has invalid disposal rate for waste type '" + wasteName + "': " + config.disposalRate);
+        }
+        if (config.timeSteps <= 0) {
+          throw new IllegalArgumentException("Waste disposal building '" + dto.name
+              + "' has invalid time steps for waste type '" + wasteName + "': " + config.timeSteps);
+        }
+        // add the waste type item configuration
+        wasteCapacity.put(wasteItem, config.capacity);
+        disposalRates.put(wasteItem, config.disposalRate);
+        timeSteps.put(wasteItem, config.timeSteps);
+      }
+      // create the waste disposal building
+      WasteDisposalBuilding wasteDisposal = new WasteDisposalBuilding(dto.name, wasteCapacity, disposalRates, timeSteps,
+          simulation);
+      // set location
+      if (dto.x != null && dto.y != null) {
+        Coordinate location = new Coordinate(dto.x, dto.y);
+        if (usedCoordinates.contains(location)) {
+          throw new IllegalArgumentException("Multiple buildings at location (" + dto.x + ", " + dto.y + ")");
+        }
+        wasteDisposal.setLocation(location);
+        usedCoordinates.add(location);
+      } else {
+        buildingsWithoutLocations.add(wasteDisposal);
+      }
+
+      wasteDisposals.put(dto.name, wasteDisposal);
+    }
+    // assign locations to buildings without specified locations
+    for (Building building : buildingsWithoutLocations) {
+      Coordinate location = findValidLocation(usedCoordinates);
+      building.setLocation(location);
+      usedCoordinates.add(location);
+    }
+    return wasteDisposals;
   }
 }
