@@ -566,10 +566,8 @@ public class Simulation {
    */
   public void onWasteDelivered(Item wasteType, int quantity, Building disposalBuilding, Building sourceBuilding) {
     if (verbosity >= 1) {
-      logger.log("[waste delivered]: " + quantity + " " + wasteType.getName() +
-          " to " + disposalBuilding.getName() +
-          " from " + sourceBuilding.getName() +
-          " on cycle " + getCurrentTime());
+      logger.log("[waste delivered]: " + quantity + " " + wasteType.getName() + " to " + disposalBuilding.getName()
+          + " from " + sourceBuilding.getName() + " on cycle " + getCurrentTime());
     }
   }
 
