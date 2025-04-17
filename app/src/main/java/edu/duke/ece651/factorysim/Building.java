@@ -355,9 +355,30 @@ public abstract class Building {
    * Finishes the current request by adjusting relavant statues.
    */
   public void finishCurrentRequest() {
+    Recipe recipe = currentRequest.getRecipe();
+    
     // add the output item to storage
     Item output = currentRequest.getItem();
     addToStorage(output, 1);
+    
+    // dandle waste byproducts if exist
+    if (recipe.hasWasteByProducts()) {
+      // find waste disposal buildings and allocate waste
+      for (Map.Entry<Item, Integer> wasteEntry : recipe.getWasteByProducts().entrySet()) {
+        Item wasteType = wasteEntry.getKey();
+        int quantity = wasteEntry.getValue();
+        // find a waste disposal building that can handle this waste
+        WasteDisposalBuilding disposalBuilding = findWasteDisposalBuilding(wasteType, quantity);
+        // if no waste disposal building can handle this waste, keep request active
+        if (disposalBuilding == null) {
+          return;
+        }
+        // reserve capacity and deliver waste
+        disposalBuilding.reserveCapacity(wasteType, quantity);
+        deliverTo(disposalBuilding, wasteType, quantity);
+      }
+    }
+    
     // if the request is not user request (has deliverTo destination building),
     // deliver the output item
     if (currentRequest.isUserRequest() == false) {
@@ -373,6 +394,25 @@ public abstract class Building {
       simulation.onRequestCompleted(currentRequest);
     }
     currentRequest = null;
+  }
+
+  /**
+   * Finds a waste disposal building that can handle the specified waste type item and quantity.
+   *
+   * @param wasteType is the waste type to dispose of.
+   * @param quantity is the quantity of waste to dispose of.
+   * @return an available waste disposal building, or null if none is found.
+   */
+  private WasteDisposalBuilding findWasteDisposalBuilding(Item wasteType, int quantity) {
+    for (Building building : simulation.getWorld().getBuildings()) {
+      if (building instanceof WasteDisposalBuilding) {
+        WasteDisposalBuilding disposalBuilding = (WasteDisposalBuilding) building;
+        if (disposalBuilding.canProduce(wasteType) && disposalBuilding.hasCapacityFor(wasteType, quantity)) {
+          return disposalBuilding;
+        }
+      }
+    }
+    return null;
   }
 
   /**
