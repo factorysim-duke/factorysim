@@ -518,12 +518,12 @@ public class SimulationTest {
 
     assertTrue(simulation.checkUsage(new Coordinate(0,0)));
     assertTrue(simulation.checkUsage(new Coordinate(0,1)));
+
     boolean removeConnection = simulation.disconnectBuildings("W", "D");
     assertFalse(simulation.checkUsage(new Coordinate(1,0)));
     assertTrue(removeConnection);
+    assertThrows(IllegalArgumentException.class, () -> simulation.disconnectBuildings("W", "D"));
 
-    boolean secondRemove = simulation.disconnectBuildings("W", "D");
-    assertFalse(secondRemove);
   }
 
   @Test
@@ -606,8 +606,7 @@ public class SimulationTest {
         assertEquals(1, coordinates.size());
         assertEquals(W.getLocation(), coordinates.get(0));
 
-        boolean removeConnection = simulation.disconnectBuildings("W", "D");
-        assertFalse(removeConnection);
+        assertThrows(IllegalArgumentException.class,()->simulation.disconnectBuildings("W", "D"));
     }
 
   @Test

@@ -952,7 +952,7 @@ public class Simulation {
 
       if (path.isMatch(src, dst)) {
         if (deliverySchedule.checkUsingPath(index)) {
-          return false;
+          throw new IllegalArgumentException("The path is in use and cannot be removed.");
         }
 
         iterator.remove();
@@ -965,7 +965,7 @@ public class Simulation {
       index++;
     }
 
-    return false;
+    throw new IllegalArgumentException("The path does not exist.");
   }
 
     /**
