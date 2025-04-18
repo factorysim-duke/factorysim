@@ -357,6 +357,15 @@ public class Simulation {
   }
 
   /**
+   * Gets the `DeliverySchedule` instance of this simulation.
+   *
+   * @return the `DeliverySchedule` instance of this simulation.
+   */
+  public DeliverySchedule getDeliverySchedule() {
+    return this.deliverySchedule;
+  }
+
+  /**
    * Indicates a request was completed.
    * If verbosity >= 0, log order completion details.
    *
