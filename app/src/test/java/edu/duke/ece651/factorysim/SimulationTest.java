@@ -662,4 +662,10 @@ public class SimulationTest {
     assertSame(logger, sim.getLogger());
     assertEquals(3, sim.getVerbosity());
   }
+
+  @Test
+  public void test_getDeliverySchedule() {
+    Simulation sim = new TestUtils.MockSimulation();
+    assertSame(sim.deliverySchedule, sim.getDeliverySchedule());
+  }
 }

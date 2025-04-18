@@ -12,6 +12,8 @@ import java.util.List;
 public class DeliverySchedule {
     List<Delivery> deliveryList= new ArrayList<>();
 
+    private final List<DeliveryListener> listeners = new ArrayList<>();
+
     /**
      * Adds a delivery to the schedule.
      *
@@ -19,6 +21,11 @@ public class DeliverySchedule {
      */
     public void addDelivery(Delivery delivery) {
         deliveryList.add(delivery);
+
+        // Tell all listeners a delivery has been added
+        for (DeliveryListener listener : listeners) {
+            listener.onDeliveryAdded(delivery);
+        }
     }
 
     /**
@@ -42,6 +49,11 @@ public class DeliverySchedule {
             if (delivery.isArrive()) {
                 delivery.finishDelivery();
                 deliveriesToRemove.add(delivery);
+
+                // Tell all listeners a delivery has been finished
+                for (DeliveryListener listener : listeners) {
+                  listener.onDeliveryFinished(delivery);
+                }
             }
         }
         for (Delivery delivery : deliveriesToRemove) {
@@ -86,5 +98,13 @@ public class DeliverySchedule {
             json.add(delivery.toJson());
         }
         return json;
+    }
+
+    public void subscribe(DeliveryListener listener) {
+        listeners.add(listener);
+    }
+
+    public void unsubscribe(DeliveryListener listener) {
+        listeners.remove(listener);
     }
 }

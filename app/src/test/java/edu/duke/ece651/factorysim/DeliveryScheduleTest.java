@@ -56,4 +56,39 @@ class DeliveryScheduleTest {
         assertEquals(1,json.get(0).getAsJsonObject().get("quantity").getAsInt());
         assertEquals(5,json.get(0).getAsJsonObject().get("deliveryTime").getAsInt());
     }
+
+    @Test
+    void test_subscribe_unsubscribe() {
+        class TestListener implements DeliveryListener {
+            public boolean added = false;
+            public boolean finished = false;
+
+            @Override
+            public void onDeliveryAdded(Delivery delivery) {
+                added = true;
+            }
+
+            @Override
+            public void onDeliveryFinished(Delivery delivery) {
+                finished = true;
+            }
+        }
+        TestListener listener = new TestListener();
+        assertFalse(listener.added);
+        assertFalse(listener.finished);
+
+        deliverySchedule.subscribe(listener);
+
+        Delivery delivery = new Delivery(W, D, metal, 1, 5);
+        deliverySchedule.addDelivery(delivery);
+        assertTrue(listener.added);
+
+        sim.connectBuildings("W", "D");
+        for (int i = 0; i < 5; i++) {
+            deliverySchedule.step(sim.getPathList());
+        }
+        assertTrue(listener.finished);
+
+        deliverySchedule.unsubscribe(listener);
+    }
 }
