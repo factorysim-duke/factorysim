@@ -1234,8 +1234,8 @@ public class Simulation {
 
   /**
    * Attempts to mark a building for removal by name.
-   * If the building can be removed immediately, it is removed.
-   * Otherwise, it is marked for pending removal.
+   * If the building can be removed immediately, it is removed; otherwise, it is
+   * marked for pending removal.
    *
    * @param buildingName the name of the building to remove
    * @return true if the building was removed immediately, false if it was marked
