@@ -149,8 +149,8 @@ public class WasteDisposalBuilding extends Building {
         takeFromStorage(wasteType, currentProcessing);
         getSimulation().getLogger().log("[waste disposed]: " + currentProcessing + " units of " +
             wasteType.getName() + " processed at " +
-            this.getName() + " (time: " +
-            getSimulation().getCurrentTime() + ")");
+            this.getName() + " on cycle " +
+            getSimulation().getCurrentTime());
 
         // reset counters
         processingWasteMap.put(wasteType, 0);
@@ -166,8 +166,8 @@ public class WasteDisposalBuilding extends Building {
       int amountToProcess = Math.min(currentStorage, rate);
       getSimulation().getLogger().log("[waste processing started]: " + amountToProcess + " units of " +
           wasteType.getName() + " at " +
-          this.getName() + " (time: " +
-          getSimulation().getCurrentTime() + ")");
+          this.getName() + " on cycle " +
+          getSimulation().getCurrentTime());
 
       // start processing (but don't remove from storage yet)
       processingWasteMap.put(wasteType, amountToProcess);
