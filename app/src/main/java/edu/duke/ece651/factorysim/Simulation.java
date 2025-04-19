@@ -1035,8 +1035,9 @@ public class Simulation {
   // }
 
   /**
-   * Adds a delivery to the delivery schedule if a valid path exists between
-   * source and destination buildings.
+   * Delivers items from one building to another, using drone delivery if possible.
+   * Will use drone delivery if both buildings are within range of a drone port that has available drones.
+   * Otherwise, use normal road delivery.
    *
    * @param src      the source building
    * @param dst      the destination building
@@ -1046,27 +1047,58 @@ public class Simulation {
    *                                  and destination
    */
   public void addDelivery(Building src, Building dst, Item item, int quantity) {
-    boolean isConnected = false;
-    for (int i = 0; i < pathList.size(); i++) {
-      if (pathList.get(i).isMatch(src.getLocation(), dst.getLocation())) {
-        Delivery d = new Delivery(src, dst, item, quantity, pathList.get(i).getDeliveryTime(), i);
-        deliverySchedule.addDelivery(d);
-        isConnected = true;
-        break;
+    // check if drone delivery is possible; if so, priority over road
+    DronePortBuilding dronePortBuilding = findSuitableDronePort(src, dst);
+    
+    if (dronePortBuilding != null) {
+      // drone delivery is possible
+      DronePort dronePort = dronePortBuilding.getDronePort();
+      Drone drone = dronePort.getAvailableDrone();
+      DroneDelivery droneDelivery = new DroneDelivery(dronePort, drone, src, dst, item, quantity);
+      deliverySchedule.addDelivery(droneDelivery);
+      
+      if (verbosity > 0) {
+        logger.log("[drone delivery scheduled]: Using drone from " + dronePortBuilding.getName() + 
+                  " to deliver " + quantity + " " + item.getName() + 
+                  " from " + src.getName() + " to " + dst.getName());
+      }
+    } else {
+      // if drone not available, use normal road delivery
+      boolean isConnected = false;
+      for (int i = 0; i < pathList.size(); i++) {
+        if (pathList.get(i).isMatch(src.getLocation(), dst.getLocation())) {
+          Delivery d = new Delivery(src, dst, item, quantity, pathList.get(i).getDeliveryTime(), i);
+          deliverySchedule.addDelivery(d);
+          isConnected = true;
+          break;
+        }
+      }
+      if (!isConnected) {
+        throw new IllegalArgumentException("building " + src.getName() + " and " + dst.getName() + " are not connected");
       }
     }
-    if (!isConnected) {
-      throw new IllegalArgumentException("building " + src.getName() + " and " + dst.getName() + " are not connected");
+  }
+
+  /**
+   * Finds a suitable drone port for delivery between two buildings.
+   * A suitable drone port must have both buildings within its radius and have available drones.
+   *
+   * @param src the source building
+   * @param dst the destination building
+   * @return a suitable drone port building, or null if none is available
+   */
+  private DronePortBuilding findSuitableDronePort(Building src, Building dst) {
+    for (Building building : world.getBuildings()) {
+      if (building instanceof DronePortBuilding) {
+        DronePortBuilding dronePortBuilding = (DronePortBuilding) building;
+        DronePort dronePort = dronePortBuilding.getDronePort();
+        
+        if (dronePort.isWithinRadius(src) && dronePort.isWithinRadius(dst) && dronePort.hasAvailableDrone()) {
+          return dronePortBuilding;
+        }
+      }
     }
-    // if (pathList.containsKey(src.getLocation()) &&
-    // pathList.get(src.getLocation()).containsKey(dst.getLocation())) {
-    // Path path = pathList.get(src.getLocation()).get(dst.getLocation());
-    // Delivery d=new Delivery(src,dst, item, quantity, path.getDeliveryTime());
-    // deliverySchedule.addDelivery(d);
-    // } else {
-    // throw new IllegalArgumentException("building " + src.getName() + " and " +
-    // dst.getName() + " are not connected");
-    // }
+    return null;
   }
 
   /**
