@@ -59,7 +59,9 @@ public class DroneDelivery extends Delivery {
     int dx = Math.abs(from.getX() - to.getX());
     int dy = Math.abs(from.getY() - to.getY());
     int distance = dx + dy;    
-    return (int) Math.ceil((double) distance / Drone.getSpeed());
+    
+    int deliveryTime = (int) Math.ceil((double) distance / Drone.getSpeed());
+    return Math.max(1, deliveryTime);
   }
   
   /**
@@ -69,6 +71,7 @@ public class DroneDelivery extends Delivery {
   public void step() {
     if (deliveryTime > 0) {
       deliveryTime--;
+      
       // if we've reached the destination for the current state
       if (deliveryTime == 0) {
         Simulation sim = source.getSimulation();
