@@ -36,13 +36,14 @@ public class DronePortBuilding extends Building {
   /**
    * Creates a new drone at this drone port.
    *
-   * @return true if the drone was successfully created, false if the port is at maximum capacity
+   * @return true if the drone was successfully created, false if the port is at
+   *         maximum capacity
    */
   public boolean createDrone() {
     boolean created = dronePort.createDrone();
     if (created && getSimulation().getVerbosity() > 0) {
-      getSimulation().getLogger().log("[drone created]: New drone created at port " + getName() + 
-                                     ", total drones: " + dronePort.getDroneCount());
+      getSimulation().getLogger().log("[drone created]: New drone created at port " + getName() +
+          ", total drones: " + dronePort.getDroneCount());
     }
     return created;
   }
@@ -98,25 +99,21 @@ public class DronePortBuilding extends Building {
     JsonObject json = new JsonObject();
     json.addProperty("name", getName());
     json.addProperty("type", "DronePort");
-    
+
     JsonObject dronePortInfo = dronePort.toJson();
     json.addProperty("droneCount", dronePort.getDroneCount());
     json.addProperty("maxDrones", dronePort.getMaxDrones());
     json.addProperty("radius", dronePort.getRadius());
-    
+
     JsonArray sourcesArray = new JsonArray();
-    for (Building source : getSources()) {
-      sourcesArray.add(source.getName());
-    }
+    // drone ports have no sources
     json.add("sources", sourcesArray);
-    
-    if (getLocation() != null) {
-      json.addProperty("x", getLocation().getX());
-      json.addProperty("y", getLocation().getY());
-    }
-    
+
+    json.addProperty("x", getLocation().getX());
+    json.addProperty("y", getLocation().getY());
+
     json.add("drones", dronePortInfo.get("drones"));
-    
+
     return json;
   }
 }
