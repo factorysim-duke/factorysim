@@ -217,8 +217,7 @@ public abstract class Building {
    * The building MUST be able to process this request (because `Simulation` need
    * to log sub-request details).
    * NOTE: if you only want to add a request without requesting ingredients from
-   * sources, use `addPendingRequest`
-   * instead.
+   * sources, use `addPendingRequest` instead.
    *
    * @param request the request to be added.
    * @throws IllegalArgumentException when the building cannot process this
@@ -706,8 +705,7 @@ public abstract class Building {
    *
    * @param request the request to be considered.
    * @return true if the request was added, false if the building is marked for
-   *         removal
-   *         and the request wasn't allowed.
+   *         removal and the request wasn't allowed.
    */
   public boolean canAcceptRequest(Request request) {
     if (!pendingRemoval) {
