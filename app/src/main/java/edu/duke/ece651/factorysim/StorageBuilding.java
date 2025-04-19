@@ -146,7 +146,7 @@ public class StorageBuilding extends Building {
         Building destination = request.getDeliverTo();
         deliverTo(destination, storageItem, 1);
         takeFromStorage(storageItem, 1);
-//        getSimulation().onIngredientDelivered(storageItem, destination, this);
+        // getSimulation().onIngredientDelivered(storageItem, destination, this);
       }
     }
 
@@ -271,5 +271,43 @@ public class StorageBuilding extends Building {
       // if no stock, behave like factory
       return super.sumRemainingLatencies();
     }
+  }
+
+  /**
+   * Checks if this storage building can be removed immediately.
+   * A storage building can be removed immediately if it has no requests in its
+   * queue,
+   * no items in storage, and no outstanding requests for more items to store.
+   *
+   * @return true if the building can be removed immediately, false otherwise.
+   */
+  @Override
+  public boolean canBeRemovedImmediately() {
+    if (!getPendingRequests().isEmpty() || getCurrentRequest() != null) {
+      return false;
+    }
+    if (currentStockNum > 0 || outstandingRequestNum > 0 || arrivingItemNum > 0) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Determines if the storage building can accept a request.
+   * If the building is marked for removal, it only accepts requests that
+   * would take items from storage to help empty it.
+   *
+   * @param request the request to be considered
+   * @return true if the request is acceptable, false otherwise
+   */
+  @Override
+  public boolean canAcceptRequest(Request request) {
+    if (!isPendingRemoval()) {
+      return true;
+    }
+    if (request.getDeliverTo() != this && request.getProducer() == this) {
+      return true;
+    }
+    return false;
   }
 }

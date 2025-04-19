@@ -78,11 +78,11 @@ public class FactoryBuilding extends Building {
     return remainingLatency;
   }
 
-    /**
-     * Converts the factory building to a JSON object.
-     *
-     * @return a JsonObject representing the factory building.
-     */
+  /**
+   * Converts the factory building to a JSON object.
+   *
+   * @return a JsonObject representing the factory building.
+   */
   @Override
   public JsonObject toJson() {
     JsonObject json = new JsonObject();
@@ -109,5 +109,32 @@ public class FactoryBuilding extends Building {
     }
 
     return json;
+  }
+
+  /**
+   * Checks if this factory building can be removed immediately.
+   * A factory building can be removed immediately if it has no requests in its
+   * queue.
+   *
+   * @return true if the building can be removed immediately, false otherwise.
+   */
+  @Override
+  public boolean canBeRemovedImmediately() {
+    if (!getPendingRequests().isEmpty() || getCurrentRequest() != null) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Determines if the factory building can accept a request.
+   * If the building is marked for removal, it rejects all new requests.
+   *
+   * @param request the request to be considered
+   * @return true if the request is acceptable, false otherwise
+   */
+  @Override
+  public boolean canAcceptRequest(Request request) {
+    return !isPendingRemoval();
   }
 }

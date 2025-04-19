@@ -280,4 +280,31 @@ public class WasteDisposalBuilding extends Building {
 
     return baseFinished && allWasteDisposed;
   }
+
+  /**
+   * Checks if this waste disposal building can be removed immediately.
+   * A waste disposal building can be removed immediately if it has no requests in
+   * its queue.
+   *
+   * @return true if the building can be removed immediately, false otherwise.
+   */
+  @Override
+  public boolean canBeRemovedImmediately() {
+    if (!getPendingRequests().isEmpty() || getCurrentRequest() != null) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Determines if the waste disposal building can accept a request.
+   * If the building is marked for removal, it rejects all new requests.
+   *
+   * @param request the request to be considered
+   * @return true if the request is acceptable, false otherwise
+   */
+  @Override
+  public boolean canAcceptRequest(Request request) {
+    return !isPendingRemoval();
+  }
 }

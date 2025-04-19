@@ -708,9 +708,6 @@ public abstract class Building {
    *         removal and the request wasn't allowed.
    */
   public boolean canAcceptRequest(Request request) {
-    if (!pendingRemoval) {
-      return true;
-    }
-    return false;
+    return !pendingRemoval;
   }
 }

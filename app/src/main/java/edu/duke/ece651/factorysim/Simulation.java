@@ -217,6 +217,8 @@ public class Simulation {
       }
       currentTime++;
     }
+    // check if any pending removals can be completed
+    checkPendingRemovals();
   }
 
   /**
@@ -1203,4 +1205,107 @@ public class Simulation {
     return state;
   }
 
+  /**
+   * Attempts to mark a building for removal.
+   * If the building can be removed immediately, it is removed; otherwise, it is
+   * marked for pending removal.
+   *
+   * @param building the building to remove
+   * @return true if the building was removed immediately, false if it was marked
+   *         for pending removal
+   */
+  public boolean removeBuilding(Building building) {
+    if (building.canBeRemovedImmediately()) {
+      removeConnectionsForBuilding(building);
+      world.removeBuildingFromWorld(building);
+      if (verbosity > 0) {
+        logger.log("Building '" + building.getName() + "' has been removed.");
+      }
+      return true;
+    } else {
+      building.markForRemoval();
+      if (verbosity > 0) {
+        logger.log("Building '" + building.getName() + "' has been marked for removal. " +
+            "It will be removed once all pending operations complete.");
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Attempts to mark a building for removal by name.
+   * If the building can be removed immediately, it is removed.
+   * Otherwise, it is marked for pending removal.
+   *
+   * @param buildingName the name of the building to remove
+   * @return true if the building was removed immediately, false if it was marked
+   *         for pending removal
+   * @throws IllegalArgumentException if the building doesn't exist
+   */
+  public boolean removeBuilding(String buildingName) {
+    if (!world.hasBuilding(buildingName)) {
+      throw new IllegalArgumentException("Building '" + buildingName + "' does not exist.");
+    }
+
+    Building building = world.getBuildingFromName(buildingName);
+    return removeBuilding(building);
+  }
+
+  /**
+   * Checks if any buildings marked for removal can now be removed.
+   */
+  public void checkPendingRemovals() {
+    List<Building> buildings = world.getBuildings();
+    List<Building> removedBuildings = new ArrayList<>();
+    for (Building building : buildings) {
+      if (building.isPendingRemoval() && building.canBeRemovedImmediately()) {
+        removeConnectionsForBuilding(building);
+        removedBuildings.add(building);
+        if (verbosity > 0) {
+          logger
+              .log("Building '" + building.getName() + "' has completed all pending operations and has been removed.");
+        }
+      }
+    }
+    for (Building building : removedBuildings) {
+      world.removeBuildingFromWorld(building);
+    }
+  }
+
+  /**
+   * Removes all connections to and from a building.
+   *
+   * @param building the building whose connections should be removed
+   */
+  private void removeConnectionsForBuilding(Building building) {
+    List<Building> connectedBuildings = new ArrayList<>();
+    // find all buildings that this building is a source for
+    for (Building otherBuilding : world.getBuildings()) {
+      if (otherBuilding != building && otherBuilding.getSources().contains(building)) {
+        connectedBuildings.add(otherBuilding);
+      }
+    }
+    // disconnect this building from each connected building
+    for (Building otherBuilding : connectedBuildings) {
+      try {
+        disconnectBuildings(building, otherBuilding);
+      } catch (IllegalArgumentException e) {
+        if (verbosity > 0) {
+          logger.log("Failed to disconnect " + building.getName() + " from " +
+              otherBuilding.getName() + ": " + e.getMessage());
+        }
+      }
+    }
+    // also disconnect all buildings that are sources for this building
+    for (Building source : new ArrayList<>(building.getSources())) {
+      try {
+        disconnectBuildings(source, building);
+      } catch (IllegalArgumentException e) {
+        if (verbosity > 0) {
+          logger.log("Failed to disconnect " + source.getName() + " from " +
+              building.getName() + ": " + e.getMessage());
+        }
+      }
+    }
+  }
 }
