@@ -1,12 +1,11 @@
 package edu.duke.ece651.factorysim;
 
 import com.google.gson.*;
-
+import edu.duke.ece651.factorysim.db.SessionDAO;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static edu.duke.ece651.factorysim.TileType.ROAD;
 
 /**
  * Runs the factory simulation, managing buildings and item production.
@@ -590,45 +589,7 @@ public class Simulation {
   public void save(String fileName) {
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     try (FileWriter writer = new FileWriter(fileName)) {
-      JsonObject state = new JsonObject();
-
-      state.addProperty("currentTime", currentTime);
-      state.addProperty("finished", finished);
-      state.addProperty("nextOrderNum", nextOrderNum);
-      state.addProperty("verbosity", verbosity);
-
-      JsonArray typesArray = new JsonArray();
-      for (Type type : world.getTypes()) {
-        typesArray.add(type.toJson());
-      }
-      state.add("types", typesArray);
-
-      JsonArray buildingsArray = new JsonArray();
-      for (Building building : world.getBuildings()) {
-        buildingsArray.add(building.toJson());
-      }
-      state.add("buildings", buildingsArray);
-
-      JsonArray recipesArray = new JsonArray();
-      for (Recipe recipe : world.getRecipes()) {
-        recipesArray.add(recipe.toJson());
-      }
-      state.add("recipes", recipesArray);
-
-      JsonArray requestArray = new JsonArray();
-      for (Building building : world.getBuildings()) {
-        if (building.getCurrentRequest() != null) {
-          requestArray.add(building.getCurrentRequest().toJson());
-        }
-        if (!building.getPendingRequest().isEmpty()) {
-          building.getPendingRequest().forEach(request -> requestArray.add(request.toJson()));
-        }
-      }
-      state.add("requests", requestArray);
-      // state.add("tileMap", world.tileMap.toJson());
-      state.add("connections", pathListToJson());
-      state.add("deliveries", deliverySchedule.toJson());
-      gson.toJson(state, writer);
+      gson.toJson(getGameState(), writer);
       logger.log("Simulation saved to " + fileName);
     } catch (IOException e) {
       throw new IllegalArgumentException("invalid file name for save" + fileName);
@@ -967,7 +928,7 @@ public class Simulation {
         iterator.remove();
 
         for (Coordinate step : getCoordinatesToRemove(path)) {
-          world.tileMap.setTileType(step, ROAD);
+          world.tileMap.setTileType(step, TileType.ROAD);
         }
         return true;
       }
@@ -1156,6 +1117,62 @@ public class Simulation {
   }
 
 
+  public void saveToDB(String userId) {
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    String jsonStr = gson.toJson(getGameState());
+    SessionDAO.saveSession(userId, jsonStr);
+    logger.log("Simulation saved to DB for user " + userId);
+  }
 
+  public void loadFromDB(String userId) {
+    String json = SessionDAO.loadSession(userId);
+    if (json == null) {
+      throw new IllegalArgumentException("No saved session found for user: " + userId);
+    }
+    Reader reader = new StringReader(json);
+    loadFromReader(reader);
+    logger.log("Simulation loaded from DB for user " + userId);
+  }
+
+  public JsonObject getGameState() {
+    JsonObject state = new JsonObject();
+    state.addProperty("currentTime", currentTime);
+    state.addProperty("finished", finished);
+    state.addProperty("nextOrderNum", nextOrderNum);
+    state.addProperty("verbosity", verbosity);
+
+    JsonArray typesArray = new JsonArray();
+    for (Type type : world.getTypes()) {
+      typesArray.add(type.toJson());
+    }
+    state.add("types", typesArray);
+
+    JsonArray buildingsArray = new JsonArray();
+    for (Building building : world.getBuildings()) {
+      buildingsArray.add(building.toJson());
+    }
+    state.add("buildings", buildingsArray);
+
+    JsonArray recipesArray = new JsonArray();
+    for (Recipe recipe : world.getRecipes()) {
+      recipesArray.add(recipe.toJson());
+    }
+    state.add("recipes", recipesArray);
+
+    JsonArray requestArray = new JsonArray();
+    for (Building building : world.getBuildings()) {
+      if (building.getCurrentRequest() != null) {
+        requestArray.add(building.getCurrentRequest().toJson());
+      }
+      if (!building.getPendingRequest().isEmpty()) {
+        building.getPendingRequest().forEach(request -> requestArray.add(request.toJson()));
+      }
+    }
+    state.add("requests", requestArray);
+    // state.add("tileMap", world.tileMap.toJson());
+    state.add("connections", pathListToJson());
+    state.add("deliveries", deliverySchedule.toJson());
+    return state;
+  }
 
 }

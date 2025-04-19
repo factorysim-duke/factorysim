@@ -3,6 +3,7 @@
  */
 package edu.duke.ece651.factorysim;
 
+import edu.duke.ece651.factorysim.db.SessionDAO;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

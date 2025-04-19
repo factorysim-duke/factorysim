@@ -6,6 +6,8 @@
  */
 package edu.duke.ece651.factorysim;
 
+import edu.duke.ece651.factorysim.db.DBInitializer;
+
 import java.io.*;
 
 /**
@@ -73,6 +75,7 @@ public class App {
     // BufferedReader inputReader = new BufferedReader(new
     // InputStreamReader(System.in));
     // actualMain(filePath, inputReader);
+    DBInitializer.init();
     String filePath = args[0];
     BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
     App app = new App(filePath, inputReader);
