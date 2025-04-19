@@ -183,4 +183,19 @@ public class WasteDisposalBuildingTest {
     assertEquals(1, furnitureFactory.getStorageNumberOf(chair));
     assertNull(furnitureFactory.getCurrentRequest());
   }
+
+  @Test
+  public void test_is_finished_with_waste_processing() {
+    assertTrue(wasteDisposal.isFinished());
+    Item sawdust = new Item("sawdust");
+    wasteDisposal.addToStorage(sawdust, 50);
+    assertFalse(wasteDisposal.isFinished());
+    Item plastic = new Item("plastic_waste");
+    wasteDisposal.reserveCapacity(plastic, 10);
+    assertFalse(wasteDisposal.isFinished());
+    wasteDisposal.takeFromStorage(sawdust, 50);
+    assertFalse(wasteDisposal.isFinished());
+    wasteDisposal.releaseReservedCapacity(plastic, 10);
+    assertTrue(wasteDisposal.isFinished());
+  }
 }

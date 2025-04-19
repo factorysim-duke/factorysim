@@ -247,4 +247,27 @@ public class WasteDisposalBuilding extends Building {
 
     return json;
   }
+  /**
+   * Checks if the waste disposal building is finished.
+   *
+   * @return true if the waste disposal building is finished, false otherwise.
+   */
+  @Override
+  public boolean isFinished() {
+    boolean baseFinished = super.isFinished();
+    
+    // check if all waste has been disposed
+    boolean allWasteDisposed = true;
+    for (Item wasteType : maxCapacityMap.keySet()) {
+      int currentStorage = getStorageNumberOf(wasteType);
+      int currentProcessing = processingWasteMap.get(wasteType);
+      int reserved = reservedCapacityMap.getOrDefault(wasteType, 0);      
+      if (currentStorage > 0 || currentProcessing > 0 || reserved > 0) {
+        allWasteDisposed = false;
+        break;
+      }
+    }
+    
+    return baseFinished && allWasteDisposed;
+  }
 }
