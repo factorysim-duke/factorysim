@@ -56,11 +56,11 @@ public class DeliverySchedule {
                 }
             }
         }
-        for (Delivery delivery : deliveriesToRemove) {
-            deliveryList.remove(delivery);
-        }
         for (Delivery delivery : deliveryList) {
             delivery.updateCurrentCoordinate(pathList);
+        }
+        for (Delivery delivery : deliveriesToRemove) {
+            deliveryList.remove(delivery);
         }
     }
 
