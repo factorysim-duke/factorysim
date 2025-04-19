@@ -232,7 +232,9 @@ public class WorldBuilder {
       usedNames.add(buildingDTO.name);
       Building building;
 
-      if (buildingDTO.stores != null) {
+      if (buildingDTO.type != null && buildingDTO.type.equals("DronePort")) {
+        building = new DronePortBuilding(buildingDTO.name, new ArrayList<>(), simulation);
+      } else if (buildingDTO.stores != null) {
         if (buildingDTO.capacity == null || buildingDTO.priority == null) {
           throw new IllegalArgumentException("Storage building '" + buildingDTO.name
               + "' must have both capacity and priority defined.");
