@@ -158,4 +158,59 @@ public class MineBuildingTest {
     MineBuilding ironMine = new MineBuilding(miningRecipe, "ironMine", sim);
     assertSame(sim, ironMine.getSimulation());
   }
+
+  @Test
+  public void test_canBeRemovedImmediately() {
+    Item iron = new Item("iron");
+    Recipe ironRecipe = TestUtils.makeTestRecipe("iron", 2, 1);
+    MineBuilding testBuilding = new MineBuilding(ironRecipe, "ironMine", new TestUtils.MockSimulation());
+    assertTrue(testBuilding.canBeRemovedImmediately());
+    FactoryBuilding factory = new FactoryBuilding(new Type("IronFactory", new ArrayList<>()), "IronFactory",
+        List.of(testBuilding), new TestUtils.MockSimulation());
+    Request request = new Request(1, iron, ironRecipe, testBuilding, factory);
+    testBuilding.prependPendingRequest(request);
+    assertFalse(testBuilding.canBeRemovedImmediately());
+    testBuilding.getPendingRequests().clear();
+    assertTrue(testBuilding.canBeRemovedImmediately());
+    testBuilding.setCurrentRequest(request);
+    assertFalse(testBuilding.canBeRemovedImmediately());
+  }
+
+  @Test
+  public void test_canAcceptRequest() {
+    Item iron = new Item("iron");
+    Recipe ironRecipe = TestUtils.makeTestRecipe("iron", 2, 1);
+    MineBuilding testBuilding = new MineBuilding(ironRecipe, "ironMine", new TestUtils.MockSimulation());
+    FactoryBuilding factory = new FactoryBuilding(new Type("IronFactory", new ArrayList<>()), "IronFactory",
+        List.of(testBuilding), new TestUtils.MockSimulation());
+    Request request = new Request(1, iron, ironRecipe, testBuilding, factory);
+    assertTrue(testBuilding.canAcceptRequest(request));
+    testBuilding.prependPendingRequest(request);
+    assertFalse(testBuilding.markForRemoval());
+    assertTrue(testBuilding.isPendingRemoval());
+    assertFalse(testBuilding.canAcceptRequest(request));
+  }
+
+  @Test
+  public void test_markForRemoval() {
+    Item iron = new Item("iron");
+    Recipe ironRecipe = TestUtils.makeTestRecipe("iron", 2, 1);
+    MineBuilding testBuilding = new MineBuilding(ironRecipe, "ironMine", new TestUtils.MockSimulation());
+    assertFalse(testBuilding.isPendingRemoval());
+    assertTrue(testBuilding.markForRemoval());
+    FactoryBuilding factory = new FactoryBuilding(new Type("IronFactory", new ArrayList<>()), "IronFactory",
+        List.of(testBuilding), new TestUtils.MockSimulation());
+    Request request = new Request(1, iron, ironRecipe, testBuilding, factory);
+    java.lang.reflect.Field pendingRemovalField;
+    try {
+      pendingRemovalField = Building.class.getDeclaredField("pendingRemoval");
+      pendingRemovalField.setAccessible(true);
+      pendingRemovalField.set(testBuilding, false);
+    } catch (Exception e) {
+      fail("Failed to reset pendingRemoval field: " + e.getMessage());
+    }
+    testBuilding.prependPendingRequest(request);
+    assertFalse(testBuilding.markForRemoval());
+    assertTrue(testBuilding.isPendingRemoval());
+  }
 }
