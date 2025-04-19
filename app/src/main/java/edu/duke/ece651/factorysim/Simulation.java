@@ -6,7 +6,6 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 /**
  * Runs the factory simulation, managing buildings and item production.
  */
@@ -578,6 +577,15 @@ public class Simulation {
     if (verbosity >= 1) {
       logger.log("[waste delivered]: " + quantity + " " + wasteType.getName() + " to " + disposalBuilding.getName()
           + " from " + sourceBuilding.getName() + " on cycle " + getCurrentTime());
+      if (disposalBuilding instanceof WasteDisposalBuilding) {
+        WasteDisposalBuilding wasteDisposal = (WasteDisposalBuilding) disposalBuilding;
+        int rate = wasteDisposal.getDisposalRateFor(wasteType);
+        int timeSteps = wasteDisposal.getDisposalTimeStepsFor(wasteType);
+
+        logger.log("[waste processing]: " + disposalBuilding.getName() + " will process " +
+            wasteType.getName() + " at a rate of " + rate + " units per " +
+            timeSteps + " time steps");
+      }
     }
   }
 
@@ -900,16 +908,15 @@ public class Simulation {
     return path;
   }
 
-
-    /**
-     * Disconnects two buildings by removing the path between them.
-     * If the path is in use, it cannot be removed.
-     *
-     * @param srcBuilding is the source building to disconnect.
-     * @param dstBuilding is the destination building to disconnect.
-     * @return true if the buildings are successfully disconnected, false
-     *         otherwise.
-     */
+  /**
+   * Disconnects two buildings by removing the path between them.
+   * If the path is in use, it cannot be removed.
+   *
+   * @param srcBuilding is the source building to disconnect.
+   * @param dstBuilding is the destination building to disconnect.
+   * @return true if the buildings are successfully disconnected, false
+   *         otherwise.
+   */
   public boolean disconnectBuildings(Building srcBuilding, Building dstBuilding) {
     Coordinate src = srcBuilding.getLocation();
     Coordinate dst = dstBuilding.getLocation();
@@ -938,12 +945,12 @@ public class Simulation {
     throw new IllegalArgumentException("The path does not exist.");
   }
 
-    /**
-     * Gets the coordinates to remove from the tile map.
-     *
-     * @param path the path to check
-     * @return a list of coordinates to remove
-     */
+  /**
+   * Gets the coordinates to remove from the tile map.
+   *
+   * @param path the path to check
+   * @return a list of coordinates to remove
+   */
   public List<Coordinate> getCoordinatesToRemove(Path path) {
     List<Coordinate> coordinates = new ArrayList<>();
     for (Coordinate step : path.getSteps()) {
@@ -954,12 +961,12 @@ public class Simulation {
     return coordinates;
   }
 
-    /**
-     * Checks if a coordinate is used in any path or building.
-     *
-     * @param step the coordinate to check
-     * @return true if the coordinate is used, false otherwise
-     */
+  /**
+   * Checks if a coordinate is used in any path or building.
+   *
+   * @param step the coordinate to check
+   * @return true if the coordinate is used, false otherwise
+   */
   public boolean checkUsage(Coordinate step) {
     if (getBuildingNameByCoordinate(step) != null) {
       return true;
@@ -971,7 +978,6 @@ public class Simulation {
     }
     return false;
   }
-
 
   /**
    * Attempts to connect two buildings by name using the shortest valid path on
@@ -990,16 +996,15 @@ public class Simulation {
     return connectBuildings(world.getBuildingFromName(sourceName), world.getBuildingFromName(destName)) != null;
   }
 
-
-    /**
-     * Attempts to disconnect two buildings by name.
-     * If the path is in use, it cannot be removed.
-     *
-     * @param sourceName the name of the source building
-     * @param destName   the name of the destination building
-     * @return true if the buildings are successfully disconnected, false
-     *         otherwise
-     */
+  /**
+   * Attempts to disconnect two buildings by name.
+   * If the path is in use, it cannot be removed.
+   *
+   * @param sourceName the name of the source building
+   * @param destName   the name of the destination building
+   * @return true if the buildings are successfully disconnected, false
+   *         otherwise
+   */
   public boolean disconnectBuildings(String sourceName, String destName) {
     return disconnectBuildings(world.getBuildingFromName(sourceName), world.getBuildingFromName(destName));
   }
@@ -1120,7 +1125,8 @@ public class Simulation {
    * Saves the current simulation state to the database for a given user.
    *
    * This method serializes the internal game state as a JSON string and stores
-   * it in the `sessions` table of the SQLite database, associated with the specified user ID.
+   * it in the `sessions` table of the SQLite database, associated with the
+   * specified user ID.
    *
    * @param userId the identifier of the user whose session is being saved.
    */
@@ -1138,7 +1144,8 @@ public class Simulation {
    * the database and reconstructs the simulation state using it.
    *
    * @param userId the identifier of the user whose session is to be loaded.
-   * @throws IllegalArgumentException if no saved session is found for the given user ID.
+   * @throws IllegalArgumentException if no saved session is found for the given
+   *                                  user ID.
    */
   public void loadFromDB(String userId) {
     String json = SessionDAO.loadSession(userId);
@@ -1150,11 +1157,11 @@ public class Simulation {
     logger.log("Simulation loaded from DB for user " + userId);
   }
 
-    /**
-     * Converts the current game state into a JSON object.
-     *
-     * @return a JsonObject representing the current game state
-     */
+  /**
+   * Converts the current game state into a JSON object.
+   *
+   * @return a JsonObject representing the current game state
+   */
   public JsonObject getGameState() {
     JsonObject state = new JsonObject();
     state.addProperty("currentTime", currentTime);

@@ -104,36 +104,6 @@ public class WasteDisposalBuildingTest {
   }
 
   @Test
-  public void test_processing_waste() {
-    wasteDisposal.addToStorage(sawdust, 51);
-    // wasteDisposal.step();
-    // assertEquals(51, wasteDisposal.getStorageNumberOf(sawdust));
-    // wasteDisposal.step();
-    // assertEquals(1, wasteDisposal.getStorageNumberOf(sawdust));
-    // wasteDisposal.step();
-    // assertEquals(1, wasteDisposal.getStorageNumberOf(sawdust));
-    // wasteDisposal.step();
-    for (int i = 0; i < 300; i++) {
-      wasteDisposal.step(); // use delivery schedule to deliver waste, not sure how much step to use until
-                            // waste delivered
-    }
-    assertEquals(-1, wasteDisposal.getStorageNumberOf(sawdust));
-  }
-
-  // @Test
-  // public void test_partial_processing() {
-  // wasteDisposal.addToStorage(sawdust, 75);
-  // wasteDisposal.step();
-  // wasteDisposal.step();
-  // assertEquals(25, wasteDisposal.getStorageNumberOf(sawdust));
-  // wasteDisposal.step();
-  // wasteDisposal.step();
-  // assertEquals(-1, wasteDisposal.getStorageNumberOf(sawdust));
-  // wasteDisposal.step();
-  // wasteDisposal.step();
-  // }
-
-  @Test
   public void test_to_json() {
     JsonObject json = wasteDisposal.toJson();
     assertEquals("test_waste_disposal", json.get("name").getAsString());
@@ -197,5 +167,42 @@ public class WasteDisposalBuildingTest {
     assertFalse(wasteDisposal.isFinished());
     wasteDisposal.releaseReservedCapacity(plastic, 10);
     assertTrue(wasteDisposal.isFinished());
+  }
+
+  @Test
+  public void test_finish_delivery_releases_waste_capacity() {
+    World world = new World();
+    world.setTileMapDimensions(10, 10);
+    world.setBuildings(new java.util.ArrayList<>());
+    Simulation sim = new Simulation(world, 0, new StreamLogger(System.out));
+    LinkedHashMap<Item, Integer> wasteTypes = new LinkedHashMap<>();
+    LinkedHashMap<Item, Integer> disposalRates = new LinkedHashMap<>();
+    LinkedHashMap<Item, Integer> timeSteps = new LinkedHashMap<>();
+    Item sawdust = new Item("sawdust");
+    wasteTypes.put(sawdust, 100);
+    disposalRates.put(sawdust, 10);
+    timeSteps.put(sawdust, 2);
+    WasteDisposalBuilding wasteDisposal = new WasteDisposalBuilding("waste_disposal", wasteTypes, disposalRates,
+        timeSteps, sim);
+    wasteDisposal.setLocation(new Coordinate(1, 1));
+    world.tryAddBuilding(wasteDisposal);
+    Building sourceBuilding = new TestUtils.MockBuilding("source");
+    sourceBuilding.setLocation(new Coordinate(2, 2));
+    boolean reserved = wasteDisposal.reserveCapacity(sawdust, 20);
+    assertTrue(reserved);
+    Delivery delivery = new Delivery(sourceBuilding, wasteDisposal, sawdust, 20, 5);
+
+    while (!delivery.isArrive()) {
+      delivery.step();
+    }
+    delivery.finishDelivery();
+    assertEquals(20, wasteDisposal.getStorageNumberOf(sawdust));
+    assertFalse(wasteDisposal.isFinished());
+    wasteDisposal.step();
+    wasteDisposal.step();
+    wasteDisposal.step();
+    wasteDisposal.step();
+    assertTrue(wasteDisposal.isFinished());
+    assertEquals(-1, wasteDisposal.getStorageNumberOf(sawdust));
   }
 }

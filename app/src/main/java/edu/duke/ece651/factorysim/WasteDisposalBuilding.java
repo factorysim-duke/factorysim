@@ -129,7 +129,7 @@ public class WasteDisposalBuilding extends Building {
    * 3. Only when the required time steps are completed, actually dispose of the
    * waste
    *
-   * @param wasteType is the waste type  item to process.
+   * @param wasteType is the waste type item to process.
    */
   private void processWasteType(Item wasteType) {
     int timeStepsNeeded = totalDisposalTimeStepsNeededMap.get(wasteType);
@@ -147,6 +147,11 @@ public class WasteDisposalBuilding extends Building {
       if (currentProgress >= timeStepsNeeded) {
         // remove the waste from storage
         takeFromStorage(wasteType, currentProcessing);
+        getSimulation().getLogger().log("[waste disposed]: " + currentProcessing + " units of " +
+            wasteType.getName() + " processed at " +
+            this.getName() + " (time: " +
+            getSimulation().getCurrentTime() + ")");
+
         // reset counters
         processingWasteMap.put(wasteType, 0);
         currentDisposalProgressMap.put(wasteType, 0);
@@ -159,6 +164,10 @@ public class WasteDisposalBuilding extends Building {
     if (currentStorage > 0) {
       // calculate how much to process (no more than rate)
       int amountToProcess = Math.min(currentStorage, rate);
+      getSimulation().getLogger().log("[waste processing started]: " + amountToProcess + " units of " +
+          wasteType.getName() + " at " +
+          this.getName() + " (time: " +
+          getSimulation().getCurrentTime() + ")");
 
       // start processing (but don't remove from storage yet)
       processingWasteMap.put(wasteType, amountToProcess);
@@ -247,6 +256,7 @@ public class WasteDisposalBuilding extends Building {
 
     return json;
   }
+
   /**
    * Checks if the waste disposal building is finished.
    *
@@ -255,19 +265,19 @@ public class WasteDisposalBuilding extends Building {
   @Override
   public boolean isFinished() {
     boolean baseFinished = super.isFinished();
-    
+
     // check if all waste has been disposed
     boolean allWasteDisposed = true;
     for (Item wasteType : maxCapacityMap.keySet()) {
       int currentStorage = getStorageNumberOf(wasteType);
       int currentProcessing = processingWasteMap.get(wasteType);
-      int reserved = reservedCapacityMap.getOrDefault(wasteType, 0);      
+      int reserved = reservedCapacityMap.getOrDefault(wasteType, 0);
       if (currentStorage > 0 || currentProcessing > 0 || reserved > 0) {
         allWasteDisposed = false;
         break;
       }
     }
-    
+
     return baseFinished && allWasteDisposed;
   }
 }
