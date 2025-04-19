@@ -18,7 +18,7 @@ public class DBInitializer {
         try (Connection conn = DBManager.connect();
              Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
-            System.out.println("connect successfully");
+//            System.out.println("Database connected successfully.");
         } catch (Exception e) {
             e.printStackTrace();
         }
