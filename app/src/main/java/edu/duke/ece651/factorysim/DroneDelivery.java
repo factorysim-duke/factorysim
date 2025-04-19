@@ -76,6 +76,7 @@ public class DroneDelivery extends Delivery {
           case TO_SOURCE:
             // arrived at source, now head to destination
             currentCoordinate = source.getLocation();
+            source.takeFromStorage(item, quantity);
             deliveryTime = calculateDeliveryTime(source.getLocation(), destination.getLocation());
             state = DeliveryState.TO_DESTINATION;
             if (sim.getVerbosity() > 0) {
@@ -133,6 +134,13 @@ public class DroneDelivery extends Delivery {
    */
   @Override
   public void finishDelivery() {
+  }
+  
+  /**
+   * Do nothing for drone deliveries since drone deliveries don't use paths and their coordinates are updated in their step method.
+   */
+  @Override
+  public void updateCurrentCoordinate(java.util.List<Path> pathList) {
   }
   
   /**
