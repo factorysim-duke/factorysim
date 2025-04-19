@@ -8,6 +8,11 @@ import java.sql.SQLException;
 public class DBManager {
     private static final String DB_URL = "jdbc:sqlite:data/factory.db";
 
+    /**
+     * Connects to the SQLite database.
+     *
+     * @return Connection object or null if connection fails.
+     */
     public static Connection connect() {
         try {
             File dbDir = new File("data");

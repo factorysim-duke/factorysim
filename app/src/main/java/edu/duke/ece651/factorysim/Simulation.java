@@ -1116,7 +1116,14 @@ public class Simulation {
     return pathList;
   }
 
-
+  /**
+   * Saves the current simulation state to the database for a given user.
+   *
+   * This method serializes the internal game state as a JSON string and stores
+   * it in the `sessions` table of the SQLite database, associated with the specified user ID.
+   *
+   * @param userId the identifier of the user whose session is being saved.
+   */
   public void saveToDB(String userId) {
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     String jsonStr = gson.toJson(getGameState());
@@ -1124,6 +1131,15 @@ public class Simulation {
     logger.log("Simulation saved to DB for user " + userId);
   }
 
+  /**
+   * Loads a simulation state from the database for a given user.
+   *
+   * This method retrieves the JSON string associated with the user ID from
+   * the database and reconstructs the simulation state using it.
+   *
+   * @param userId the identifier of the user whose session is to be loaded.
+   * @throws IllegalArgumentException if no saved session is found for the given user ID.
+   */
   public void loadFromDB(String userId) {
     String json = SessionDAO.loadSession(userId);
     if (json == null) {
@@ -1134,6 +1150,11 @@ public class Simulation {
     logger.log("Simulation loaded from DB for user " + userId);
   }
 
+    /**
+     * Converts the current game state into a JSON object.
+     *
+     * @return a JsonObject representing the current game state
+     */
   public JsonObject getGameState() {
     JsonObject state = new JsonObject();
     state.addProperty("currentTime", currentTime);

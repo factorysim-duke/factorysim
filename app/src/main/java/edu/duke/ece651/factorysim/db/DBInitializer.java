@@ -4,6 +4,9 @@ import java.sql.Connection;
 import java.sql.Statement;
 
 public class DBInitializer {
+    /**
+     * Initializes the database.
+     */
     public static void init() {
         String sql = """
             CREATE TABLE IF NOT EXISTS sessions (
