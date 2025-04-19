@@ -18,6 +18,7 @@ public abstract class Building {
   private List<Request> pendingRequests;
   protected RequestPolicy requestPolicy;
   protected SourcePolicy sourcePolicy;
+  private boolean pendingRemoval = false;
 
   private Coordinate location;
 
@@ -224,6 +225,12 @@ public abstract class Building {
    *                                  request.
    */
   public void addRequest(Request request) {
+    // if building is marked for removal, check if we can accept this request
+    if (pendingRemoval && !canAcceptRequest(request)) {
+      throw new IllegalArgumentException(
+          "Building " + name + " is marked for removal and cannot accept this request");
+    }
+
     // notify simulation of source selection
     simulation.onSourceSelected(this, sourcePolicy, request.getItem());
 
@@ -658,5 +665,54 @@ public abstract class Building {
    */
   public void setLocation(Coordinate location) {
     this.location = location;
+  }
+
+  /**
+   * Checks if the building is marked for pending removal.
+   *
+   * @return true if the building is marked for removal, false otherwise.
+   */
+  public boolean isPendingRemoval() {
+    return pendingRemoval;
+  }
+
+  /**
+   * Marks the building for removal if it can be removed immediately.
+   * If it cannot be removed immediately, it enters a state where it only
+   * allows activities which move it towards deletion.
+   *
+   * @return true if the building was marked for removal, false otherwise.
+   */
+  public boolean markForRemoval() {
+    if (canBeRemovedImmediately()) {
+      return true;
+    } else {
+      pendingRemoval = true;
+      return false;
+    }
+  }
+
+  /**
+   * Checks if the building can be removed immediately.
+   * Each building type will implement its own logic for this check.
+   *
+   * @return true if the building can be removed immediately, false otherwise.
+   */
+  public abstract boolean canBeRemovedImmediately();
+
+  /**
+   * Adds a request to the building only if it's not marked for removal or if
+   * it's a special request that can help with the removal process.
+   *
+   * @param request the request to be considered.
+   * @return true if the request was added, false if the building is marked for
+   *         removal
+   *         and the request wasn't allowed.
+   */
+  public boolean canAcceptRequest(Request request) {
+    if (!pendingRemoval) {
+      return true;
+    }
+    return false;
   }
 }
