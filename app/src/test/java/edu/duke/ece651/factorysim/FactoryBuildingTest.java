@@ -82,12 +82,12 @@ public class FactoryBuildingTest {
     assertEquals(-1, factory.getStorageNumberOf(d));
     assertEquals(-1, factory.getStorageNumberOf(a));
 
-    mineA.deliverTo(factory, a, 2,false);
+    mineA.deliverTo(factory, a, 2, false);
     assertEquals(2, factory.getStorageNumberOf(a));
     assertEquals(-1, factory.getStorageNumberOf(b));
     assertEquals(-1, factory.getStorageNumberOf(c));
 
-    mineC.deliverTo(factory, c, 3,false);
+    mineC.deliverTo(factory, c, 3, false);
     assertEquals(3, factory.getStorageNumberOf(c));
 
     factory.takeFromStorage(a, 2);
@@ -95,8 +95,8 @@ public class FactoryBuildingTest {
     assertEquals(1, factory.getStorageNumberOf(c));
     assertEquals(-1, factory.getStorageNumberOf(a));
 
-    mineB.deliverTo(factory, b, 4,false);
-    mineB.deliverTo(factory, b, 10,false);
+    mineB.deliverTo(factory, b, 4, false);
+    mineB.deliverTo(factory, b, 10, false);
     assertEquals(14, factory.getStorageNumberOf(b));
 
     assertThrows(IllegalArgumentException.class, () -> factory.takeFromStorage(d, 3));
@@ -170,5 +170,57 @@ public class FactoryBuildingTest {
     Recipe nonExistingRecipe = TestUtils.makeTestRecipe("test", 2, 5);
     Building mockBuilding = new TestUtils.MockBuilding("D");
     assertThrows(IllegalArgumentException.class, () -> mockBuilding.requestMissingIngredients(nonExistingRecipe));
+  }
+
+  @Test
+  public void test_canBeRemovedImmediately() {
+    FactoryBuilding testBuilding = makeTestFactoryBuilding("test", new Item("testItem"));
+    assertTrue(testBuilding.canBeRemovedImmediately());
+    Recipe testRecipe = TestUtils.makeTestRecipe("testItem", 0, 1);
+    Request request = new Request(1, new Item("testItem"), testRecipe, testBuilding, null);
+    testBuilding.prependPendingRequest(request);
+    assertFalse(testBuilding.canBeRemovedImmediately());
+    testBuilding.getPendingRequests().clear();
+    assertTrue(testBuilding.canBeRemovedImmediately());
+    testBuilding.setCurrentRequest(request);
+    assertFalse(testBuilding.canBeRemovedImmediately());
+  }
+
+  @Test
+  public void test_canAcceptRequest() {
+    FactoryBuilding testBuilding = makeTestFactoryBuilding("test", new Item("testItem"));
+    Recipe testRecipe = TestUtils.makeTestRecipe("testItem", 0, 1);
+    Request request = new Request(1, new Item("testItem"), testRecipe, testBuilding, null);
+    assertTrue(testBuilding.canAcceptRequest(request));
+    testBuilding.prependPendingRequest(request);
+    assertFalse(testBuilding.markForRemoval());
+    assertTrue(testBuilding.isPendingRemoval());
+    assertFalse(testBuilding.canAcceptRequest(request));
+  }
+
+  @Test
+  public void test_markForRemoval() {
+    FactoryBuilding testBuilding = makeTestFactoryBuilding("test", new Item("testItem"));
+    assertFalse(testBuilding.isPendingRemoval());
+    assertTrue(testBuilding.markForRemoval());
+    Recipe testRecipe = TestUtils.makeTestRecipe("testItem", 0, 1);
+    Request request = new Request(1, new Item("testItem"), testRecipe, testBuilding, null);
+    testBuilding.prependPendingRequest(request);
+    java.lang.reflect.Field pendingRemovalField;
+    try {
+      pendingRemovalField = Building.class.getDeclaredField("pendingRemoval");
+      pendingRemovalField.setAccessible(true);
+      pendingRemovalField.set(testBuilding, false);
+    } catch (Exception e) {
+      fail("Failed to reset pendingRemoval field: " + e.getMessage());
+    }
+    assertFalse(testBuilding.markForRemoval());
+    assertTrue(testBuilding.isPendingRemoval());
+  }
+
+  private FactoryBuilding makeTestFactoryBuilding(String name, Item item) {
+    Recipe recipe = TestUtils.makeTestRecipe(item.getName(), 0, 1);
+    Type factoryType = new Type(item.getName() + "Factory", List.of(recipe));
+    return new FactoryBuilding(factoryType, name, new ArrayList<>(), new TestUtils.MockSimulation());
   }
 }
