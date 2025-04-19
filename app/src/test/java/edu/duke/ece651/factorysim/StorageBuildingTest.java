@@ -11,7 +11,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 public class StorageBuildingTest {
-  Simulation sim=new Simulation("src/test/resources/inputs/doors1.json");
+  Simulation sim = new Simulation("src/test/resources/inputs/doors1.json");
+
   public StorageBuilding makeTestStorageBuilding(String name, Item item, int capacity, double priority) {
     Item a = new Item("a");
     Item b = new Item("b");
@@ -19,7 +20,7 @@ public class StorageBuildingTest {
     Recipe recipeA = new Recipe(a, new HashMap<>(), 1);
     Recipe recipeB = new Recipe(b, new HashMap<>(), 3);
     Recipe recipeC = new Recipe(c, new HashMap<>(), 5);
-    MineBuilding mineA = new MineBuilding(recipeA, "mineA",sim);
+    MineBuilding mineA = new MineBuilding(recipeA, "mineA", sim);
     MineBuilding mineB = new MineBuilding(recipeB, "mineB", sim);
     MineBuilding mineC = new MineBuilding(recipeC, "mineC", sim);
     ArrayList<Building> sources = new ArrayList<>();
@@ -70,7 +71,6 @@ public class StorageBuildingTest {
   public void test_step_ingredient_delivery() {
     Item door = new Item("door");
 
-
     StorageBuilding testBuilding = makeTestStorageBuilding("test", door, 100, 0.5);
     FactoryBuilding destinationBuilding = new FactoryBuilding(new Type("DoorFactory", List.of()), "doorFactory",
         List.of(testBuilding), sim);
@@ -86,7 +86,7 @@ public class StorageBuildingTest {
     Recipe doorRecipe = TestUtils.makeTestRecipe("door", 0, 1);
     Request ingredientRequest = new Request(2, door, doorRecipe, testBuilding, destinationBuilding);
     testBuilding.getPendingRequest().add(ingredientRequest);
-    sim.connectBuildings(testBuilding,destinationBuilding);
+    sim.connectBuildings(testBuilding, destinationBuilding);
     testBuilding.step();
     assertEquals(9, testBuilding.getCurrentStockNum());
     assertEquals(-1, destinationBuilding.getStorageNumberOf(door));
@@ -280,5 +280,64 @@ public class StorageBuildingTest {
     sb.addToStorage(door, 5);
     sb.step();
     assertEquals(-5, sb.getNumOfPendingRequests());
+  }
+
+  @Test
+  public void test_canBeRemovedImmediately() {
+    Item door = new Item("door");
+    StorageBuilding testBuilding = makeTestStorageBuilding("test", door, 100, 0.5);
+    assertTrue(testBuilding.canBeRemovedImmediately());
+    testBuilding.addToStorage(door, 1);
+    testBuilding.step();
+    assertFalse(testBuilding.canBeRemovedImmediately());
+    testBuilding.takeFromStorage(door, 1);
+    assertTrue(testBuilding.canBeRemovedImmediately());
+    Recipe doorRecipe = TestUtils.makeTestRecipe("door", 0, 1);
+    Request request = new Request(1, door, doorRecipe, testBuilding, null);
+    testBuilding.prependPendingRequest(request);
+    assertFalse(testBuilding.canBeRemovedImmediately());
+    testBuilding.getPendingRequests().clear();
+    assertTrue(testBuilding.canBeRemovedImmediately());
+    testBuilding.setCurrentRequest(request);
+    assertFalse(testBuilding.canBeRemovedImmediately());
+  }
+
+  @Test
+  public void test_canAcceptRequest() {
+    Item door = new Item("door");
+    StorageBuilding testBuilding = makeTestStorageBuilding("test", door, 100, 0.5);
+    Recipe doorRecipe = TestUtils.makeTestRecipe("door", 0, 1);
+    FactoryBuilding factoryBuilding = new FactoryBuilding(new Type("DoorFactory", List.of()), "doorFactory",
+        List.of(testBuilding), sim);
+    Request takeRequest = new Request(1, door, doorRecipe, testBuilding, factoryBuilding);
+    Request storeRequest = new Request(2, door, doorRecipe, factoryBuilding, testBuilding);
+    assertTrue(testBuilding.canAcceptRequest(takeRequest));
+    assertTrue(testBuilding.canAcceptRequest(storeRequest));
+    testBuilding.addToStorage(door, 1);
+    testBuilding.step();
+    assertFalse(testBuilding.markForRemoval());
+    assertTrue(testBuilding.isPendingRemoval());
+    assertTrue(testBuilding.canAcceptRequest(takeRequest));
+    assertFalse(testBuilding.canAcceptRequest(storeRequest));
+  }
+
+  @Test
+  public void test_markForRemoval() {
+    Item door = new Item("door");
+    StorageBuilding testBuilding = makeTestStorageBuilding("test", door, 100, 0.5);
+    assertFalse(testBuilding.isPendingRemoval());
+    assertTrue(testBuilding.markForRemoval());
+    testBuilding.addToStorage(door, 1);
+    testBuilding.step();
+    java.lang.reflect.Field pendingRemovalField;
+    try {
+      pendingRemovalField = Building.class.getDeclaredField("pendingRemoval");
+      pendingRemovalField.setAccessible(true);
+      pendingRemovalField.set(testBuilding, false);
+    } catch (Exception e) {
+      fail("Failed to reset pendingRemoval field: " + e.getMessage());
+    }
+    assertFalse(testBuilding.markForRemoval());
+    assertTrue(testBuilding.isPendingRemoval());
   }
 }

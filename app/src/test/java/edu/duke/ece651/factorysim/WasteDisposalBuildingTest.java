@@ -205,4 +205,57 @@ public class WasteDisposalBuildingTest {
     assertTrue(wasteDisposal.isFinished());
     assertEquals(-1, wasteDisposal.getStorageNumberOf(sawdust));
   }
+  
+  @Test
+  public void test_canBeRemovedImmediately() {
+    assertTrue(wasteDisposal.canBeRemovedImmediately());
+    Recipe wasteRecipe = TestUtils.makeTestRecipe("sawdust", 0, 1);
+    Building sourceBuilding = new TestUtils.MockBuilding("source");
+    sourceBuilding.setLocation(new Coordinate(5, 5));
+    Request request = new Request(1, sawdust, wasteRecipe, sourceBuilding, wasteDisposal);
+    wasteDisposal.prependPendingRequest(request);
+    assertFalse(wasteDisposal.canBeRemovedImmediately());
+    wasteDisposal.getPendingRequests().clear();
+    assertTrue(wasteDisposal.canBeRemovedImmediately());
+    wasteDisposal.setCurrentRequest(request);
+    assertFalse(wasteDisposal.canBeRemovedImmediately());
+    wasteDisposal.setCurrentRequest(null);
+    assertTrue(wasteDisposal.canBeRemovedImmediately());
+    wasteDisposal.addToStorage(sawdust, 10);
+    assertTrue(wasteDisposal.canBeRemovedImmediately());
+  }
+  
+  @Test
+  public void test_canAcceptRequest() {
+    Recipe wasteRecipe = TestUtils.makeTestRecipe("sawdust", 0, 1);
+    Building sourceBuilding = new TestUtils.MockBuilding("source");
+    sourceBuilding.setLocation(new Coordinate(5, 5));
+    Request request = new Request(1, sawdust, wasteRecipe, sourceBuilding, wasteDisposal);
+    assertTrue(wasteDisposal.canAcceptRequest(request));
+    wasteDisposal.prependPendingRequest(request);
+    assertFalse(wasteDisposal.markForRemoval());
+    assertTrue(wasteDisposal.isPendingRemoval());
+    assertFalse(wasteDisposal.canAcceptRequest(request));
+  }
+  
+  @Test
+  public void test_markForRemoval() {
+    assertFalse(wasteDisposal.isPendingRemoval());
+    assertTrue(wasteDisposal.markForRemoval());
+    java.lang.reflect.Field pendingRemovalField;
+    try {
+      pendingRemovalField = Building.class.getDeclaredField("pendingRemoval");
+      pendingRemovalField.setAccessible(true);
+      pendingRemovalField.set(wasteDisposal, false);
+    } catch (Exception e) {
+      fail("Failed to reset pendingRemoval field: " + e.getMessage());
+    }
+    Recipe wasteRecipe = TestUtils.makeTestRecipe("sawdust", 0, 1);
+    Building sourceBuilding = new TestUtils.MockBuilding("source");
+    sourceBuilding.setLocation(new Coordinate(5, 5));
+    Request request = new Request(1, sawdust, wasteRecipe, sourceBuilding, wasteDisposal);
+    wasteDisposal.prependPendingRequest(request);
+    assertFalse(wasteDisposal.markForRemoval());
+    assertTrue(wasteDisposal.isPendingRemoval());
+  }
 }

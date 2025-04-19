@@ -171,6 +171,7 @@ public class World {
   public TileMap getTileMap() {
     return tileMap;
   }
+
   /**
    * Sets the dimensions of the tile map.
    * 
@@ -226,5 +227,18 @@ public class World {
       counter++;
     }
     return resolved;
+  }
+
+  /**
+   * Removes a building from the world.
+   * 
+   * @param building is the building to remove.
+   */
+  public void removeBuildingFromWorld(Building building) {
+    buildings.remove(building);
+    locationMap.remove(building);
+    if (building.getLocation() != null) {
+      tileMap.setTileType(building.getLocation(), TileType.ROAD);
+    }
   }
 }

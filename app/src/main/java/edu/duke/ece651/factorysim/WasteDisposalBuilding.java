@@ -149,8 +149,8 @@ public class WasteDisposalBuilding extends Building {
         takeFromStorage(wasteType, currentProcessing);
         getSimulation().getLogger().log("[waste disposed]: " + currentProcessing + " units of " +
             wasteType.getName() + " processed at " +
-            this.getName() + " (time: " +
-            getSimulation().getCurrentTime() + ")");
+            this.getName() + " on cycle " +
+            getSimulation().getCurrentTime());
 
         // reset counters
         processingWasteMap.put(wasteType, 0);
@@ -166,8 +166,8 @@ public class WasteDisposalBuilding extends Building {
       int amountToProcess = Math.min(currentStorage, rate);
       getSimulation().getLogger().log("[waste processing started]: " + amountToProcess + " units of " +
           wasteType.getName() + " at " +
-          this.getName() + " (time: " +
-          getSimulation().getCurrentTime() + ")");
+          this.getName() + " on cycle " +
+          getSimulation().getCurrentTime());
 
       // start processing (but don't remove from storage yet)
       processingWasteMap.put(wasteType, amountToProcess);
@@ -279,5 +279,32 @@ public class WasteDisposalBuilding extends Building {
     }
 
     return baseFinished && allWasteDisposed;
+  }
+
+  /**
+   * Checks if this waste disposal building can be removed immediately.
+   * A waste disposal building can be removed immediately if it has no requests in
+   * its queue.
+   *
+   * @return true if the building can be removed immediately, false otherwise.
+   */
+  @Override
+  public boolean canBeRemovedImmediately() {
+    if (!getPendingRequests().isEmpty() || getCurrentRequest() != null) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Determines if the waste disposal building can accept a request.
+   * If the building is marked for removal, it rejects all new requests.
+   *
+   * @param request the request to be considered
+   * @return true if the request is acceptable, false otherwise
+   */
+  @Override
+  public boolean canAcceptRequest(Request request) {
+    return !isPendingRemoval();
   }
 }
