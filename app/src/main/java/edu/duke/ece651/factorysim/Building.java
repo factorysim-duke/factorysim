@@ -382,7 +382,7 @@ public abstract class Building {
         }
         // reserve capacity and deliver waste
         disposalBuilding.reserveCapacity(wasteType, quantity);
-        deliverTo(disposalBuilding, wasteType, quantity, false);
+        deliverTo(disposalBuilding, wasteType, quantity);
       }
     }
 
