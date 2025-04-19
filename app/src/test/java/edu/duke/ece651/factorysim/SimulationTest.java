@@ -669,5 +669,44 @@ public class SimulationTest {
     assertSame(sim.deliverySchedule, sim.getDeliverySchedule());
   }
 
-
+  @Test
+  public void test_removeBuilding_immediate() {
+    Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+    Building building = simulation.getWorld().getBuildingFromName("D");
+    assertNotNull(building);
+    Building sourceBuilding = simulation.getWorld().getBuildingFromName("W");
+    assertNotNull(sourceBuilding);
+    assertTrue(building.getPendingRequests().isEmpty());
+    assertNull(building.getCurrentRequest());
+    simulation.connectBuildings(sourceBuilding, building);
+    assertTrue(simulation.removeBuilding(building));
+    assertFalse(simulation.getWorld().hasBuilding("D"));
+    assertThrows(IllegalArgumentException.class, () -> simulation.disconnectBuildings(sourceBuilding, building));
+  }
+  
+  @Test
+  public void test_removeBuilding_pending() {
+    Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+    Building building = simulation.getWorld().getBuildingFromName("D");
+    assertNotNull(building);
+    Item item = new Item("wood");
+    Recipe recipe = TestUtils.makeTestRecipe("wood", 0, 1);
+    Request request = new Request(1, item, recipe, building, null);
+    building.prependPendingRequest(request);
+    assertFalse(simulation.removeBuilding(building));
+    assertTrue(simulation.getWorld().hasBuilding("D"));
+    assertTrue(building.isPendingRemoval());
+    building.getPendingRequests().clear();
+    simulation.checkPendingRemovals();
+    assertFalse(simulation.getWorld().hasBuilding("D"));
+  }
+  
+  @Test
+  public void test_removeBuilding_byName() {
+    Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+    assertTrue(simulation.getWorld().hasBuilding("W"));
+    assertTrue(simulation.removeBuilding("W"));
+    assertFalse(simulation.getWorld().hasBuilding("W"));
+    assertThrows(IllegalArgumentException.class, () -> simulation.removeBuilding("NonExistentBuilding"));
+  }
 }
