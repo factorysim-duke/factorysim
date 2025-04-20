@@ -14,5 +14,5 @@ Af
 
 .project
 .classpath
-.settings/
-.vscode/
+.settings
+.vscode
