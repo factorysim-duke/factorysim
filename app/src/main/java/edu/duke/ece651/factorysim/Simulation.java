@@ -4,6 +4,7 @@ import com.google.gson.*;
 import edu.duke.ece651.factorysim.db.SessionDAO;
 import java.io.*;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -25,6 +26,27 @@ public class Simulation {
   private Logger logger;
   private final List<Path> pathList = new ArrayList<>();
   DeliverySchedule deliverySchedule = new DeliverySchedule();
+
+  // Event
+  private final EventHandler<Building> onBuildingRemoved = new EventHandler<>();
+
+  /**
+   * Subscribe to the event when a building is removed.
+   *
+   * @param listener is the listener to subscribe.
+   */
+  public void subscribeToOnBuildingRemoved(Consumer<Building> listener) {
+      onBuildingRemoved.subscribe(listener);
+  }
+
+  /**
+   * Unsubscribes to the event when a building is removed.
+   *
+   * @param listener is the listener to unsubscribe.s
+   */
+  public void unsubscribeToOnBuildingRemoved(Consumer<Building> listener) {
+      onBuildingRemoved.unsubscribe(listener);
+  }
 
   /**
    * Creates a simulation from a JSON configuration file.
@@ -1354,6 +1376,7 @@ public class Simulation {
       if (verbosity > 0) {
         logger.log("Building '" + building.getName() + "' has been removed.");
       }
+      onBuildingRemoved.invoke(building);
       return true;
     } else {
       building.markForRemoval();
@@ -1402,6 +1425,7 @@ public class Simulation {
     }
     for (Building building : removedBuildings) {
       world.removeBuildingFromWorld(building);
+      onBuildingRemoved.invoke(building);
     }
   }
 

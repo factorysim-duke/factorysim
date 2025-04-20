@@ -4,6 +4,7 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Consumer;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -708,5 +709,16 @@ public class SimulationTest {
     assertTrue(simulation.removeBuilding("W"));
     assertFalse(simulation.getWorld().hasBuilding("W"));
     assertThrows(IllegalArgumentException.class, () -> simulation.removeBuilding("NonExistentBuilding"));
+  }
+
+  @Test
+  public void test_onBuildingRemovedEvent() {
+    List<Building> buildings = new ArrayList<>();
+    Consumer<Building> listener = buildings::add;
+    Simulation sim = new TestUtils.MockSimulation();
+    assertDoesNotThrow(() -> {
+      sim.subscribeToOnBuildingRemoved(listener);
+      sim.unsubscribeToOnBuildingRemoved(listener);
+    });
   }
 }
