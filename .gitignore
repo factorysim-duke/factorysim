@@ -11,3 +11,8 @@ app/bin
 \#*
 Af
 .idea/
+
+.project
+.classpath
+.settings/
+.vscode/
