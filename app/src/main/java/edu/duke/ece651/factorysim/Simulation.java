@@ -569,7 +569,7 @@ public class Simulation {
 
   /**
    * Indicates when waste is delivered to a waste disposal building.
-   * 
+   *
    * @param wasteType        is the item of waste delivered.
    * @param quantity         is the quantity of waste delivered.
    * @param disposalBuilding is the building receiving the waste.
@@ -876,38 +876,129 @@ public class Simulation {
   /**
    * Attempts to connect two buildings using the shortest valid path on the map.
    * If a valid path already exists in the cache, it is reused. Otherwise, a new
-   * path is found
-   * and added to the path list and the tile map.
+   * path is found and added to the path list and the tile map.
+   * Also verifies that source building's output can be properly used by destination building.
    *
    * @param srcBuilding is the source building to connect.
    * @param dstBuilding is the destination building to connect.
    * @return connected `Path` instance if the buildings are successfully
    *         connected.
    * @throws IllegalArgumentException if no valid path can be found between the
-   *                                  buildings.
+   *                                  buildings or if the buildings are not compatible.
    */
   public Path connectBuildings(Building srcBuilding, Building dstBuilding) {
+    // Check recipe compatibility between source and destination buildings
+    if (!areBuilingsCompatible(srcBuilding, dstBuilding)) {
+      throw new IllegalArgumentException(
+          "Cannot connect " + srcBuilding.getName() + " to " + dstBuilding.getName() +
+          ": Source output cannot be used as input for destination.");
+    }
+
     Coordinate src = srcBuilding.getLocation();
     Coordinate dst = dstBuilding.getLocation();
     for (Path p : pathList) {
       if (p.isMatch(src, dst)) {
+        // Update destination building's sources when connecting
+        List<Building> sources = new ArrayList<>(dstBuilding.getSources());
+        if (!sources.contains(srcBuilding)) {
+          sources.add(srcBuilding);
+          dstBuilding.updateSources(sources);
+        }
         return p;
       }
     }
+
     Path path = PathFinder.findPath(src, dst, world.tileMap);
     if (path == null) {
       throw new IllegalArgumentException(
           "Cannot connect " + srcBuilding.getName() + " to " + dstBuilding.getName() + ": No valid path.");
     } else {
-      // path.dump();
       // add the path to the cache
       pathList.add(path);
 
       // add the path to the tileMap
       world.tileMap.addPath(path);
-      // System.out.println(world.tileMap);
+
+      // Update destination building's sources
+      List<Building> sources = new ArrayList<>(dstBuilding.getSources());
+      if (!sources.contains(srcBuilding)) {
+        sources.add(srcBuilding);
+        dstBuilding.updateSources(sources);
+      }
     }
     return path;
+  }
+
+  /**
+   * Checks if the source building's output is compatible with the destination building.
+   * For mines, checks if the mined resource can be used as an ingredient by the destination.
+   * For factories, checks if any factory output can be used as an ingredient by the destination.
+   * For storage buildings, checks if the source produces what the storage building can store.
+   *
+   * @param srcBuilding The source building
+   * @param dstBuilding The destination building
+   * @return true if the buildings are compatible, false otherwise
+   */
+  private boolean areBuilingsCompatible(Building srcBuilding, Building dstBuilding) {
+    // Mines, Factories and Storage buildings have different compatibility checks
+    if (srcBuilding instanceof MineBuilding) {
+      MineBuilding mineBuilding = (MineBuilding) srcBuilding;
+      Item mineOutput = mineBuilding.getResource();
+
+      // If destination is a factory, check if mine output is used in any recipe
+      if (dstBuilding instanceof FactoryBuilding) {
+        FactoryBuilding factory = (FactoryBuilding) dstBuilding;
+        List<Recipe> recipes = factory.getFactoryType().getRecipes();
+
+        for (Recipe recipe : recipes) {
+          if (recipe.getIngredients().containsKey(mineOutput)) {
+            return true;
+          }
+        }
+        return false; // Mine output not used in any factory recipe
+      }
+      // If destination is a storage building, check if it can store the mine's output
+      else if (dstBuilding instanceof StorageBuilding) {
+        StorageBuilding storage = (StorageBuilding) dstBuilding;
+        return storage.getStorageItem().equals(mineOutput);
+      }
+    }
+    // For factory as source, check if any output can be used by destination
+    else if (srcBuilding instanceof FactoryBuilding) {
+      FactoryBuilding factoryBuilding = (FactoryBuilding) srcBuilding;
+      List<Recipe> recipes = factoryBuilding.getFactoryType().getRecipes();
+
+      if (dstBuilding instanceof FactoryBuilding) {
+        FactoryBuilding destFactory = (FactoryBuilding) dstBuilding;
+        List<Recipe> destRecipes = destFactory.getFactoryType().getRecipes();
+
+        // Check if any source factory output is used as ingredient in any destination factory recipe
+        for (Recipe srcRecipe : recipes) {
+          Item output = srcRecipe.getOutput();
+          for (Recipe destRecipe : destRecipes) {
+            if (destRecipe.getIngredients().containsKey(output)) {
+              return true;
+            }
+          }
+        }
+        return false; // No compatible recipes found
+      }
+      // If destination is a storage building, check if it can store any factory output
+      else if (dstBuilding instanceof StorageBuilding) {
+        StorageBuilding storage = (StorageBuilding) dstBuilding;
+        Item storageItem = storage.getStorageItem();
+
+        for (Recipe recipe : recipes) {
+          if (recipe.getOutput().equals(storageItem)) {
+            return true;
+          }
+        }
+        return false; // No compatible output found for storage
+      }
+    }
+
+    // All other connections are allowed
+    return true;
   }
 
   /**
@@ -985,17 +1076,27 @@ public class Simulation {
    * Attempts to connect two buildings by name using the shortest valid path on
    * the map.
    * If a valid path already exists in the cache, it is reused. Otherwise, a new
-   * path is found
-   * and added to the path list and the tile map.
+   * path is found and added to the path list and the tile map.
+   * Also verifies that source building's output can be properly used by destination building.
    *
    * @param sourceName the name of the source building
    * @param destName   the name of the destination building
    * @return true if the buildings are successfully connected
    * @throws IllegalArgumentException if no valid path can be found between the
-   *                                  buildings
+   *                                  buildings or if they are not recipe compatible
    */
   public boolean connectBuildings(String sourceName, String destName) {
-    return connectBuildings(world.getBuildingFromName(sourceName), world.getBuildingFromName(destName)) != null;
+    Building srcBuilding = world.getBuildingFromName(sourceName);
+    Building dstBuilding = world.getBuildingFromName(destName);
+
+    if (srcBuilding == null) {
+      throw new IllegalArgumentException("Source building '" + sourceName + "' does not exist.");
+    }
+    if (dstBuilding == null) {
+      throw new IllegalArgumentException("Destination building '" + destName + "' does not exist.");
+    }
+
+    return connectBuildings(srcBuilding, dstBuilding) != null;
   }
 
   /**
@@ -1049,17 +1150,17 @@ public class Simulation {
   public void addDelivery(Building src, Building dst, Item item, int quantity) {
     // check if drone delivery is possible; if so, priority over road
     DronePortBuilding dronePortBuilding = findSuitableDronePort(src, dst);
-    
+
     if (dronePortBuilding != null) {
       // drone delivery is possible
       DronePort dronePort = dronePortBuilding.getDronePort();
       Drone drone = dronePort.getAvailableDrone();
       DroneDelivery droneDelivery = new DroneDelivery(dronePort, drone, src, dst, item, quantity);
       deliverySchedule.addDelivery(droneDelivery);
-      
+
       if (verbosity > 0) {
-        logger.log("[drone delivery scheduled]: Using drone from " + dronePortBuilding.getName() + 
-                  " to deliver " + quantity + " " + item.getName() + 
+        logger.log("[drone delivery scheduled]: Using drone from " + dronePortBuilding.getName() +
+                  " to deliver " + quantity + " " + item.getName() +
                   " from " + src.getName() + " to " + dst.getName());
       }
     } else {
@@ -1092,7 +1193,7 @@ public class Simulation {
       if (building instanceof DronePortBuilding) {
         DronePortBuilding dronePortBuilding = (DronePortBuilding) building;
         DronePort dronePort = dronePortBuilding.getDronePort();
-        
+
         if (dronePort.isWithinRadius(src) && dronePort.isWithinRadius(dst) && dronePort.hasAvailableDrone()) {
           return dronePortBuilding;
         }
