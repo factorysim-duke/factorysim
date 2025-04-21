@@ -68,6 +68,15 @@ public class WorldBuilder {
   }
 
   /**
+   * Builds an empty world.
+   *
+   * @return the World object.
+   */
+  public static World buildEmptyWorld() {
+    return buildEmptyWorld(boardWidth, boardHeight);
+  }
+
+  /**
    * Builds connections between buildings using the ConnectionDTOs.
    * 
    * @param connectionDTOs is the list of connection data transfer objects.
