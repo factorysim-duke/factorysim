@@ -67,11 +67,12 @@ public class DroneDeliveryTest {
     simulation.step(1);
     assertEquals(10, factoryBuilding1.getStorageNumberOf(item)); // 10 items left in source after pickup
     assertEquals(-1, factoryBuilding2.getStorageNumberOf(item)); // none delivered yet
-    
-    // drone should pick items and depart
-    simulation.step(1);
-    assertEquals(5, factoryBuilding1.getStorageNumberOf(item)); // 5 items left in source
-    assertEquals(-1, factoryBuilding2.getStorageNumberOf(item)); // none delivered yet
+
+    // Commented because DroneDelivery is changed to not take from source storage
+//    // drone should pick items and depart
+//    simulation.step(1);
+//    assertEquals(5, factoryBuilding1.getStorageNumberOf(item)); // 5 items left in source
+//    assertEquals(-1, factoryBuilding2.getStorageNumberOf(item)); // none delivered yet
 
     // drone should arrive at destination, hand the resource, and return to port
     simulation.step(100);
