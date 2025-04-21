@@ -10,6 +10,9 @@ public class DroneDelivery extends Delivery {
   private final DronePort dronePort;
   private final Drone drone;
   private DeliveryState state;
+  private Coordinate targetCoordinate;
+
+  public Coordinate getTargetCoordinate() { return this.targetCoordinate; }
   
   /**
    * Enumeration of the states a drone delivery can be in.
@@ -38,6 +41,7 @@ public class DroneDelivery extends Delivery {
     this.state = DeliveryState.TO_SOURCE;
     drone.setInUse(true);
     this.currentCoordinate = dronePort.getBuilding().getLocation();
+    this.targetCoordinate = source.getLocation();
     
     // log drone delivery creation if verbosity is high enough
     Simulation sim = source.getSimulation();
@@ -86,6 +90,7 @@ public class DroneDelivery extends Delivery {
               sim.getLogger().log("[drone at source]: Drone arrived at " + source.getName() + 
                                 " to pick up " + quantity + " " + item.getName());
             }
+            this.targetCoordinate = destination.getLocation();
             break;
             
           case TO_DESTINATION:
@@ -105,6 +110,7 @@ public class DroneDelivery extends Delivery {
             currentCoordinate = destination.getLocation();
             deliveryTime = calculateDeliveryTime(destination.getLocation(), dronePort.getBuilding().getLocation());
             state = DeliveryState.RETURNING;
+            this.targetCoordinate = dronePort.getBuilding().getLocation();
             break;
             
           case RETURNING:
