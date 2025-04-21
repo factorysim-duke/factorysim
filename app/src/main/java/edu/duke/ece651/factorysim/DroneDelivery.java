@@ -79,7 +79,7 @@ public class DroneDelivery extends Delivery {
           case TO_SOURCE:
             // arrived at source, now head to destination
             currentCoordinate = source.getLocation();
-            source.takeFromStorage(item, quantity);
+            // source.takeFromStorage(item, quantity); // This causes exception to be thrown. Commenting it out makes simulation work. The regular Delivery doesn't take storage from the source.
             deliveryTime = calculateDeliveryTime(source.getLocation(), destination.getLocation());
             state = DeliveryState.TO_DESTINATION;
             if (sim.getVerbosity() > 0) {
