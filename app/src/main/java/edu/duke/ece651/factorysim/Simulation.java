@@ -1052,6 +1052,14 @@ public class Simulation {
         for (Coordinate step : getCoordinatesToRemove(path)) {
           world.tileMap.setTileType(step, TileType.ROAD);
         }
+
+        // Remove source if exist
+        List<Building> sources = new ArrayList<>(dstBuilding.getSources());
+        if (sources.contains(srcBuilding)) {
+          sources.remove(srcBuilding);
+          dstBuilding.updateSources(sources);
+        }
+
         return true;
       }
       index++;
