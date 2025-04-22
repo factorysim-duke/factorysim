@@ -1,9 +1,6 @@
 package edu.duke.ece651.factorysim;
 
-import com.google.gson.JsonObject;
-
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents a world in the simulation which holds all the information.
@@ -15,6 +12,8 @@ public class World {
   public HashMap<Building, Coordinate> locationMap;
   public TileMap tileMap;
 
+  public Map<String, WasteDisposalDTO.WasteConfig> wasteConfigMap;
+
   /**
    * Constructs an empty world.
    */
@@ -24,6 +23,7 @@ public class World {
     this.recipes = null;
     this.locationMap = new HashMap<>();
     this.tileMap = null;
+    this.wasteConfigMap = new HashMap<>();
   }
 
   /**

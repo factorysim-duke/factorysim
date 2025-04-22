@@ -28,14 +28,20 @@ public class WorldBuilder {
     Map<String, Type> types = buildTypes(configData.types, recipes);
     Map<String, Building> buildings = buildBuildings(configData.buildings, types, recipes, simulation);
 
+    validateBuildingsIngredients(buildings, types);
+    World world = new World();
+
     // build waste disposal buildings if applicable
     if (configData.wasteDisposals != null && !configData.wasteDisposals.isEmpty()) {
       Map<String, Building> wasteDisposals = buildWasteDisposalBuildings(configData.wasteDisposals, simulation);
       buildings.putAll(wasteDisposals);
+
+      world.wasteConfigMap = new HashMap<>();
+      for (WasteDisposalDTO dto : configData.wasteDisposals) {
+        world.wasteConfigMap.putAll(dto.wasteTypes);
+      }
     }
 
-    validateBuildingsIngredients(buildings, types);
-    World world = new World();
     world.setTypes(new ArrayList<>(types.values()));
     world.setRecipes(new ArrayList<>(recipes.values()));
     world.setBuildings(new ArrayList<>(buildings.values()));
