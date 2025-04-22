@@ -30,13 +30,14 @@ public class WorldBuilder {
 
     validateBuildingsIngredients(buildings, types);
     World world = new World();
+    world.wasteConfigMap = new HashMap<>();
 
     // build waste disposal buildings if applicable
     if (configData.wasteDisposals != null && !configData.wasteDisposals.isEmpty()) {
       Map<String, Building> wasteDisposals = buildWasteDisposalBuildings(configData.wasteDisposals, simulation);
       buildings.putAll(wasteDisposals);
 
-      world.wasteConfigMap = new HashMap<>();
+      // Add waste types from existing waste disposals
       for (WasteDisposalDTO dto : configData.wasteDisposals) {
         world.wasteConfigMap.putAll(dto.wasteTypes);
       }
@@ -48,6 +49,18 @@ public class WorldBuilder {
     world.generateLocationMap();
     world.setTileMapDimensions(boardWidth, boardHeight);
     world.updateTileMap();
+
+    // Add waste types from recipes
+    for (Recipe recipe : world.getRecipes()) {
+      Map<Item, Integer> wasteMap = recipe.getWasteByProducts();
+      for (Map.Entry<Item, Integer> entry : wasteMap.entrySet()) {
+        WasteDisposalDTO.WasteConfig config = new WasteDisposalDTO.WasteConfig();
+        config.capacity = entry.getValue();
+        config.disposalRate = 50; // Hardcoded
+        config.timeSteps = 2; // Hardcoded
+        world.wasteConfigMap.putIfAbsent(entry.getKey().getName(), config);
+      }
+    }
 
     // connect buildings if connections are specified in the JSON
     if (configData.connections != null && !configData.connections.isEmpty()) {
