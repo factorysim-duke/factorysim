@@ -106,6 +106,11 @@ public class StorageBuilding extends Building {
 
     arrivingItemNum += quantity;
     outstandingRequestNum = Math.max(0, outstandingRequestNum - quantity);
+    
+    System.out.println("[DEBUG] " + getName() + " addToStorage: item=" + item.getName() 
+                      + ", quantity=" + quantity 
+                      + ", new arrivingItemNum=" + arrivingItemNum 
+                      + ", new outstandingRequestNum=" + outstandingRequestNum);
   }
 
   /**
@@ -137,6 +142,11 @@ public class StorageBuilding extends Building {
   public void step() {
     // try to complete pending request using currently available stocks
     // can give away many at a time, and use fifo only to choose request
+    
+    System.out.println("[DEBUG] " + getName() + " step start: currentStockNum=" + currentStockNum 
+                      + ", outstandingRequestNum=" + outstandingRequestNum 
+                      + ", pendingRequests=" + getPendingRequests().size());
+    
     while (!getPendingRequest().isEmpty() && currentStockNum > 0) {
       Request request = getPendingRequests().remove(0); // use fifo only
       if (request.isUserRequest()) {
@@ -151,6 +161,9 @@ public class StorageBuilding extends Building {
     }
 
     // by the end of each time step, the arriving items becomes available
+    if (arrivingItemNum > 0) {
+      System.out.println("[DEBUG] " + getName() + " receiving " + arrivingItemNum + " arriving items");
+    }
     currentStockNum += arrivingItemNum;
     arrivingItemNum = 0;
 
@@ -158,31 +171,26 @@ public class StorageBuilding extends Building {
     int pendingRequestsCount = getPendingRequests().size();
     int R = maxCapacity - currentStockNum - outstandingRequestNum + pendingRequestsCount;
     
-  //debugging
-    if (getSimulation().getVerbosity() > 1) {
-      getSimulation().getLogger().log(getName() + " storage capacity calculation: " +
-                                      "maxCapacity=" + maxCapacity + 
-                                      ", currentStockNum=" + currentStockNum + 
-                                      ", outstandingRequestNum=" + outstandingRequestNum + 
-                                      ", pendingRequestsCount=" + pendingRequestsCount + 
-                                      ", R=" + R);
-    }
+    System.out.println("[DEBUG] " + getName() + " capacity calculation: maxCapacity=" + maxCapacity + 
+                      ", currentStockNum=" + currentStockNum + 
+                      ", outstandingRequestNum=" + outstandingRequestNum + 
+                      ", pendingRequestsCount=" + pendingRequestsCount + 
+                      ", R=" + R);
     
     if (R > 0) {
       int T = maxCapacity;
       int F = (int) Math.ceil((double) (T * T) / (R * priority));
       int currentTime = getSimulation().getCurrentTime();
       
-      //debugging
-      if (getSimulation().getVerbosity() > 1) {
-        getSimulation().getLogger().log(getName() + " refill cycle calculation: T=" + T + 
-                                       ", R=" + R + ", priority=" + priority + 
-                                       ", F=" + F + ", currentTime=" + currentTime + 
-                                       ", currentTime % F=" + (currentTime % F));
-      }
+      System.out.println("[DEBUG] " + getName() + " refill cycle calculation: T=" + T + 
+                         ", R=" + R + ", priority=" + priority + 
+                         ", F=" + F + ", currentTime=" + currentTime + 
+                         ", currentTime % F=" + (currentTime % F));
       
       if (currentTime % F == 0) {
         List<Building> availableSources = getAvailableSourcesForItem(storageItem);
+        System.out.println("[DEBUG] " + getName() + " found " + availableSources.size() + " available sources for " + storageItem.getName());
+        
         if (!availableSources.isEmpty()) {
           Building selectedSource = sourcePolicy.selectSource(
               storageItem,
@@ -195,18 +203,23 @@ public class StorageBuilding extends Building {
             Request newRequest = new Request(orderNum, storageItem, recipe, selectedSource, this);
             outstandingRequestNum++;
             
-            //debugging
-            if (getSimulation().getVerbosity() > 1) {
-              getSimulation().getLogger().log(getName() + " requesting refill from " + 
-                                             selectedSource.getName() + 
-                                             ", new outstandingRequestNum=" + outstandingRequestNum);
-            }
+            System.out.println("[DEBUG] " + getName() + " requesting refill from " + 
+                             selectedSource.getName() + 
+                             ", new outstandingRequestNum=" + outstandingRequestNum);
             
             selectedSource.addRequest(newRequest);
+          } else {
+            System.out.println("[DEBUG] " + getName() + " could not select a source for " + storageItem.getName());
           }
+        } else {
+          System.out.println("[DEBUG] " + getName() + " no available sources for " + storageItem.getName());
         }
       }
     }
+    
+    System.out.println("[DEBUG] " + getName() + " step end: currentStockNum=" + currentStockNum 
+                      + ", outstandingRequestNum=" + outstandingRequestNum 
+                      + ", pendingRequests=" + getPendingRequests().size());
   }
 
   /**

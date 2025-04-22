@@ -301,37 +301,97 @@ public abstract class Building {
    * somewhere else.
    */
   protected void processRequest() {
+    System.out.println("[DEBUG] " + getName() + " processRequest start: isProcessing=" + isProcessing() 
+                     + ", pendingRequests=" + pendingRequests.size());
+    
     // if the building is processing a request, work on the current one
     if (isProcessing()) {
       boolean isRequestFinished = currentRequest.process();
+      System.out.println("[DEBUG] " + getName() + " processing request for item " 
+                       + currentRequest.getItem().getName() 
+                       + ", remainingSteps=" + currentRequest.getRemainingSteps()
+                       + ", isFinished=" + isRequestFinished);
+      
       if (isRequestFinished) {
+        System.out.println("[DEBUG] " + getName() + " finished processing request for " 
+                         + currentRequest.getItem().getName());
         finishCurrentRequest();
       }
     }
     // else, try to fetch the next one and work on it
     else if (pendingRequests.isEmpty() == false) {
       // Select a request based on the current policy
+      System.out.println("[DEBUG] " + getName() + " selecting from " + pendingRequests.size() 
+                       + " pending requests using " + requestPolicy.getClass().getSimpleName());
+      
+      // Print info about pending requests for debugging
+      for (int i = 0; i < pendingRequests.size(); i++) {
+        Request req = pendingRequests.get(i);
+        System.out.println("[DEBUG] " + getName() + " pending request " + i + ": item=" 
+                         + req.getItem().getName() 
+                         + ", deliverTo=" + (req.getDeliverTo() != null ? req.getDeliverTo().getName() : "user"));
+      }
+      
       Request selectedRequest = requestPolicy.selectRequest(this, pendingRequests);
 
       // If no request can be selected, especially when the policy is "ready",
       // we just skip this step
       if (selectedRequest == null) {
+        System.out.println("[DEBUG] " + getName() + " no request selected by policy");
         return;
       }
 
       Recipe selectedRecipe = selectedRequest.getRecipe();
+      System.out.println("[DEBUG] " + getName() + " selected request for " 
+                       + selectedRequest.getItem().getName() 
+                       + ", deliverTo=" + (selectedRequest.getDeliverTo() != null ? selectedRequest.getDeliverTo().getName() : "user"));
 
       // Notify simulation a request has been selected
       simulation.onRecipeSelected(this, requestPolicy, pendingRequests, selectedRequest);
 
       // Start processing request if has all the ingredients for it
-      if (hasAllIngredientsFor(selectedRecipe)) {
+      boolean hasIngredients = hasAllIngredientsFor(selectedRecipe);
+      System.out.println("[DEBUG] " + getName() + " has all ingredients for " 
+                       + selectedRequest.getItem().getName() + ": " + hasIngredients);
+      
+      if (hasIngredients) {
+        System.out.println("[DEBUG] " + getName() + " consuming ingredients for " 
+                         + selectedRequest.getItem().getName());
+        
+        // Print ingredients being consumed
+        for (Item item : selectedRecipe.getIngredients().keySet()) {
+          int numNeeded = selectedRecipe.getIngredients().get(item);
+          System.out.println("[DEBUG] " + getName() + " consuming " + numNeeded + " of " + item.getName());
+        }
+        
         consumeIngredientsFor(selectedRecipe);
         pendingRequests.remove(selectedRequest);
         currentRequest = selectedRequest;
         currentRequest.setStatus("current");
+        System.out.println("[DEBUG] " + getName() + " started processing request for " 
+                         + currentRequest.getItem().getName());
+      } else {
+        // Print missing ingredients
+        System.out.println("[DEBUG] " + getName() + " missing ingredients for " 
+                         + selectedRequest.getItem().getName() + ":");
+        for (Item item : selectedRecipe.getIngredients().keySet()) {
+          int numNeeded = selectedRecipe.getIngredients().get(item);
+          int numInStorage = getStorageNumberOf(item);
+          System.out.println("[DEBUG] " + getName() + " ingredient " + item.getName() 
+                           + " needed: " + numNeeded + ", in storage: " + numInStorage);
+        }
+        
+        // FIX: Request missing ingredients when we can't process a request due to missing ingredients
+        System.out.println("[DEBUG] " + getName() + " requesting missing ingredients for " 
+                         + selectedRequest.getItem().getName());
+        requestMissingIngredients(selectedRecipe);
       }
+    } else {
+      System.out.println("[DEBUG] " + getName() + " has no pending requests");
     }
+    
+    System.out.println("[DEBUG] " + getName() + " processRequest end: isProcessing=" + isProcessing() 
+                     + ", pendingRequests=" + pendingRequests.size());
   }
 
   /**
@@ -370,25 +430,36 @@ public abstract class Building {
   public void finishCurrentRequest() {
     Recipe recipe = currentRequest.getRecipe();
 
+    System.out.println("[DEBUG] " + getName() + " finishCurrentRequest for " 
+                     + currentRequest.getItem().getName() 
+                     + ", isUserRequest=" + currentRequest.isUserRequest());
+
     // add the output item to storage
     Item output = currentRequest.getItem();
     addToStorage(output, 1);
+    System.out.println("[DEBUG] " + getName() + " added " + output.getName() + " to storage");
 
     // handle waste byproducts if exist
     if (recipe.hasWasteByProducts()) {
+      System.out.println("[DEBUG] " + getName() + " handling waste byproducts");
       // find waste disposal buildings and allocate waste
       for (Map.Entry<Item, Integer> wasteEntry : recipe.getWasteByProducts().entrySet()) {
         Item wasteType = wasteEntry.getKey();
         int quantity = wasteEntry.getValue();
+        System.out.println("[DEBUG] " + getName() + " processing waste: " + quantity + " of " + wasteType.getName());
+        
         // find a waste disposal building that can handle this waste
         WasteDisposalBuilding disposalBuilding = findWasteDisposalBuilding(wasteType, quantity);
 
         // if no waste disposal building can handle this waste, keep request active
         if (disposalBuilding == null) {
+          System.out.println("[DEBUG] " + getName() + " ERROR: No waste disposal building found for " + wasteType.getName());
           return;
         }
         // reserve capacity and deliver waste
         disposalBuilding.reserveCapacity(wasteType, quantity);
+        System.out.println("[DEBUG] " + getName() + " delivering waste " + quantity + " of " 
+                         + wasteType.getName() + " to " + disposalBuilding.getName());
         deliverTo(disposalBuilding, wasteType, quantity);
       }
     }
@@ -398,17 +469,23 @@ public abstract class Building {
     if (currentRequest.isUserRequest() == false) {
       // deliver
       Building destinationBuilding = currentRequest.getDeliverTo();
+      System.out.println("[DEBUG] " + getName() + " delivering " + output.getName() 
+                       + " to " + destinationBuilding.getName());
       deliverTo(destinationBuilding, output, 1);
       // simulation.onIngredientDelivered(currentRequest.getItem(),
       // destinationBuilding, this); // notify simulation
 
       // update our own storage
       takeFromStorage(output, 1);
+      System.out.println("[DEBUG] " + getName() + " removed " + output.getName() 
+                       + " from storage after delivery to " + destinationBuilding.getName());
     } else {
       // indicate simulation a user request is completed
+      System.out.println("[DEBUG] " + getName() + " completing user request for " + output.getName());
       simulation.onRequestCompleted(currentRequest);
     }
     currentRequest = null;
+    System.out.println("[DEBUG] " + getName() + " finished request processing, currentRequest set to null");
   }
 
   /**
@@ -461,21 +538,33 @@ public abstract class Building {
    *                                  enough to give missing items.
    */
   public void requestMissingIngredients(Recipe recipe) {
+    System.out.println("[DEBUG] " + getName() + " requestMissingIngredients for " + recipe.getOutput().getName());
+    
     List<Tuple<Item, Integer>> missingIngredients = findMissingIngredients(recipe);
+    System.out.println("[DEBUG] " + getName() + " found " + missingIngredients.size() + " missing ingredients");
+    
     for (int index = 0; index < missingIngredients.size(); index++) {
       Tuple<Item, Integer> entry = missingIngredients.get(index);
       Item item = entry.first();
       int numNeeded = entry.second();
+      
+      System.out.println("[DEBUG] " + getName() + " needs " + numNeeded + " of " + item.getName());
 
       List<Tuple<Building, Integer>> sourceWithScores = new ArrayList<>();
 
       // use source policy to select a source
       List<Building> availableSources = getAvailableSourcesForItem(item);
+      System.out.println("[DEBUG] " + getName() + " found " + availableSources.size() + " available sources for " + item.getName());
+      
       Building selectedSource = sourcePolicy.selectSource(item, availableSources,
           (source, score) -> sourceWithScores.add(new Tuple<>(source, score)));
       if (selectedSource == null) {
+        System.out.println("[DEBUG] " + getName() + " ERROR: No source can produce " + item.getName());
         throw new IllegalArgumentException("No source can produce the item " + item.getName());
       }
+      
+      System.out.println("[DEBUG] " + getName() + " selected source " + selectedSource.getName() + " for " + item.getName());
+      
       Recipe recipeNeeded = simulation.getRecipeForItem(item);
 
       // notify simulation an ingredient source is selected
@@ -487,6 +576,8 @@ public abstract class Building {
         int orderNum = simulation.getOrderNum(); // this function automatically proceed the next order num by 1
         Request subRequest = new Request(orderNum, item, recipeNeeded, selectedSource, this);
         simulation.onIngredientAssigned(item, selectedSource, this);
+        System.out.println("[DEBUG] " + getName() + " created sub-request " + i + " of " + numNeeded 
+                         + " for " + item.getName() + " from " + selectedSource.getName());
         selectedSource.addRequest(subRequest);
       }
     }
