@@ -540,44 +540,85 @@ public abstract class Building {
   public void requestMissingIngredients(Recipe recipe) {
     System.out.println("[DEBUG] " + getName() + " requestMissingIngredients for " + recipe.getOutput().getName());
     
+    // Get missing ingredients considering only what's in storage
     List<Tuple<Item, Integer>> missingIngredients = findMissingIngredients(recipe);
     System.out.println("[DEBUG] " + getName() + " found " + missingIngredients.size() + " missing ingredients");
     
+    // Create a map to track pending ingredient requests
+    Map<Item, Integer> pendingIngredientRequests = new HashMap<>();
+    List<Building> allBuildings = simulation.getWorld().getBuildings();
+    
+    // Count pending requests for each ingredient across all buildings
+    for (Building building : allBuildings) {
+      // Find pending requests that will deliver to this building
+      for (Request pendingRequest : building.getPendingRequests()) {
+        if (pendingRequest.getDeliverTo() == this) {
+          Item requestedItem = pendingRequest.getItem();
+          int currentCount = pendingIngredientRequests.getOrDefault(requestedItem, 0);
+          pendingIngredientRequests.put(requestedItem, currentCount + 1);
+        }
+      }
+    }
+    
+    System.out.println("[DEBUG] " + getName() + " tracked " + pendingIngredientRequests.size() + 
+                     " types of pending ingredients: " + pendingIngredientRequests);
+    
+    // Process each missing ingredient
     for (int index = 0; index < missingIngredients.size(); index++) {
       Tuple<Item, Integer> entry = missingIngredients.get(index);
       Item item = entry.first();
       int numNeeded = entry.second();
       
-      System.out.println("[DEBUG] " + getName() + " needs " + numNeeded + " of " + item.getName());
-
-      List<Tuple<Building, Integer>> sourceWithScores = new ArrayList<>();
-
-      // use source policy to select a source
-      List<Building> availableSources = getAvailableSourcesForItem(item);
-      System.out.println("[DEBUG] " + getName() + " found " + availableSources.size() + " available sources for " + item.getName());
+      // Account for pending requests
+      int pendingQuantity = pendingIngredientRequests.getOrDefault(item, 0);
+      int actualNeeded = Math.max(0, numNeeded - pendingQuantity);
       
-      Building selectedSource = sourcePolicy.selectSource(item, availableSources,
-          (source, score) -> sourceWithScores.add(new Tuple<>(source, score)));
-      if (selectedSource == null) {
+      System.out.println("[DEBUG] " + getName() + " needs " + numNeeded + " of " + item.getName() + 
+                        ", already pending: " + pendingQuantity + 
+                        ", actual needed: " + actualNeeded);
+      
+      // If we already have enough pending, skip requesting more
+      if (actualNeeded <= 0) {
+        System.out.println("[DEBUG] " + getName() + " skipping request for " + item.getName() + 
+                          " since enough are already pending");
+        continue;
+      }
+
+      // Select a source for this ingredient
+      List<Building> availableSources = getAvailableSourcesForItem(item);
+      System.out.println("[DEBUG] " + getName() + " found " + availableSources.size() + 
+                        " available sources for " + item.getName());
+      
+      if (availableSources.isEmpty()) {
         System.out.println("[DEBUG] " + getName() + " ERROR: No source can produce " + item.getName());
         throw new IllegalArgumentException("No source can produce the item " + item.getName());
       }
       
-      System.out.println("[DEBUG] " + getName() + " selected source " + selectedSource.getName() + " for " + item.getName());
+      List<Tuple<Building, Integer>> sourceWithScores = new ArrayList<>();
+      Building selectedSource = sourcePolicy.selectSource(item, availableSources,
+          (source, score) -> sourceWithScores.add(new Tuple<>(source, score)));
+          
+      if (selectedSource == null) {
+        System.out.println("[DEBUG] " + getName() + " ERROR: No source selected for " + item.getName());
+        throw new IllegalArgumentException("No source selected for item " + item.getName());
+      }
+      
+      System.out.println("[DEBUG] " + getName() + " selected source " + selectedSource.getName() + 
+                        " for " + item.getName());
       
       Recipe recipeNeeded = simulation.getRecipeForItem(item);
 
-      // notify simulation an ingredient source is selected
+      // Notify simulation an ingredient source is selected
       simulation.onIngredientSourceSelected(this, recipe.getOutput(), index,
           recipeNeeded.getOutput(), sourceWithScores, selectedSource);
 
-      // create sub-requests for numNeeded times for this item
-      for (int i = 0; i < numNeeded; i++) {
-        int orderNum = simulation.getOrderNum(); // this function automatically proceed the next order num by 1
+      // Create sub-requests for actualNeeded times for this item
+      for (int i = 0; i < actualNeeded; i++) {
+        int orderNum = simulation.getOrderNum();
         Request subRequest = new Request(orderNum, item, recipeNeeded, selectedSource, this);
         simulation.onIngredientAssigned(item, selectedSource, this);
-        System.out.println("[DEBUG] " + getName() + " created sub-request " + i + " of " + numNeeded 
-                         + " for " + item.getName() + " from " + selectedSource.getName());
+        System.out.println("[DEBUG] " + getName() + " created sub-request " + i + " of " + 
+                         actualNeeded + " for " + item.getName() + " from " + selectedSource.getName());
         selectedSource.addRequest(subRequest);
       }
     }
