@@ -275,7 +275,18 @@ public class WorldBuilder {
       Building building;
 
       if (buildingDTO.type != null && buildingDTO.type.equals("DronePort")) {
-        building = new DronePortBuilding(buildingDTO.name, new ArrayList<>(), simulation);
+        DronePortBuilding portBuilding = new DronePortBuilding(buildingDTO.name, new ArrayList<>(), simulation);
+        if (buildingDTO.drones != null) {
+          DronePort port = portBuilding.getDronePort();
+          List<Drone> drones = new ArrayList<>();
+          for (DroneDTO dto : buildingDTO.drones) {
+            Drone drone = new Drone();
+            drone.setInUse(dto.inUse);
+            drones.add(drone);
+          }
+          port.setDrones(drones);
+        }
+        building = portBuilding;
       } else if (buildingDTO.stores != null) {
         if (buildingDTO.capacity == null || buildingDTO.priority == null) {
           throw new IllegalArgumentException("Storage building '" + buildingDTO.name

@@ -19,6 +19,7 @@ public class BuildingDTO {
   public String stores;
   public Integer capacity;
   public Double priority;
+  public List<DroneDTO> drones;
 
   /**
    * Gets the source building names for a building.

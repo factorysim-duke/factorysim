@@ -16,6 +16,9 @@ public class DronePort {
   private List<Drone> drones;
   private int maxDrones = 10;
 
+  public List<Drone> getDrones() { return this.drones; }
+  public void setDrones(List<Drone> drones) { this.drones = drones; }
+
   /**
    * Constructs a drone port.
    *
