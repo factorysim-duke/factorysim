@@ -24,7 +24,7 @@ public abstract class Building {
 
   /**
    * Constructs a basic building with empty storage.
-   * 
+   *
    * @param name       is the name of the building.
    * @param sources    is the list of buildings where this building can get
    *                   ingredients from.
@@ -47,7 +47,7 @@ public abstract class Building {
 
   /**
    * Gets the building's storage.
-   * 
+   *
    * @return the storage of the building.
    */
   public Map<Item, Integer> getStorage() {
@@ -56,7 +56,7 @@ public abstract class Building {
 
   /**
    * Gets the simulation.
-   * 
+   *
    * @return the simulation.
    */
   public Simulation getSimulation() {
@@ -65,7 +65,7 @@ public abstract class Building {
 
   /**
    * Gets the recipe for a given item.
-   * 
+   *
    * @param item is the item to get the recipe for.
    * @return the recipe for the item.
    */
@@ -75,7 +75,7 @@ public abstract class Building {
 
   /**
    * Gets the name of the building.
-   * 
+   *
    * @return name of the building.
    */
   public String getName() {
@@ -84,7 +84,7 @@ public abstract class Building {
 
   /**
    * Gets the sources of the building.
-   * 
+   *
    * @return list of sources of the building.
    */
   public List<Building> getSources() {
@@ -93,7 +93,7 @@ public abstract class Building {
 
   /**
    * Updates the sources of the building.
-   * 
+   *
    * @param newSources is the new list of sources.
    */
   public void updateSources(List<Building> newSources) {
@@ -103,7 +103,7 @@ public abstract class Building {
 
   /**
    * Gets the current storage number of an item.
-   * 
+   *
    * @param item is the item to be checked.
    * @return -1 if the requested item is not in storage, otherwise the current
    *         storage number of that item.
@@ -118,7 +118,7 @@ public abstract class Building {
 
   /**
    * Update the storage by adding things in.
-   * 
+   *
    * @param item     is the item to be updated.
    * @param quantity is the number of the item to be added into storage.
    */
@@ -132,7 +132,7 @@ public abstract class Building {
 
   /**
    * Update the storage by taking things out.
-   * 
+   *
    * @param item     is the item to be updated.
    * @param quantity is the number of the item to be taken out of storage.
    * @throws IllegalArgumentException if the item does not exist in storage, or
@@ -159,7 +159,7 @@ public abstract class Building {
 
   /**
    * Delivers things to another building.
-   * 
+   *
    * @param destination is the destination building.
    * @param item        is the item to be delivered.
    * @param quantity    is the quantity of item to be delivered.
@@ -268,7 +268,7 @@ public abstract class Building {
 
   /**
    * Sets the request policy for the building.
-   * 
+   *
    * @param requestPolicy the request policy to set.
    */
   public void setRequestPolicy(RequestPolicy requestPolicy) {
@@ -277,7 +277,7 @@ public abstract class Building {
 
   /**
    * Sets the source policy for the building.
-   * 
+   *
    * @param sourcePolicy the source policy to set.
    */
   public void setSourcePolicy(SourcePolicy sourcePolicy) {
@@ -304,7 +304,7 @@ public abstract class Building {
     // if the building is processing a request, work on the current one
     if (isProcessing()) {
       boolean isRequestFinished = currentRequest.process();
-      
+
       if (isRequestFinished) {
         finishCurrentRequest();
       }
@@ -327,7 +327,7 @@ public abstract class Building {
 
       // Start processing request if has all the ingredients for it
       boolean hasIngredients = hasAllIngredientsFor(selectedRecipe);
-      
+
       if (hasIngredients) {
         consumeIngredientsFor(selectedRecipe);
         pendingRequests.remove(selectedRequest);
@@ -342,7 +342,7 @@ public abstract class Building {
 
   /**
    * Checks if the things in storage are enough to produce the output of a recipe.
-   * 
+   *
    * @param recipe is the recipe to be checked.
    * @return true if the things in storage are enough, false otherwise.
    */
@@ -361,7 +361,7 @@ public abstract class Building {
   /**
    * Consumes the ingredients in storage for a given recipe.
    * Precondition: hasAllIngredientsFor(recipe) == true
-   * 
+   *
    * @param recipe is the recipe to be consumed.
    */
   public void consumeIngredientsFor(Recipe recipe) {
@@ -386,7 +386,7 @@ public abstract class Building {
       for (Map.Entry<Item, Integer> wasteEntry : recipe.getWasteByProducts().entrySet()) {
         Item wasteType = wasteEntry.getKey();
         int quantity = wasteEntry.getValue();
-        
+
         // find a waste disposal building that can handle this waste
         WasteDisposalBuilding disposalBuilding = findWasteDisposalBuilding(wasteType, quantity);
 
@@ -468,11 +468,11 @@ public abstract class Building {
   public void requestMissingIngredients(Recipe recipe) {
     // Get missing ingredients considering only what's in storage
     List<Tuple<Item, Integer>> missingIngredients = findMissingIngredients(recipe);
-    
+
     // Create a map to track pending ingredient requests
     Map<Item, Integer> pendingIngredientRequests = new HashMap<>();
     List<Building> allBuildings = simulation.getWorld().getBuildings();
-    
+
     // Count pending requests for each ingredient across all buildings
     for (Building building : allBuildings) {
       // Find pending requests that will deliver to this building
@@ -484,17 +484,17 @@ public abstract class Building {
         }
       }
     }
-    
+
     // Process each missing ingredient
     for (int index = 0; index < missingIngredients.size(); index++) {
       Tuple<Item, Integer> entry = missingIngredients.get(index);
       Item item = entry.first();
       int numNeeded = entry.second();
-      
+
       // Account for pending requests
       int pendingQuantity = pendingIngredientRequests.getOrDefault(item, 0);
       int actualNeeded = Math.max(0, numNeeded - pendingQuantity);
-      
+
       // If we already have enough pending, skip requesting more
       if (actualNeeded <= 0) {
         continue;
@@ -502,19 +502,21 @@ public abstract class Building {
 
       // Select a source for this ingredient
       List<Building> availableSources = getAvailableSourcesForItem(item);
-      
+
       if (availableSources.isEmpty()) {
-        throw new IllegalArgumentException("No source can produce the item " + item.getName());
+        // TODO: double check if this is correct
+        // throw new IllegalArgumentException("No source can produce the item " + item.getName());
+        throw new IllegalArgumentException("");
       }
-      
+
       List<Tuple<Building, Integer>> sourceWithScores = new ArrayList<>();
       Building selectedSource = sourcePolicy.selectSource(item, availableSources,
           (source, score) -> sourceWithScores.add(new Tuple<>(source, score)));
-          
+
       if (selectedSource == null) {
         throw new IllegalArgumentException("No source selected for item " + item.getName());
       }
-      
+
       Recipe recipeNeeded = simulation.getRecipeForItem(item);
 
       // Notify simulation an ingredient source is selected
@@ -536,7 +538,7 @@ public abstract class Building {
    * recipe, considering current building storage.
    * Precondition: hasAllIngredientsFor(recipe) == false, thus there must be some
    * item whose number in storage is smaller than number needed in recipe
-   * 
+   *
    * @param recipe is the recipe for ingredients check.
    * @return the hashmap for missing ingredients.
    */
@@ -605,7 +607,7 @@ public abstract class Building {
 
   /**
    * Gets the number of pending requests of this building.
-   * 
+   *
    * @return the number of the pending requests.
    */
   public int getNumOfPendingRequests() {
@@ -614,7 +616,7 @@ public abstract class Building {
 
   /**
    * Gets the list of source buildings that can produce a given item.
-   * 
+   *
    * @param item is the item to be checked.
    * @return the list of available source buildings.
    */
@@ -631,7 +633,7 @@ public abstract class Building {
   /**
    * Gets the sum of the remaining steps of all pending requests and the current
    * request (if any).
-   * 
+   *
    * @return the sum of all requests' remaining steps.
    */
   public int sumRemainingLatencies() {
@@ -647,7 +649,7 @@ public abstract class Building {
 
   /**
    * Gets the list of pending requests of this building.
-   * 
+   *
    * @return the list of pending requests.
    */
   public List<Request> getPendingRequests() {
@@ -689,7 +691,7 @@ public abstract class Building {
 
   /**
    * Gets the location of the building.
-   * 
+   *
    * @return the location of the building.
    */
   public Coordinate getLocation() {
@@ -698,7 +700,7 @@ public abstract class Building {
 
   /**
    * Sets the location of the building.
-   * 
+   *
    * @param location is the location to be set.
    */
   public void setLocation(Coordinate location) {
