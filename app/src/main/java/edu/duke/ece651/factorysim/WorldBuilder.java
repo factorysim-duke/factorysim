@@ -28,7 +28,8 @@ public class WorldBuilder {
     Map<String, Type> types = buildTypes(configData.types, recipes);
     Map<String, Building> buildings = buildBuildings(configData.buildings, types, recipes, simulation);
 
-    validateBuildingsIngredients(buildings, types);
+    // since factory building can have no sources, we don't need to validate the ingredients
+    // validateBuildingsIngredients(buildings, types);
     World world = new World();
     world.wasteConfigMap = new HashMap<>();
 
@@ -97,7 +98,7 @@ public class WorldBuilder {
 
   /**
    * Builds connections between buildings using the ConnectionDTOs.
-   * 
+   *
    * @param connectionDTOs is the list of connection data transfer objects.
    * @param simulation     is the simulation where the connections will be
    *                       created.
@@ -289,10 +290,11 @@ public class WorldBuilder {
         if (!typeMap.containsKey(buildingDTO.type)) {
           throw new IllegalArgumentException("Type '" + buildingDTO.type + "' is not defined (violates #2).");
         }
-        // TODO: Can Factory building have no sources?
-        if (buildingDTO.getSources().isEmpty()) {
-          throw new IllegalArgumentException("Factory building '" + buildingDTO.name + "' has no sources.");
-        }
+
+        // Factory building can have no sources
+        // if (buildingDTO.getSources().isEmpty()) {
+        //   throw new IllegalArgumentException("Factory building '" + buildingDTO.name + "' has no sources.");
+        // }
         Type type = typeMap.get(buildingDTO.type);
         FactoryBuilding factoryBuilding = new FactoryBuilding(type, buildingDTO.name, new ArrayList<>(), simulation);
         building = factoryBuilding;
