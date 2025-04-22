@@ -144,9 +144,7 @@ public class SimulationTest {
         "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
         "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
         "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
-        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
-        "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
-        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator();
+      "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator();
     assertEquals(expected, stream.toString());
     stream.reset();
 
@@ -154,21 +152,51 @@ public class SimulationTest {
     // Use `System.lineSeparator()` so tests can pass on Windows
     sim.step(50);
     expected =
+        "[ingredient assignment]: wood assigned to W to deliver to D" + System.lineSeparator() +
+        "[ingredient assignment]: metal assigned to M to deliver to Ha" + System.lineSeparator() +
+        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
+        "[ingredient assignment]: wood assigned to W to deliver to D" + System.lineSeparator() +
+        "[ingredient assignment]: wood assigned to W to deliver to D" + System.lineSeparator() +
+        "[ingredient assignment]: metal assigned to M to deliver to Ha" + System.lineSeparator() +
         "[ingredient delivered]: wood to D from W on cycle 6" + System.lineSeparator() +
         "[ingredient delivered]: metal to Ha from M on cycle 6" + System.lineSeparator() +
         "    0: handle is ready" + System.lineSeparator() +
         "[ingredient delivered]: metal to Hi from M on cycle 6" + System.lineSeparator() +
         "    0: hinge is ready" + System.lineSeparator() +
-        "[ingredient delivered]: metal to Hi from M on cycle 8" + System.lineSeparator() +
-        "    0: hinge is ready" + System.lineSeparator() +
+        "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
+        "[ingredient assignment]: handle assigned to Ha to deliver to D" + System.lineSeparator() +
+        "[ingredient delivered]: wood to D from W on cycle 8" + System.lineSeparator() +
+        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
+        "[ingredient delivered]: wood to D from W on cycle 10" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Ha from M on cycle 10" + System.lineSeparator() +
+        "    0: handle is ready" + System.lineSeparator() +
         "[ingredient delivered]: hinge to D from Hi on cycle 10" + System.lineSeparator() +
         "[ingredient delivered]: metal to Hi from M on cycle 10" + System.lineSeparator() +
         "    0: hinge is ready" + System.lineSeparator() +
-        "[ingredient delivered]: hinge to D from Hi on cycle 12" + System.lineSeparator() +
+        "[ingredient delivered]: wood to D from W on cycle 12" + System.lineSeparator() +
         "[ingredient delivered]: handle to D from Ha on cycle 12" + System.lineSeparator() +
+        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
+        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Ha from M on cycle 14" + System.lineSeparator() +
+        "    0: handle is ready" + System.lineSeparator() +
         "[ingredient delivered]: hinge to D from Hi on cycle 14" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Hi from M on cycle 14" + System.lineSeparator() +
+        "    0: hinge is ready" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Hi from M on cycle 16" + System.lineSeparator() +
+        "    0: hinge is ready" + System.lineSeparator() +
+        "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
+        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
+        "[ingredient delivered]: hinge to D from Hi on cycle 18" + System.lineSeparator() +
         "    0: door is ready" + System.lineSeparator() +
-        "[order complete] Order 0 completed (door) at time 26" + System.lineSeparator();
+        "[ingredient delivered]: metal to Hi from M on cycle 18" + System.lineSeparator() +
+        "    0: hinge is ready" + System.lineSeparator() +
+        "[ingredient delivered]: handle to D from Ha on cycle 18" + System.lineSeparator() +
+        "    0: door is ready" + System.lineSeparator() +
+        "[ingredient delivered]: hinge to D from Hi on cycle 20" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Hi from M on cycle 20" + System.lineSeparator() +
+        "    0: hinge is ready" + System.lineSeparator() +
+        "[ingredient delivered]: hinge to D from Hi on cycle 22" + System.lineSeparator() +
+        "[order complete] Order 0 completed (door) at time 30" + System.lineSeparator();
     assertEquals(expected, stream.toString());
     stream.reset();
 
@@ -215,16 +243,8 @@ public class SimulationTest {
         "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
         "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
         "[source selection]: Hi (qlen) has request for hinge on 0" + System.lineSeparator() +
-        "[Hi:hinge:0] For ingredient metal" + System.lineSeparator() +
-        "    M: 2" + System.lineSeparator() +
-        "    Selecting M" + System.lineSeparator() +
-        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
         "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
-        "[source selection]: Hi (qlen) has request for hinge on 0" + System.lineSeparator() +
-        "[Hi:hinge:0] For ingredient metal" + System.lineSeparator() +
-        "    M: 3" + System.lineSeparator() +
-        "    Selecting M" + System.lineSeparator() +
-        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator();
+      "[source selection]: Hi (qlen) has request for hinge on 0" + System.lineSeparator();
     assertEquals(expected, stream.toString());
     stream.reset();
 
