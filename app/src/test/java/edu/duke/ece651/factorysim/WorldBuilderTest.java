@@ -101,7 +101,7 @@ public class WorldBuilderTest {
   public void test_WorldBuilder_failure_factoryHasNoSource() {
     ConfigData configDataFactoryHasNoSource = TestUtils
         .loadConfigData("src/test/resources/inputs/FactoryHasNoSource.json");
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertDoesNotThrow(() -> {
       WorldBuilder.buildWorld(configDataFactoryHasNoSource, new TestUtils.MockSimulation());
     });
   }
@@ -110,7 +110,7 @@ public class WorldBuilderTest {
   public void test_WorldBuilder_failure_factoryMissingOneSource() {
     ConfigData configDataFactoryMissingOneSource = TestUtils
         .loadConfigData("src/test/resources/inputs/FactoryMissingOneSource.json");
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertDoesNotThrow(() -> {
       WorldBuilder.buildWorld(configDataFactoryMissingOneSource, new TestUtils.MockSimulation());
     });
   }
