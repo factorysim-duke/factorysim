@@ -655,8 +655,12 @@ public class Simulation {
   void loadFromReader(Reader reader) {
     Gson gson = new Gson();
 
-    String json = new BufferedReader(reader)
-        .lines().collect(Collectors.joining(System.lineSeparator()));
+    String json;
+    try (BufferedReader bufferedReader = new BufferedReader(reader)) {
+      json = bufferedReader.lines().collect(Collectors.joining(System.lineSeparator()));
+    } catch (IOException e) {
+      throw new IllegalArgumentException("Error reading from reader", e);
+    }
 
     ConfigData configData = JsonLoader.loadConfigDataFromReader(new StringReader(json));
     this.world = WorldBuilder.buildWorld(configData, this);
@@ -838,6 +842,16 @@ public class Simulation {
    */
   public void updateTileMap(Coordinate location, TileType tileType) {
     world.tileMap.setTileType(location, tileType);
+  }
+
+  /**
+   * Sets the dimensions of the tile map.
+   *
+   * @param width  is the width of the board.
+   * @param height is the height of the board.
+   */
+  public void setTileMapDimensions(int width, int height) {
+    world.setTileMapDimensions(width, height);
   }
 
   /**
