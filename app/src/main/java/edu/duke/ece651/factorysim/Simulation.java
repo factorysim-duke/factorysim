@@ -1206,28 +1206,31 @@ public class Simulation {
       // drone delivery is possible
       DronePort dronePort = dronePortBuilding.getDronePort();
       Drone drone = dronePort.getAvailableDrone();
-      DroneDelivery droneDelivery = new DroneDelivery(dronePort, drone, src, dst, item, quantity);
-      deliverySchedule.addDelivery(droneDelivery);
+      if (drone != null) {
+        DroneDelivery droneDelivery = new DroneDelivery(dronePort, drone, src, dst, item, quantity);
+        deliverySchedule.addDelivery(droneDelivery);
 
-      if (verbosity > 0) {
-        logger.log("[drone delivery scheduled]: Using drone from " + dronePortBuilding.getName() +
+        if (verbosity > 0) {
+          logger.log("[drone delivery scheduled]: Using drone from " + dronePortBuilding.getName() +
                   " to deliver " + quantity + " " + item.getName() +
                   " from " + src.getName() + " to " + dst.getName());
-      }
-    } else {
-      // if drone not available, use normal road delivery
-      boolean isConnected = false;
-      for (int i = 0; i < pathList.size(); i++) {
-        if (pathList.get(i).isMatch(src.getLocation(), dst.getLocation())) {
-          Delivery d = new Delivery(src, dst, item, quantity, pathList.get(i).getDeliveryTime(), i);
-          deliverySchedule.addDelivery(d);
-          isConnected = true;
-          break;
         }
+        return;
       }
-      if (!isConnected) {
-        throw new IllegalArgumentException("building " + src.getName() + " and " + dst.getName() + " are not connected");
+    }
+
+    // if drone not available, use normal road delivery
+    boolean isConnected = false;
+    for (int i = 0; i < pathList.size(); i++) {
+      if (pathList.get(i).isMatch(src.getLocation(), dst.getLocation())) {
+        Delivery d = new Delivery(src, dst, item, quantity, pathList.get(i).getDeliveryTime(), i);
+        deliverySchedule.addDelivery(d);
+        isConnected = true;
+        break;
       }
+    }
+    if (!isConnected) {
+      throw new IllegalArgumentException("building " + src.getName() + " and " + dst.getName() + " are not connected");
     }
   }
 
