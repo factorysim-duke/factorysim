@@ -304,6 +304,7 @@ public abstract class Building {
     // if the building is processing a request, work on the current one
     if (isProcessing()) {
       boolean isRequestFinished = currentRequest.process();
+      
       if (isRequestFinished) {
         finishCurrentRequest();
       }
@@ -325,11 +326,16 @@ public abstract class Building {
       simulation.onRecipeSelected(this, requestPolicy, pendingRequests, selectedRequest);
 
       // Start processing request if has all the ingredients for it
-      if (hasAllIngredientsFor(selectedRecipe)) {
+      boolean hasIngredients = hasAllIngredientsFor(selectedRecipe);
+      
+      if (hasIngredients) {
         consumeIngredientsFor(selectedRecipe);
         pendingRequests.remove(selectedRequest);
         currentRequest = selectedRequest;
         currentRequest.setStatus("current");
+      } else {
+        // Request missing ingredients when we can't process a request due to missing ingredients
+        requestMissingIngredients(selectedRecipe);
       }
     }
   }
@@ -380,6 +386,7 @@ public abstract class Building {
       for (Map.Entry<Item, Integer> wasteEntry : recipe.getWasteByProducts().entrySet()) {
         Item wasteType = wasteEntry.getKey();
         int quantity = wasteEntry.getValue();
+        
         // find a waste disposal building that can handle this waste
         WasteDisposalBuilding disposalBuilding = findWasteDisposalBuilding(wasteType, quantity);
 
@@ -399,8 +406,6 @@ public abstract class Building {
       // deliver
       Building destinationBuilding = currentRequest.getDeliverTo();
       deliverTo(destinationBuilding, output, 1);
-      // simulation.onIngredientDelivered(currentRequest.getItem(),
-      // destinationBuilding, this); // notify simulation
 
       // update our own storage
       takeFromStorage(output, 1);
@@ -461,30 +466,64 @@ public abstract class Building {
    *                                  enough to give missing items.
    */
   public void requestMissingIngredients(Recipe recipe) {
+    // Get missing ingredients considering only what's in storage
     List<Tuple<Item, Integer>> missingIngredients = findMissingIngredients(recipe);
+    
+    // Create a map to track pending ingredient requests
+    Map<Item, Integer> pendingIngredientRequests = new HashMap<>();
+    List<Building> allBuildings = simulation.getWorld().getBuildings();
+    
+    // Count pending requests for each ingredient across all buildings
+    for (Building building : allBuildings) {
+      // Find pending requests that will deliver to this building
+      for (Request pendingRequest : building.getPendingRequests()) {
+        if (pendingRequest.getDeliverTo() == this) {
+          Item requestedItem = pendingRequest.getItem();
+          int currentCount = pendingIngredientRequests.getOrDefault(requestedItem, 0);
+          pendingIngredientRequests.put(requestedItem, currentCount + 1);
+        }
+      }
+    }
+    
+    // Process each missing ingredient
     for (int index = 0; index < missingIngredients.size(); index++) {
       Tuple<Item, Integer> entry = missingIngredients.get(index);
       Item item = entry.first();
       int numNeeded = entry.second();
+      
+      // Account for pending requests
+      int pendingQuantity = pendingIngredientRequests.getOrDefault(item, 0);
+      int actualNeeded = Math.max(0, numNeeded - pendingQuantity);
+      
+      // If we already have enough pending, skip requesting more
+      if (actualNeeded <= 0) {
+        continue;
+      }
 
-      List<Tuple<Building, Integer>> sourceWithScores = new ArrayList<>();
-
-      // use source policy to select a source
+      // Select a source for this ingredient
       List<Building> availableSources = getAvailableSourcesForItem(item);
-      Building selectedSource = sourcePolicy.selectSource(item, availableSources,
-          (source, score) -> sourceWithScores.add(new Tuple<>(source, score)));
-      if (selectedSource == null) {
+      
+      if (availableSources.isEmpty()) {
         throw new IllegalArgumentException("No source can produce the item " + item.getName());
       }
+      
+      List<Tuple<Building, Integer>> sourceWithScores = new ArrayList<>();
+      Building selectedSource = sourcePolicy.selectSource(item, availableSources,
+          (source, score) -> sourceWithScores.add(new Tuple<>(source, score)));
+          
+      if (selectedSource == null) {
+        throw new IllegalArgumentException("No source selected for item " + item.getName());
+      }
+      
       Recipe recipeNeeded = simulation.getRecipeForItem(item);
 
-      // notify simulation an ingredient source is selected
+      // Notify simulation an ingredient source is selected
       simulation.onIngredientSourceSelected(this, recipe.getOutput(), index,
           recipeNeeded.getOutput(), sourceWithScores, selectedSource);
 
-      // create sub-requests for numNeeded times for this item
-      for (int i = 0; i < numNeeded; i++) {
-        int orderNum = simulation.getOrderNum(); // this function automatically proceed the next order num by 1
+      // Create sub-requests for actualNeeded times for this item
+      for (int i = 0; i < actualNeeded; i++) {
+        int orderNum = simulation.getOrderNum();
         Request subRequest = new Request(orderNum, item, recipeNeeded, selectedSource, this);
         simulation.onIngredientAssigned(item, selectedSource, this);
         selectedSource.addRequest(subRequest);

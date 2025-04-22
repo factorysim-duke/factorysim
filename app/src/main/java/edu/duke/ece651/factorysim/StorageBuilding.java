@@ -137,6 +137,7 @@ public class StorageBuilding extends Building {
   public void step() {
     // try to complete pending request using currently available stocks
     // can give away many at a time, and use fifo only to choose request
+    
     while (!getPendingRequest().isEmpty() && currentStockNum > 0) {
       Request request = getPendingRequests().remove(0); // use fifo only
       if (request.isUserRequest()) {
@@ -146,7 +147,6 @@ public class StorageBuilding extends Building {
         Building destination = request.getDeliverTo();
         deliverTo(destination, storageItem, 1);
         takeFromStorage(storageItem, 1);
-        // getSimulation().onIngredientDelivered(storageItem, destination, this);
       }
     }
 
@@ -155,24 +155,31 @@ public class StorageBuilding extends Building {
     arrivingItemNum = 0;
 
     // periodically make refill requests from sources
-    int R = maxCapacity - currentStockNum - outstandingRequestNum + getPendingRequests().size();
+    int pendingRequestsCount = getPendingRequests().size();
+    int R = maxCapacity - currentStockNum - outstandingRequestNum + pendingRequestsCount;
+    
     if (R > 0) {
       int T = maxCapacity;
       int F = (int) Math.ceil((double) (T * T) / (R * priority));
       int currentTime = getSimulation().getCurrentTime();
+      
       if (currentTime % F == 0) {
         List<Building> availableSources = getAvailableSourcesForItem(storageItem);
+        
         if (!availableSources.isEmpty()) {
           Building selectedSource = sourcePolicy.selectSource(
               storageItem,
               availableSources,
               (building, score) -> {
               });
-          int orderNum = getSimulation().getOrderNum();
-          Recipe recipe = getSimulation().getRecipeForItem(storageItem);
-          Request newRequest = new Request(orderNum, storageItem, recipe, selectedSource, this);
-          outstandingRequestNum++;
-          selectedSource.addRequest(newRequest);
+          if (selectedSource != null) {
+            int orderNum = getSimulation().getOrderNum();
+            Recipe recipe = getSimulation().getRecipeForItem(storageItem);
+            Request newRequest = new Request(orderNum, storageItem, recipe, selectedSource, this);
+            outstandingRequestNum++;
+            
+            selectedSource.addRequest(newRequest);
+          }
         }
       }
     }
