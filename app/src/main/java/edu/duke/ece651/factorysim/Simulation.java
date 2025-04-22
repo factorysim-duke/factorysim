@@ -20,6 +20,8 @@ public class Simulation {
   private int currentTime;
   private boolean finished = false;
   private int nextOrderNum = 0;
+  private int boardWidth = 1000;
+  private int boardHeight = 100;
 
   private int verbosity;
 
@@ -672,6 +674,11 @@ public class Simulation {
     this.finished = getJsonField(state, "finished", false);
     this.nextOrderNum = getJsonField(state, "nextOrderNum", 0);
     this.verbosity = getJsonField(state, "verbosity", 0);
+    this.boardWidth = getJsonField(state, "boardWidth", 480);
+    this.boardHeight = getJsonField(state, "boardHeight", 270);
+
+    // set tile map dimensions
+    this.setTileMapDimensions(this.boardWidth, this.boardHeight);
 
     JsonElement requestsElement = state.get("requests");
     JsonArray requestsArray;
@@ -1347,6 +1354,8 @@ public class Simulation {
     state.addProperty("finished", finished);
     state.addProperty("nextOrderNum", nextOrderNum);
     state.addProperty("verbosity", verbosity);
+    state.addProperty("boardWidth", world.getTileMap().getWidth());
+    state.addProperty("boardHeight", world.getTileMap().getHeight());
 
     JsonArray typesArray = new JsonArray();
     for (Type type : world.getTypes()) {
