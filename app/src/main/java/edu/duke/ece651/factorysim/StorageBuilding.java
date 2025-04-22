@@ -155,11 +155,32 @@ public class StorageBuilding extends Building {
     arrivingItemNum = 0;
 
     // periodically make refill requests from sources
-    int R = maxCapacity - currentStockNum - outstandingRequestNum + getPendingRequests().size();
+    int pendingRequestsCount = getPendingRequests().size();
+    int R = maxCapacity - currentStockNum - outstandingRequestNum + pendingRequestsCount;
+    
+  //debugging
+    if (getSimulation().getVerbosity() > 1) {
+      getSimulation().getLogger().log(getName() + " storage capacity calculation: " +
+                                      "maxCapacity=" + maxCapacity + 
+                                      ", currentStockNum=" + currentStockNum + 
+                                      ", outstandingRequestNum=" + outstandingRequestNum + 
+                                      ", pendingRequestsCount=" + pendingRequestsCount + 
+                                      ", R=" + R);
+    }
+    
     if (R > 0) {
       int T = maxCapacity;
       int F = (int) Math.ceil((double) (T * T) / (R * priority));
       int currentTime = getSimulation().getCurrentTime();
+      
+      //debugging
+      if (getSimulation().getVerbosity() > 1) {
+        getSimulation().getLogger().log(getName() + " refill cycle calculation: T=" + T + 
+                                       ", R=" + R + ", priority=" + priority + 
+                                       ", F=" + F + ", currentTime=" + currentTime + 
+                                       ", currentTime % F=" + (currentTime % F));
+      }
+      
       if (currentTime % F == 0) {
         List<Building> availableSources = getAvailableSourcesForItem(storageItem);
         if (!availableSources.isEmpty()) {
@@ -168,11 +189,21 @@ public class StorageBuilding extends Building {
               availableSources,
               (building, score) -> {
               });
-          int orderNum = getSimulation().getOrderNum();
-          Recipe recipe = getSimulation().getRecipeForItem(storageItem);
-          Request newRequest = new Request(orderNum, storageItem, recipe, selectedSource, this);
-          outstandingRequestNum++;
-          selectedSource.addRequest(newRequest);
+          if (selectedSource != null) {
+            int orderNum = getSimulation().getOrderNum();
+            Recipe recipe = getSimulation().getRecipeForItem(storageItem);
+            Request newRequest = new Request(orderNum, storageItem, recipe, selectedSource, this);
+            outstandingRequestNum++;
+            
+            //debugging
+            if (getSimulation().getVerbosity() > 1) {
+              getSimulation().getLogger().log(getName() + " requesting refill from " + 
+                                             selectedSource.getName() + 
+                                             ", new outstandingRequestNum=" + outstandingRequestNum);
+            }
+            
+            selectedSource.addRequest(newRequest);
+          }
         }
       }
     }
