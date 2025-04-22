@@ -8,17 +8,19 @@ import java.util.*;
  * of the data.
  */
 public class WorldBuilder {
-  private static final int boardWidth = 1000;
-  private static final int boardHeight = 100;
+  private static final int DEFAULT_BOARD_WIDTH = 1000;
+  private static final int DEFAULT_BOARD_HEIGHT = 100;
 
   /**
    * Builds the world from the ConfigData.
    *
    * @param configData is the ConfigData to build the world from.
    * @param simulation is the simulation where this world is used.
+   * @param boardWidth is the board width.
+   * @param boardHeight is the board height.
    * @return the World object.
    */
-  public static World buildWorld(ConfigData configData, Simulation simulation) {
+  public static World buildWorld(ConfigData configData, Simulation simulation, int boardWidth, int boardHeight) {
     Utils.nullCheck(configData, "ConfigData is null");
     Utils.nullCheck(configData.buildings, "Buildings are null");
     Utils.nullCheck(configData.types, "Types are null");
@@ -71,6 +73,17 @@ public class WorldBuilder {
   }
 
   /**
+   * Builds the world from the ConfigData.
+   *
+   * @param configData is the ConfigData to build the world from.
+   * @param simulation is the simulation where this world is used.
+   * @return the World object.
+   */
+  public static World buildWorld(ConfigData configData, Simulation simulation) {
+    return buildWorld(configData, simulation, DEFAULT_BOARD_WIDTH, DEFAULT_BOARD_HEIGHT);
+  }
+
+  /**
    * Builds an empty world.
    *
    * @param boardWidth  is the width of the board.
@@ -92,7 +105,7 @@ public class WorldBuilder {
    * @return the World object.
    */
   public static World buildEmptyWorld() {
-    return buildEmptyWorld(boardWidth, boardHeight);
+    return buildEmptyWorld(DEFAULT_BOARD_WIDTH, DEFAULT_BOARD_HEIGHT);
   }
 
   /**
@@ -408,8 +421,8 @@ public class WorldBuilder {
    *         otherwise.
    */
   private static Coordinate findValidLocation(Set<Coordinate> usedCoordinates) {
-    int maxX = boardWidth;
-    int maxY = boardHeight;
+    int maxX = DEFAULT_BOARD_WIDTH;
+    int maxY = DEFAULT_BOARD_HEIGHT;
     // List<Coordinate> candidates = new ArrayList<>();
     Coordinate choice = null;
     for (int x = 0; x < maxX; x++) {

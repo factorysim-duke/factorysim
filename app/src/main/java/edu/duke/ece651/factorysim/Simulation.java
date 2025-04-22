@@ -664,9 +664,6 @@ public class Simulation {
       throw new IllegalArgumentException("Error reading from reader", e);
     }
 
-    ConfigData configData = JsonLoader.loadConfigDataFromReader(new StringReader(json));
-    this.world = WorldBuilder.buildWorld(configData, this);
-
     JsonObject state = gson.fromJson(new StringReader(json), JsonObject.class);
 
     // load fields in simulation
@@ -678,7 +675,10 @@ public class Simulation {
     this.boardHeight = getJsonField(state, "boardHeight", 270);
 
     // set tile map dimensions
-    this.setTileMapDimensions(this.boardWidth, this.boardHeight);
+//    this.setTileMapDimensions(this.boardWidth, this.boardHeight);
+
+    ConfigData configData = JsonLoader.loadConfigDataFromReader(new StringReader(json));
+    this.world = WorldBuilder.buildWorld(configData, this, this.boardWidth, this.boardHeight);
 
     JsonElement requestsElement = state.get("requests");
     JsonArray requestsArray;
