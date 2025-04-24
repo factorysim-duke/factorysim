@@ -680,6 +680,27 @@ public class Simulation {
     ConfigData configData = JsonLoader.loadConfigDataFromReader(new StringReader(json));
     this.world = WorldBuilder.buildWorld(configData, this, this.boardWidth, this.boardHeight);
 
+    // Restore connections
+    JsonElement connectionsElement = state.get("connections");
+    if (connectionsElement != null && !connectionsElement.isJsonNull()) {
+      JsonArray connectionsArray = connectionsElement.getAsJsonArray();
+      for (JsonElement element : connectionsArray) {
+        JsonObject connection = element.getAsJsonObject();
+        String source = connection.get("source").getAsString();
+        String destination = connection.get("destination").getAsString();
+        
+        try {
+          connectBuildings(source, destination);
+        } catch (IllegalArgumentException e) {
+          // Log error but continue with other connections
+          if (verbosity > 0) {
+            logger.log("Failed to establish connection from " + source +
+                " to " + destination + ": " + e.getMessage());
+          }
+        }
+      }
+    }
+
     JsonElement requestsElement = state.get("requests");
     JsonArray requestsArray;
     if (requestsElement == null) {
@@ -695,7 +716,6 @@ public class Simulation {
     if (deliveriesElement != null) {
       buildDeliveries(deliveriesElement.getAsJsonArray());
     }
-
   }
 
   /**
@@ -931,7 +951,7 @@ public class Simulation {
    */
   public Path connectBuildings(Building srcBuilding, Building dstBuilding) {
     // Check recipe compatibility between source and destination buildings
-    if (!areBuilingsCompatible(srcBuilding, dstBuilding)) {
+    if (!areBuildingsCompatible(srcBuilding, dstBuilding)) {
       throw new IllegalArgumentException(
           "Cannot connect " + srcBuilding.getName() + " to " + dstBuilding.getName() +
           ": Source output cannot be used as input for destination.");
@@ -982,7 +1002,7 @@ public class Simulation {
    * @param dstBuilding The destination building
    * @return true if the buildings are compatible, false otherwise
    */
-  private boolean areBuilingsCompatible(Building srcBuilding, Building dstBuilding) {
+  private boolean areBuildingsCompatible(Building srcBuilding, Building dstBuilding) {
     // Mines, Factories and Storage buildings have different compatibility checks
     if (srcBuilding instanceof MineBuilding) {
       MineBuilding mineBuilding = (MineBuilding) srcBuilding;
