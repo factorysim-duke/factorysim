@@ -311,17 +311,27 @@ public class WorldBuilder {
         MineBuilding mineBuilding = new MineBuilding(recipe, buildingDTO.name, simulation);
         building = mineBuilding;
       } else if (buildingDTO.type != null) {
-        if (!typeMap.containsKey(buildingDTO.type)) {
+        if (!typeMap.containsKey(buildingDTO.type) && !buildingDTO.type.equals("waste_disposal")) {
           throw new IllegalArgumentException("Type '" + buildingDTO.type + "' is not defined (violates #2).");
         }
 
-        // Factory building can have no sources
-        // if (buildingDTO.getSources().isEmpty()) {
-        //   throw new IllegalArgumentException("Factory building '" + buildingDTO.name + "' has no sources.");
-        // }
-        Type type = typeMap.get(buildingDTO.type);
-        FactoryBuilding factoryBuilding = new FactoryBuilding(type, buildingDTO.name, new ArrayList<>(), simulation);
-        building = factoryBuilding;
+        // Special handling for waste_disposal type
+        if (buildingDTO.type.equals("waste_disposal")) {
+          // Create a simple waste disposal building with empty settings
+          // The storage field will be loaded separately with processStorage
+          LinkedHashMap<Item, Integer> wasteCapacity = new LinkedHashMap<>();
+          LinkedHashMap<Item, Integer> disposalRates = new LinkedHashMap<>();
+          LinkedHashMap<Item, Integer> timeSteps = new LinkedHashMap<>();
+          building = new WasteDisposalBuilding(buildingDTO.name, wasteCapacity, disposalRates, timeSteps, simulation);
+        } else {
+          // Factory building can have no sources
+          // if (buildingDTO.getSources().isEmpty()) {
+          //   throw new IllegalArgumentException("Factory building '" + buildingDTO.name + "' has no sources.");
+          // }
+          Type type = typeMap.get(buildingDTO.type);
+          FactoryBuilding factoryBuilding = new FactoryBuilding(type, buildingDTO.name, new ArrayList<>(), simulation);
+          building = factoryBuilding;
+        }
       } else {
         throw new IllegalArgumentException("Building '" + buildingDTO.name + "' has no mine or type.");
       }
