@@ -528,7 +528,9 @@ public abstract class Building {
         int orderNum = simulation.getOrderNum();
         Request subRequest = new Request(orderNum, item, recipeNeeded, selectedSource, this);
         simulation.onIngredientAssigned(item, selectedSource, this);
-        selectedSource.addRequest(subRequest);
+        if (!selectedSource.isPendingRemoval()) {
+          selectedSource.addRequest(subRequest);
+        }
       }
     }
   }
