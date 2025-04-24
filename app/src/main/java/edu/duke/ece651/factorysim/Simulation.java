@@ -680,6 +680,27 @@ public class Simulation {
     ConfigData configData = JsonLoader.loadConfigDataFromReader(new StringReader(json));
     this.world = WorldBuilder.buildWorld(configData, this, this.boardWidth, this.boardHeight);
 
+    // Restore connections
+    JsonElement connectionsElement = state.get("connections");
+    if (connectionsElement != null && !connectionsElement.isJsonNull()) {
+      JsonArray connectionsArray = connectionsElement.getAsJsonArray();
+      for (JsonElement element : connectionsArray) {
+        JsonObject connection = element.getAsJsonObject();
+        String source = connection.get("source").getAsString();
+        String destination = connection.get("destination").getAsString();
+        
+        try {
+          connectBuildings(source, destination);
+        } catch (IllegalArgumentException e) {
+          // Log error but continue with other connections
+          if (verbosity > 0) {
+            logger.log("Failed to establish connection from " + source +
+                " to " + destination + ": " + e.getMessage());
+          }
+        }
+      }
+    }
+
     JsonElement requestsElement = state.get("requests");
     JsonArray requestsArray;
     if (requestsElement == null) {
@@ -695,7 +716,6 @@ public class Simulation {
     if (deliveriesElement != null) {
       buildDeliveries(deliveriesElement.getAsJsonArray());
     }
-
   }
 
   /**
