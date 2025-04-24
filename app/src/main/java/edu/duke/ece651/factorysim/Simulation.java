@@ -931,7 +931,7 @@ public class Simulation {
    */
   public Path connectBuildings(Building srcBuilding, Building dstBuilding) {
     // Check recipe compatibility between source and destination buildings
-    if (!areBuilingsCompatible(srcBuilding, dstBuilding)) {
+    if (!areBuildingsCompatible(srcBuilding, dstBuilding)) {
       throw new IllegalArgumentException(
           "Cannot connect " + srcBuilding.getName() + " to " + dstBuilding.getName() +
           ": Source output cannot be used as input for destination.");
@@ -982,7 +982,7 @@ public class Simulation {
    * @param dstBuilding The destination building
    * @return true if the buildings are compatible, false otherwise
    */
-  private boolean areBuilingsCompatible(Building srcBuilding, Building dstBuilding) {
+  private boolean areBuildingsCompatible(Building srcBuilding, Building dstBuilding) {
     // Mines, Factories and Storage buildings have different compatibility checks
     if (srcBuilding instanceof MineBuilding) {
       MineBuilding mineBuilding = (MineBuilding) srcBuilding;
