@@ -22,7 +22,6 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
     testImplementation 'org.junit.platform:junit-platform-launcher:1.11.4'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.1'
-    testImplementation "org.slf4j:slf4j-simple:1.7.36"
 
     clover 'org.openclover:clover:4.5.2'
 
