@@ -32,48 +32,28 @@ public class App {
   }
 
   public App(String host, int port, String preset, BufferedReader inputReader) throws IOException {
-    try (ServerConnection server = new ServerConnection(host, port)) {
-      // Try to fetch a preset from the server
-      ServerMessage response = server.loadPreset(preset);
-      if (!response.status.equalsIgnoreCase("ok")) {
-        throw new RuntimeException("Failed to load preset from the server: " + response.message);
-      }
+    // Try to fetch a preset from the server
+    String json = ServerConnectionManager.getInstance().loadPreset(host, port, preset);
 
-      // Create app
-      File tempFile = createTempFile("temp", ".json", response.payload);
-      this.sim = new Simulation(tempFile.getAbsolutePath());
-      this.inputReader = inputReader;
-      this.commandHandler = new CommandHandler(sim);
-      deleteTempFile(tempFile);
-    }
+    // Create app
+    File tempFile = createTempFile("temp", ".json", json);
+    this.sim = new Simulation(tempFile.getAbsolutePath());
+    this.inputReader = inputReader;
+    this.commandHandler = new CommandHandler(sim);
+    deleteTempFile(tempFile);
   }
   
   public App(String host, int port, String user, String password, BufferedReader inputReader) throws IOException {
-    try (ServerConnection server = new ServerConnection(host, port)) {
-      // Try to sign up first
-      ServerMessage response = server.signup(user, password);
-      if (!response.status.equalsIgnoreCase("ok")) {
-        // If failed to sign up, try to log in
-        response = server.login(user, password);
-        if (!response.status.equalsIgnoreCase("ok")) {
-          // Failed to log in as well, error
-          throw new RuntimeException("Failed to log into the server: " + response.message);
-        }
-      }
+    // Log in then load user save
+    ServerConnectionManager.getInstance().connect(host, port, user, password);
+    String json = ServerConnectionManager.getInstance().loadUserSave();
 
-      // Successfully logged in, try to load user save
-      response = server.loadUserSave(user);
-      if (!response.status.equalsIgnoreCase("ok")) {
-        throw new RuntimeException("Failed to load save from the server: " + response.message);
-      }
-
-      // Create app
-      File tempFile = createTempFile("temp", ".json", response.payload);
-      this.sim = new Simulation(tempFile.getAbsolutePath());
-      this.inputReader = inputReader;
-      this.commandHandler = new CommandHandler(sim);
-      deleteTempFile(tempFile);
-    }
+    // Create app
+    File tempFile = createTempFile("temp", ".json", json);
+    this.sim = new Simulation(tempFile.getAbsolutePath());
+    this.inputReader = inputReader;
+    this.commandHandler = new CommandHandler(sim);
+    deleteTempFile(tempFile);
   }
 
   private static File createTempFile(String prefix, String suffix, String content) throws IOException {
@@ -177,5 +157,7 @@ public class App {
       System.err.println("        app <host> <port> <username> <password>");
       System.exit(1);
     }
+
+    ServerConnectionManager.getInstance().disconnect();
   }
 }

@@ -57,8 +57,8 @@ public class ServerConnection implements Closeable {
         return sendMessage(msg);
     }
 
-    public ServerMessage loadUserSave(String user) throws IOException {
-        ClientMessage msg = new ClientMessage("load", user, null);
+    public ServerMessage loadUserSave() throws IOException {
+        ClientMessage msg = new ClientMessage("load", null, null);
         return sendMessage(msg);
     }
 
