@@ -192,7 +192,7 @@ public class MineBuildingTest {
   }
 
   @Test
-  public void test_markForRemoval() {
+  public void test_markForRemoval() throws NoSuchFieldException, IllegalAccessException {
     Item iron = new Item("iron");
     Recipe ironRecipe = TestUtils.makeTestRecipe("iron", 2, 1);
     MineBuilding testBuilding = new MineBuilding(ironRecipe, "ironMine", new TestUtils.MockSimulation());
@@ -201,14 +201,11 @@ public class MineBuildingTest {
     FactoryBuilding factory = new FactoryBuilding(new Type("IronFactory", new ArrayList<>()), "IronFactory",
         List.of(testBuilding), new TestUtils.MockSimulation());
     Request request = new Request(1, iron, ironRecipe, testBuilding, factory);
-    java.lang.reflect.Field pendingRemovalField;
-    try {
-      pendingRemovalField = Building.class.getDeclaredField("pendingRemoval");
-      pendingRemovalField.setAccessible(true);
-      pendingRemovalField.set(testBuilding, false);
-    } catch (Exception e) {
-      fail("Failed to reset pendingRemoval field: " + e.getMessage());
-    }
+
+    java.lang.reflect.Field pendingRemovalField = Building.class.getDeclaredField("pendingRemoval");
+    pendingRemovalField.setAccessible(true);
+    pendingRemovalField.set(testBuilding, false);
+
     testBuilding.prependPendingRequest(request);
     assertFalse(testBuilding.markForRemoval());
     assertTrue(testBuilding.isPendingRemoval());

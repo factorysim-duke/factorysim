@@ -322,22 +322,20 @@ public class StorageBuildingTest {
   }
 
   @Test
-  public void test_markForRemoval() {
+  public void test_markForRemoval() throws NoSuchFieldException, IllegalAccessException {
     Item door = new Item("door");
     StorageBuilding testBuilding = makeTestStorageBuilding("test", door, 100, 0.5);
     assertFalse(testBuilding.isPendingRemoval());
     assertTrue(testBuilding.markForRemoval());
     testBuilding.addToStorage(door, 1);
     testBuilding.step();
-    java.lang.reflect.Field pendingRemovalField;
-    try {
-      pendingRemovalField = Building.class.getDeclaredField("pendingRemoval");
-      pendingRemovalField.setAccessible(true);
-      pendingRemovalField.set(testBuilding, false);
-    } catch (Exception e) {
-      fail("Failed to reset pendingRemoval field: " + e.getMessage());
-    }
+
+    java.lang.reflect.Field pendingRemovalField = Building.class.getDeclaredField("pendingRemoval");
+    pendingRemovalField.setAccessible(true);
+    pendingRemovalField.set(testBuilding, false);
+
     assertFalse(testBuilding.markForRemoval());
     assertTrue(testBuilding.isPendingRemoval());
   }
+
 }

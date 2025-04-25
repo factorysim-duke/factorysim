@@ -122,14 +122,14 @@ public class WasteDisposalBuildingTest {
     wasteDisposal.addToStorage(sawdust, 120);
     wasteDisposal.addToStorage(plasticWaste, 70);
     JsonObject json = wasteDisposal.toJson();
-  
+
     assertTrue(json.has("storage"));
     JsonObject storage = json.getAsJsonObject("storage");
     assertNotNull(storage);
     assertEquals(120, storage.get("sawdust").getAsInt());
     assertEquals(70, storage.get("plastic_waste").getAsInt());
   }
-  
+
   @Test
   public void test_toJson_withNullLocation() {
     wasteDisposal.setLocation(null);
@@ -137,7 +137,7 @@ public class WasteDisposalBuildingTest {
     assertFalse(json.has("x"));
     assertFalse(json.has("y"));
   }
-  
+
   @Test
   public void test_building_with_waste_byproducts_from_json() {
     Simulation jsonSimulation = new Simulation("src/main/resources/electronics_with_waste.json", 0,
@@ -224,7 +224,7 @@ public class WasteDisposalBuildingTest {
     assertTrue(wasteDisposal.isFinished());
     assertEquals(-1, wasteDisposal.getStorageNumberOf(sawdust));
   }
-  
+
   @Test
   public void test_canBeRemovedImmediately() {
     assertTrue(wasteDisposal.canBeRemovedImmediately());
@@ -243,7 +243,7 @@ public class WasteDisposalBuildingTest {
     wasteDisposal.addToStorage(sawdust, 10);
     assertTrue(wasteDisposal.canBeRemovedImmediately());
   }
-  
+
   @Test
   public void test_canAcceptRequest() {
     Recipe wasteRecipe = TestUtils.makeTestRecipe("sawdust", 0, 1);
@@ -263,8 +263,7 @@ public class WasteDisposalBuildingTest {
     assertTrue(wasteDisposal.markForRemoval());
 
     // reset the private field directly (no try/catch)
-    java.lang.reflect.Field pendingRemovalField =
-        Building.class.getDeclaredField("pendingRemoval");
+    java.lang.reflect.Field pendingRemovalField = Building.class.getDeclaredField("pendingRemoval");
     pendingRemovalField.setAccessible(true);
     pendingRemovalField.set(wasteDisposal, false);
 
@@ -278,7 +277,6 @@ public class WasteDisposalBuildingTest {
     assertFalse(wasteDisposal.markForRemoval());
     assertTrue(wasteDisposal.isPendingRemoval());
   }
-
 
   @Test
   public void test_processWasteType_inProgress() {
@@ -298,7 +296,7 @@ public class WasteDisposalBuildingTest {
     // After 3rd step, one batch should be disposed
     assertTrue(wasteDisposal.getStorageNumberOf(plasticWaste) <= 60); // disposed 30
   }
-  
+
   @Test
   public void test_processWasteType_noWasteAvailable() {
     // No sawdust added

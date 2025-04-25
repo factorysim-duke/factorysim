@@ -10,15 +10,25 @@ public class VerboseCommandTest {
     Simulation sim = new TestUtils.MockSimulation();
 
     // Invalid inputs
-    assertThrows(IllegalArgumentException.class, () -> { execute(verbose, sim, "verbose", "1", "2"); });
+    assertThrows(IllegalArgumentException.class, () -> {
+      execute(verbose, sim, "verbose", "1", "2");
+    });
     assertThrows(IllegalArgumentException.class,
-            () -> { execute(verbose, sim, "request", "'handle'", "from", "'Ha'"); });
+        () -> {
+          execute(verbose, sim, "request", "'handle'", "from", "'Ha'");
+        });
     assertThrows(IllegalArgumentException.class,
-            () -> { execute(verbose, sim, "finish"); });
+        () -> {
+          execute(verbose, sim, "finish");
+        });
     assertThrows(IllegalArgumentException.class,
-            () -> { execute(verbose, sim, "verbose", "0xFF"); });
+        () -> {
+          execute(verbose, sim, "verbose", "0xFF");
+        });
     assertThrows(IllegalArgumentException.class,
-            () -> { execute(verbose, sim, "varbose", "1"); });
+        () -> {
+          execute(verbose, sim, "varbose", "1");
+        });
 
     // Valid inputs
     execute(verbose, sim, "verbose", "0");
@@ -30,7 +40,8 @@ public class VerboseCommandTest {
     execute(verbose, sim, "verbose", "2");
     assertEquals(2, sim.getVerbosity());
 
-    // Note: at the time the test was written, verbosity > 2 don't do anything and it's allowed
+    // Note: at the time the test was written, verbosity > 2 don't do anything and
+    // it's allowed
     execute(verbose, sim, "verbose", "3");
     assertEquals(3, sim.getVerbosity());
 
