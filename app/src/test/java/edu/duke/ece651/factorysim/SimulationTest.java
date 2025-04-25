@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
+import edu.duke.ece651.factorysim.db.SessionDAO;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -727,10 +728,13 @@ public class SimulationTest {
     @Test
     public void test_getDirection() {
         Coordinate from = new Coordinate(5, 5);
-        assertEquals(1, PathFinder.getDirection(from, new Coordinate(6, 5)), "Right should be direction 1");
-        assertEquals(2, PathFinder.getDirection(from, new Coordinate(5, 6)), "Down should be direction 2");
-        assertEquals(3, PathFinder.getDirection(from, new Coordinate(4, 5)), "Left should be direction 3");
-        assertEquals(0, PathFinder.getDirection(from, new Coordinate(5, 4)), "Up should be direction 0");
+        assertEquals(0, sim.getDirection(from, new Coordinate(5, 4)), "Up should be direction 0");
+        assertEquals(1, sim.getDirection(from, new Coordinate(6, 5)), "Right should be direction 1");
+        assertEquals(2, sim.getDirection(from, new Coordinate(5, 6)), "Down should be direction 2");
+        assertEquals(3, sim.getDirection(from, new Coordinate(4, 5)), "Left should be direction 3");
+        assertThrows(IllegalArgumentException.class, () -> sim.getDirection(from, new Coordinate(5, 5)));
+        assertThrows(IllegalArgumentException.class, () -> sim.getDirection(from, new Coordinate(6, 6)));
+        assertThrows(IllegalArgumentException.class, () -> sim.getDirection(from, new Coordinate(4, 4)));
     }
 
     @Test
@@ -912,5 +916,49 @@ public class SimulationTest {
         Throwable cause = ex.getCause();
         assertTrue(cause instanceof IOException);
         assertEquals("simulated unchecked failure", cause.getMessage());
+    }
+
+    @Test
+    public void test_loadFromDB_noSavedSession() {
+        Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+        String nonExistentUserId = "non_existent_user";
+        
+        // Directly test the exception condition
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            // Call loadFromDB with null JSON to simulate no saved session
+            Method loadFromDBMethod = Simulation.class.getDeclaredMethod("loadFromDB", String.class);
+            loadFromDBMethod.setAccessible(true);
+            
+            // Mock that SessionDAO.loadSession returns null
+            try {
+                // We can test just by calling the method with a non-existent user ID
+                simulation.loadFromDB(nonExistentUserId);
+            } catch (IllegalArgumentException e) {
+                // Re-throw to be caught by assertThrows
+                throw e;
+            }
+        });
+        
+        assertEquals("No saved session found for user: " + nonExistentUserId, 
+            exception.getMessage());
+    }
+
+    @Test
+    public void test_saveToDB() {
+        Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+        simulation.setVerbosity(3);
+        simulation.step(5);
+        
+        ByteArrayOutputStream logOutput = new ByteArrayOutputStream();
+        Logger testLogger = new StreamLogger(new PrintStream(logOutput));
+        simulation.setLogger(testLogger);
+        
+        // Test the saveToDB method's logging functionality only
+        String userId = "test_user";
+        simulation.saveToDB(userId);
+        
+        // Verify the log output includes the expected message
+        String logs = logOutput.toString();
+        assertTrue(logs.contains("Simulation saved to DB for user " + userId));
     }
 }

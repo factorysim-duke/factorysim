@@ -94,6 +94,26 @@ public class DronePortTest {
   }
   
   @Test
+  void test_get_and_set_drones() {
+    // Create a new drone list
+    ArrayList<Drone> newDrones = new ArrayList<>();
+    newDrones.add(new Drone());
+    newDrones.add(new Drone());
+    newDrones.add(new Drone());
+    
+    // Test setter
+    dronePort.setDrones(newDrones);
+    
+    // Test getter
+    assertEquals(3, dronePort.getDrones().size());
+    assertSame(newDrones, dronePort.getDrones());
+    
+    // Verify that modifications to returned list affect internal state
+    dronePort.getDrones().add(new Drone());
+    assertEquals(4, dronePort.getDrones().size());
+  }
+  
+  @Test
   void test_to_json() {
     dronePort.createDrone();
     dronePort.createDrone();

@@ -3,7 +3,6 @@ package edu.duke.ece651.factorysim;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -312,6 +311,13 @@ class TileMapTest {
 
         Set<String> expectedCoords = new HashSet<>(Arrays.asList("0,0", "0,1", "1,0", "1,1"));
         assertEquals(expectedCoords, foundCoords);
+    }
+
+    @Test
+    public void test_get_flows_out_of_bounds() {
+        TileMap map = new TileMap(25, 25);
+        Coordinate out = new Coordinate(30, 30);
+        assertThrows(IllegalArgumentException.class, () -> map.getFlows(out));
     }
 
 }
