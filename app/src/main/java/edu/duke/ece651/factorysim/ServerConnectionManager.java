@@ -24,6 +24,15 @@ public class ServerConnectionManager {
         }
     }
 
+    public void signup(String host, int port, String user, String password) throws IOException {
+        try (ServerConnection conn = new ServerConnection(host, port)) {
+            ServerMessage response = conn.signup(user, password);
+            if (!response.status.equalsIgnoreCase("ok")) {
+                throw new RuntimeException("Failed to sign up: " + response.message);
+            }
+        }
+    }
+
     public void connect(String host, int port, String user, String password) throws IOException {
         // Try to establish connection with the server
         ServerConnection conn = new ServerConnection(host, port);
