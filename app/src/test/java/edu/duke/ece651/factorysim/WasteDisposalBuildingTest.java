@@ -3,6 +3,7 @@ package edu.duke.ece651.factorysim;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -369,6 +370,102 @@ public class WasteDisposalBuildingTest {
       wasteDeliveredQuantity = quantity;
       wasteDeliveredDestination = destination;
       wasteDeliveredSource = source;
+    }
+  }
+
+  @Test
+  public void test_findWasteDisposalBuilding() {
+    // Create a test world and simulation
+    World world = WorldBuilder.buildEmptyWorld(100, 100);
+    TestUtils.MockSimulation simulation = new TestUtils.MockSimulation();
+    simulation.setWorld(world);
+    simulation.setLogger(new StreamLogger(System.out));
+    
+    // Create waste types
+    Item sawdust = new Item("sawdust");
+    Item plasticWaste = new Item("plastic_waste");
+    Item chemicalWaste = new Item("chemical_waste");
+    
+    // Create a factory building that will generate waste
+    Recipe factoryRecipe = TestUtils.makeTestRecipe("widget", 0, 1);
+    Type factoryType = new Type("WidgetFactory", List.of(factoryRecipe));
+    FactoryBuilding factory = new FactoryBuilding(factoryType, "widget_factory", new ArrayList<>(), simulation);
+    factory.setLocation(new Coordinate(1, 1));
+    
+    // Create first waste disposal building with low capacity for sawdust only
+    LinkedHashMap<Item, Integer> capacityMap1 = new LinkedHashMap<>();
+    capacityMap1.put(sawdust, 10);
+    LinkedHashMap<Item, Integer> rateMap1 = new LinkedHashMap<>();
+    rateMap1.put(sawdust, 5);
+    LinkedHashMap<Item, Integer> timeStepsMap1 = new LinkedHashMap<>();
+    timeStepsMap1.put(sawdust, 2);
+    WasteDisposalBuilding wasteDisposal1 = new WasteDisposalBuilding("waste_disposal_1", capacityMap1, rateMap1, timeStepsMap1, simulation);
+    wasteDisposal1.setLocation(new Coordinate(10, 10));
+    
+    // Create second waste disposal building with higher capacity for sawdust and plastic
+    LinkedHashMap<Item, Integer> capacityMap2 = new LinkedHashMap<>();
+    capacityMap2.put(sawdust, 100);
+    capacityMap2.put(plasticWaste, 50);
+    LinkedHashMap<Item, Integer> rateMap2 = new LinkedHashMap<>();
+    rateMap2.put(sawdust, 20);
+    rateMap2.put(plasticWaste, 10);
+    LinkedHashMap<Item, Integer> timeStepsMap2 = new LinkedHashMap<>();
+    timeStepsMap2.put(sawdust, 3);
+    timeStepsMap2.put(plasticWaste, 4);
+    WasteDisposalBuilding wasteDisposal2 = new WasteDisposalBuilding("waste_disposal_2", capacityMap2, rateMap2, timeStepsMap2, simulation);
+    wasteDisposal2.setLocation(new Coordinate(20, 20));
+    
+    // Add all buildings to the world
+    List<Building> buildings = new ArrayList<>();
+    buildings.add(factory);
+    buildings.add(wasteDisposal1);
+    buildings.add(wasteDisposal2);
+    world.setBuildings(buildings);
+    
+    // Create a recipe with waste byproducts
+    Item widget = new Item("widget");
+    Item wood = new Item("wood");
+    HashMap<Item, Integer> ingredients = new HashMap<>();
+    ingredients.put(wood, 2);
+    HashMap<Item, Integer> wasteByProducts = new HashMap<>();
+    wasteByProducts.put(sawdust, 15); // More than wasteDisposal1 can handle
+    Recipe widgetRecipe = new Recipe(widget, ingredients, 5, wasteByProducts);
+    
+    // Add recipes to the world
+    world.setRecipes(List.of(widgetRecipe));
+    
+    // TEST 1: Using reflection to access the private findWasteDisposalBuilding method directly
+    try {
+      java.lang.reflect.Method findWasteDisposalBuildingMethod = 
+          Building.class.getDeclaredMethod("findWasteDisposalBuilding", Item.class, int.class);
+      findWasteDisposalBuildingMethod.setAccessible(true);
+      
+      // Test with sawdust (15 units)
+      WasteDisposalBuilding result1 = 
+          (WasteDisposalBuilding) findWasteDisposalBuildingMethod.invoke(factory, sawdust, 15);
+      // Expect wasteDisposal2 since wasteDisposal1 can only handle 10 units
+      assertEquals(wasteDisposal2, result1);
+      
+      // Test with sawdust (10 units)
+      WasteDisposalBuilding result2 = 
+          (WasteDisposalBuilding) findWasteDisposalBuildingMethod.invoke(factory, sawdust, 10);
+      // Either disposal building could handle this, but it should choose wasteDisposal1 (checking first)
+      assertEquals(wasteDisposal1, result2);
+      
+      // Test with plastic waste
+      WasteDisposalBuilding result3 = 
+          (WasteDisposalBuilding) findWasteDisposalBuildingMethod.invoke(factory, plasticWaste, 40);
+      // Only wasteDisposal2 can handle plastic waste
+      assertEquals(wasteDisposal2, result3);
+      
+      // Test with chemical waste (no building can handle)
+      WasteDisposalBuilding result4 = 
+          (WasteDisposalBuilding) findWasteDisposalBuildingMethod.invoke(factory, chemicalWaste, 10);
+      // Should return null since no waste disposal building can handle chemical waste
+      assertNull(result4);
+      
+    } catch (Exception e) {
+      fail("Failed to test findWasteDisposalBuilding method: " + e.getMessage());
     }
   }
 }

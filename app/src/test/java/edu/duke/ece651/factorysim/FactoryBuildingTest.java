@@ -215,6 +215,33 @@ public class FactoryBuildingTest {
     assertTrue(testBuilding.isPendingRemoval());
   }
 
+  @Test
+  public void test_addRequest_whenBuildingMarkedForRemoval() {
+    // Create factory building
+    FactoryBuilding testBuilding = makeTestFactoryBuilding("test_factory", new Item("testItem"));
+    Recipe testRecipe = TestUtils.makeTestRecipe("testItem", 0, 1);
+    
+    // Add a request to prevent immediate removal
+    Request pendingRequest = new Request(1, new Item("testItem"), testRecipe, testBuilding, null);
+    testBuilding.prependPendingRequest(pendingRequest);
+    
+    // Mark the building for removal - should return false since it has a pending request
+    assertFalse(testBuilding.markForRemoval());
+    assertTrue(testBuilding.isPendingRemoval());
+    
+    // Create a new request to attempt to add
+    Request newRequest = new Request(2, new Item("testItem"), testRecipe, testBuilding, null);
+    
+    // Test that addRequest throws IllegalArgumentException because building is marked for removal
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+      testBuilding.addRequest(newRequest);
+    });
+    
+    // Verify the exception message
+    String expectedMessage = "Building test_factory is marked for removal and cannot accept this request";
+    assertEquals(expectedMessage, exception.getMessage());
+  }
+
   private FactoryBuilding makeTestFactoryBuilding(String name, Item item) {
     Recipe recipe = TestUtils.makeTestRecipe(item.getName(), 0, 1);
     Type factoryType = new Type(item.getName() + "Factory", List.of(recipe));
