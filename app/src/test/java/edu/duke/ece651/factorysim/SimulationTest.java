@@ -133,6 +133,7 @@ public class SimulationTest {
         assertEquals("", stream.toString()); // Nothing should be logged because building is not factory
     }
 
+    
     @Test
     public void test_logging_verbosity_1() {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -966,5 +967,281 @@ public class SimulationTest {
         // Verify the log output includes the expected message
         String logs = logOutput.toString();
         assertTrue(logs.contains("Simulation saved to DB for user " + userId));
+    }
+
+    @Test
+    public void test_setTileMapDimensions() {
+        // Create a new simulation with a clean world
+        World world = new World();
+        Simulation simulation = new Simulation(world, 0, testLogger);
+        
+        // Set dimensions using the simulation method
+        int width = 50;
+        int height = 75;
+        simulation.setTileMapDimensions(width, height);
+        
+        // Verify the dimensions were correctly set in the world's tile map
+        TileMap tileMap = world.getTileMap();
+        assertEquals(width, tileMap.getWidth(), "Tile map width should match the set width");
+        assertEquals(height, tileMap.getHeight(), "Tile map height should match the set height");
+        
+        // Test with different dimensions to ensure it updates correctly
+        int newWidth = 100;
+        int newHeight = 150;
+        simulation.setTileMapDimensions(newWidth, newHeight);
+        
+        // Get the updated TileMap reference and verify the dimensions
+        TileMap updatedTileMap = world.getTileMap();
+        assertEquals(newWidth, updatedTileMap.getWidth(), "Tile map width should be updated to new width");
+        assertEquals(newHeight, updatedTileMap.getHeight(), "Tile map height should be updated to new height");
+    }
+
+    @Test
+    public void test_areBuildingsCompatible() throws Exception {
+        // Get access to the private method
+        Method areBuildingsCompatible = Simulation.class.getDeclaredMethod("areBuildingsCompatible", Building.class, Building.class);
+        areBuildingsCompatible.setAccessible(true);
+        
+        // Create a test simulation
+        Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+        
+        // Create test items
+        Item wood = new Item("wood");
+        Item metal = new Item("metal");
+        Item chair = new Item("chair");
+        Item table = new Item("table");
+        
+        // Case 1: MineBuilding to FactoryBuilding
+        
+        // Create a mine that produces wood
+        MineBuilding woodMine = new MineBuilding(TestUtils.makeTestRecipe("wood", 1, 0), "WoodMine", simulation);
+        
+        // Create a factory that uses wood (should be compatible)
+        HashMap<Item, Integer> chairIngredients = new HashMap<>();
+        chairIngredients.put(wood, 2);
+        Recipe chairRecipe = new Recipe(chair, chairIngredients, 5);
+        Type chairFactoryType = new Type("ChairFactory", List.of(chairRecipe));
+        FactoryBuilding chairFactory = new FactoryBuilding(chairFactoryType, "ChairFactory", new ArrayList<>(), simulation);
+        
+        // Create a factory that doesn't use wood (should be incompatible)
+        HashMap<Item, Integer> metalTableIngredients = new HashMap<>();
+        metalTableIngredients.put(metal, 3);
+        Recipe metalTableRecipe = new Recipe(table, metalTableIngredients, 7);
+        Type metalTableFactoryType = new Type("MetalTableFactory", List.of(metalTableRecipe));
+        FactoryBuilding metalTableFactory = new FactoryBuilding(metalTableFactoryType, "MetalTableFactory", new ArrayList<>(), simulation);
+        
+        // Test compatibility
+        assertTrue((boolean) areBuildingsCompatible.invoke(simulation, woodMine, chairFactory), 
+            "Mine producing wood should be compatible with factory using wood");
+        assertFalse((boolean) areBuildingsCompatible.invoke(simulation, woodMine, metalTableFactory), 
+            "Mine producing wood should be incompatible with factory not using wood");
+        
+        // Case 2: MineBuilding to StorageBuilding
+        
+        // Create storage buildings
+        StorageBuilding woodStorage = new StorageBuilding("WoodStorage", new ArrayList<>(), simulation, wood, 100, 1.0);
+        StorageBuilding metalStorage = new StorageBuilding("MetalStorage", new ArrayList<>(), simulation, metal, 100, 1.0);
+        
+        // Test compatibility
+        assertTrue((boolean) areBuildingsCompatible.invoke(simulation, woodMine, woodStorage),
+            "Mine producing wood should be compatible with wood storage");
+        assertFalse((boolean) areBuildingsCompatible.invoke(simulation, woodMine, metalStorage),
+            "Mine producing wood should be incompatible with metal storage");
+        
+        // Case 3: FactoryBuilding to FactoryBuilding
+        
+        // Create a factory that produces components used by another factory
+        Item legComponent = new Item("leg");
+        Recipe legRecipe = new Recipe(legComponent, chairIngredients, 3);
+        Type legFactoryType = new Type("LegFactory", List.of(legRecipe));
+        FactoryBuilding legFactory = new FactoryBuilding(legFactoryType, "LegFactory", new ArrayList<>(), simulation);
+        
+        // Create a factory that uses these components
+        HashMap<Item, Integer> tableLegIngredients = new HashMap<>();
+        tableLegIngredients.put(legComponent, 4);
+        Recipe tableLegRecipe = new Recipe(table, tableLegIngredients, 5);
+        Type tableLegFactoryType = new Type("TableWithLegsFactory", List.of(tableLegRecipe));
+        FactoryBuilding tableLegFactory = new FactoryBuilding(tableLegFactoryType, "TableWithLegsFactory", new ArrayList<>(), simulation);
+        
+        // Test compatibility
+        assertTrue((boolean) areBuildingsCompatible.invoke(simulation, legFactory, tableLegFactory),
+            "Factory producing legs should be compatible with factory using legs");
+        assertFalse((boolean) areBuildingsCompatible.invoke(simulation, chairFactory, metalTableFactory),
+            "Factories with no compatible recipes should be incompatible");
+        
+        // Case 4: FactoryBuilding to StorageBuilding
+        
+        // Create a storage building for tables
+        StorageBuilding tableStorage = new StorageBuilding("TableStorage", new ArrayList<>(), simulation, table, 100, 1.0);
+        
+        // Test compatibility
+        assertTrue((boolean) areBuildingsCompatible.invoke(simulation, metalTableFactory, tableStorage),
+            "Factory producing tables should be compatible with table storage");
+        assertFalse((boolean) areBuildingsCompatible.invoke(simulation, chairFactory, tableStorage),
+            "Factory not producing tables should be incompatible with table storage");
+        
+        // Case 5: Other building combinations
+        
+        // Create a waste disposal building
+        LinkedHashMap<Item, Integer> wasteCapacities = new LinkedHashMap<>();
+        wasteCapacities.put(wood, 100);
+        LinkedHashMap<Item, Integer> disposalRates = new LinkedHashMap<>();
+        disposalRates.put(wood, 10);
+        LinkedHashMap<Item, Integer> timeSteps = new LinkedHashMap<>();
+        timeSteps.put(wood, 2);
+        WasteDisposalBuilding wasteDisposal = new WasteDisposalBuilding("WasteDisposal", wasteCapacities, disposalRates, timeSteps, simulation);
+        
+        // Test other combinations which should all be true
+        assertTrue((boolean) areBuildingsCompatible.invoke(simulation, wasteDisposal, woodStorage),
+            "Waste disposal to storage should be compatible (other case)");
+        assertTrue((boolean) areBuildingsCompatible.invoke(simulation, woodStorage, metalStorage),
+            "Storage to storage should be compatible (other case)");
+        assertTrue((boolean) areBuildingsCompatible.invoke(simulation, chairFactory, wasteDisposal),
+            "Factory to waste disposal should be compatible (other case)");
+    }
+
+    @Test
+    public void test_connectBuildings_nonExistentBuildings() {
+        Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+        
+        // Test case 1: Non-existent source building
+        IllegalArgumentException srcException = assertThrows(
+            IllegalArgumentException.class,
+            () -> simulation.connectBuildings("NonExistentSource", "D")
+        );
+        assertEquals("Source building 'NonExistentSource' does not exist.", srcException.getMessage());
+        
+        // Test case 2: Non-existent destination building
+        IllegalArgumentException dstException = assertThrows(
+            IllegalArgumentException.class,
+            () -> simulation.connectBuildings("W", "NonExistentDestination")
+        );
+        assertEquals("Destination building 'NonExistentDestination' does not exist.", dstException.getMessage());
+        
+        // Test case 3: Both source and destination don't exist 
+        // (should fail on source check first)
+        IllegalArgumentException bothException = assertThrows(
+            IllegalArgumentException.class,
+            () -> simulation.connectBuildings("NonExistentSource", "NonExistentDestination")
+        );
+        assertEquals("Source building 'NonExistentSource' does not exist.", bothException.getMessage());
+    }
+
+    @Test
+    public void test_removeBuilding_verbosity() {
+        ByteArrayOutputStream logStream = new ByteArrayOutputStream();
+        Logger testLogger = new StreamLogger(new PrintStream(logStream));
+        
+        // Create a simulation with initial verbosity 0
+        Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json", 0, testLogger);
+        Building building = simulation.getWorld().getBuildingFromName("W");
+        assertNotNull(building);
+        
+        // Case 1: Immediate removal with verbosity = 0
+        simulation.setVerbosity(0);
+        logStream.reset();
+        assertTrue(simulation.removeBuilding(building));
+        assertEquals("", logStream.toString(), "No log should be produced when verbosity is 0");
+        
+        // Set up for next tests
+        simulation = new Simulation("src/test/resources/inputs/doors1.json", 0, testLogger);
+        building = simulation.getWorld().getBuildingFromName("W");
+        
+        // Case 2: Immediate removal with verbosity > 0
+        simulation.setVerbosity(1);
+        logStream.reset();
+        assertTrue(simulation.removeBuilding(building));
+        String logOutput = logStream.toString();
+        assertTrue(logOutput.contains("Building 'W' has been removed."), 
+                   "Log should contain the building removal message when verbosity > 0");
+        
+        // Set up for pending removal test
+        simulation = new Simulation("src/test/resources/inputs/doors1.json", 0, testLogger);
+        building = simulation.getWorld().getBuildingFromName("D");
+        // Make the building have a pending request so it can't be immediately removed
+        Item item = new Item("wood");
+        Recipe recipe = TestUtils.makeTestRecipe("wood", 0, 1);
+        Request request = new Request(1, item, recipe, building, null);
+        building.prependPendingRequest(request);
+        
+        // Case 3: Pending removal with verbosity = 0
+        simulation.setVerbosity(0);
+        logStream.reset();
+        assertFalse(simulation.removeBuilding(building));
+        assertEquals("", logStream.toString(), "No log should be produced when verbosity is 0");
+        
+        // Case 4: Pending removal with verbosity > 0
+        building.getPendingRequests().clear(); // Reset for next test
+        building = simulation.getWorld().getBuildingFromName("D");
+        building.prependPendingRequest(request);
+        simulation.setVerbosity(1);
+        logStream.reset();
+        assertFalse(simulation.removeBuilding(building));
+        logOutput = logStream.toString();
+        assertTrue(logOutput.contains("Building 'D' has been marked for removal. It will be removed once all pending operations complete."), 
+                   "Log should contain the pending removal message when verbosity > 0");
+    }
+
+    @Test
+    public void test_checkPendingRemovals_verbosity() throws Exception {
+        ByteArrayOutputStream logStream = new ByteArrayOutputStream();
+        Logger testLogger = new StreamLogger(new PrintStream(logStream));
+        
+        // Create a simulation with initial verbosity 0
+        Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json", 0, testLogger);
+        
+        // Case 1: Building pending removal with verbosity = 0
+        simulation.setVerbosity(0);
+        
+        // Get a building and mark it for pending removal
+        Building building = simulation.getWorld().getBuildingFromName("D");
+        Item item = new Item("wood");
+        Recipe recipe = TestUtils.makeTestRecipe("wood", 0, 1);
+        Request request = new Request(1, item, recipe, building, null);
+        building.prependPendingRequest(request);
+        
+        // Mark the building for removal
+        assertFalse(simulation.removeBuilding(building));
+        assertTrue(building.isPendingRemoval());
+        
+        // Clear the pending requests so the building can be removed
+        building.getPendingRequests().clear();
+        
+        // Reset log before checking pending removals
+        logStream.reset();
+        
+        // Call checkPendingRemovals via reflection to test the private method
+        Method checkPendingRemovals = Simulation.class.getDeclaredMethod("checkPendingRemovals");
+        checkPendingRemovals.setAccessible(true);
+        checkPendingRemovals.invoke(simulation);
+        
+        // Verify no log was produced with verbosity = 0
+        assertEquals("", logStream.toString(), "No log should be produced when verbosity is 0");
+        assertFalse(simulation.getWorld().hasBuilding("D"), "Building should be removed");
+        
+        // Case 2: Building pending removal with verbosity > 0
+        simulation = new Simulation("src/test/resources/inputs/doors1.json", 0, testLogger);
+        simulation.setVerbosity(1);
+        
+        // Setup building for pending removal again
+        building = simulation.getWorld().getBuildingFromName("D");
+        building.prependPendingRequest(request);
+        assertFalse(simulation.removeBuilding(building));
+        assertTrue(building.isPendingRemoval());
+        
+        // Clear the pending requests so the building can be removed
+        building.getPendingRequests().clear();
+        
+        // Reset log before checking pending removals
+        logStream.reset();
+        
+        // Call checkPendingRemovals via reflection
+        checkPendingRemovals.invoke(simulation);
+        
+        // Verify log was produced with verbosity > 0
+        String logOutput = logStream.toString();
+        assertTrue(logOutput.contains("Building 'D' has completed all pending operations and has been removed."), 
+                   "Log should contain completion message when verbosity > 0");
+        assertFalse(simulation.getWorld().hasBuilding("D"), "Building should be removed");
     }
 }
