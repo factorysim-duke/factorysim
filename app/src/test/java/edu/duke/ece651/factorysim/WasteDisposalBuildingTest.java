@@ -303,4 +303,72 @@ public class WasteDisposalBuildingTest {
     wasteDisposal.step(); // Should not crash or start any processing
     assertTrue(wasteDisposal.isFinished());
   }
+
+  @Test
+  public void test_deliverTo_notifiesSimulation() {
+    // Create a testable simulation that we can verify method calls on
+    TestableSimulation testSimulation = new TestableSimulation(simulation.getWorld(), 0, new StreamLogger(System.out));
+    
+    // Create a source building that will deliver waste
+    TestUtils.MockBuilding sourceBuilding = new TestUtils.MockBuilding("source_building");
+    // Set the simulation field in the source building
+    java.lang.reflect.Field simulationField;
+    try {
+      simulationField = Building.class.getDeclaredField("simulation");
+      simulationField.setAccessible(true);
+      simulationField.set(sourceBuilding, testSimulation);
+    } catch (Exception e) {
+      fail("Failed to set simulation field: " + e.getMessage());
+    }
+    sourceBuilding.setLocation(new Coordinate(5, 5));
+    
+    // Create our waste disposal building with the testable simulation
+    LinkedHashMap<Item, Integer> capacityMap = new LinkedHashMap<>();
+    capacityMap.put(sawdust, 400);
+    LinkedHashMap<Item, Integer> rateMap = new LinkedHashMap<>();
+    rateMap.put(sawdust, 50);
+    LinkedHashMap<Item, Integer> timeStepsMap = new LinkedHashMap<>();
+    timeStepsMap.put(sawdust, 2);
+    
+    WasteDisposalBuilding testWasteDisposal = new WasteDisposalBuilding(
+        "test_waste_disposal", capacityMap, rateMap, timeStepsMap, testSimulation);
+    testWasteDisposal.setLocation(new Coordinate(10, 10));
+    
+    // Deliver some waste
+    int quantity = 30;
+    sourceBuilding.deliverTo(testWasteDisposal, sawdust, quantity, false);
+    
+    // Verify the waste was added to storage
+    assertEquals(quantity, testWasteDisposal.getStorageNumberOf(sawdust));
+    
+    // Verify the simulation was notified about the waste delivery
+    assertTrue(testSimulation.wasteDeliveryMethodCalled);
+    assertEquals(sawdust, testSimulation.wasteDeliveredItem);
+    assertEquals(quantity, testSimulation.wasteDeliveredQuantity);
+    assertEquals(testWasteDisposal, testSimulation.wasteDeliveredDestination);
+    assertEquals(sourceBuilding, testSimulation.wasteDeliveredSource);
+  }
+  
+  // Helper class to verify simulation method calls
+  private static class TestableSimulation extends Simulation {
+    public boolean wasteDeliveryMethodCalled = false;
+    public Item wasteDeliveredItem = null;
+    public int wasteDeliveredQuantity = 0;
+    public Building wasteDeliveredDestination = null;
+    public Building wasteDeliveredSource = null;
+    
+    public TestableSimulation(World world, int delay, Logger logger) {
+      super(world, delay, logger);
+    }
+    
+    @Override
+    public void onWasteDelivered(Item item, int quantity, Building destination, Building source) {
+      super.onWasteDelivered(item, quantity, destination, source);
+      wasteDeliveryMethodCalled = true;
+      wasteDeliveredItem = item;
+      wasteDeliveredQuantity = quantity;
+      wasteDeliveredDestination = destination;
+      wasteDeliveredSource = source;
+    }
+  }
 }
