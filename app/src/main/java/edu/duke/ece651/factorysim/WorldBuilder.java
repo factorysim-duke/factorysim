@@ -8,17 +8,19 @@ import java.util.*;
  * of the data.
  */
 public class WorldBuilder {
-  private static final int boardWidth = 1000;
-  private static final int boardHeight = 100;
+  private static final int DEFAULT_BOARD_WIDTH = 1000;
+  private static final int DEFAULT_BOARD_HEIGHT = 100;
 
   /**
    * Builds the world from the ConfigData.
    *
    * @param configData is the ConfigData to build the world from.
    * @param simulation is the simulation where this world is used.
+   * @param boardWidth is the board width.
+   * @param boardHeight is the board height.
    * @return the World object.
    */
-  public static World buildWorld(ConfigData configData, Simulation simulation) {
+  public static World buildWorld(ConfigData configData, Simulation simulation, int boardWidth, int boardHeight) {
     Utils.nullCheck(configData, "ConfigData is null");
     Utils.nullCheck(configData.buildings, "Buildings are null");
     Utils.nullCheck(configData.types, "Types are null");
@@ -28,14 +30,22 @@ public class WorldBuilder {
     Map<String, Type> types = buildTypes(configData.types, recipes);
     Map<String, Building> buildings = buildBuildings(configData.buildings, types, recipes, simulation);
 
+    // since factory building can have no sources, we don't need to validate the ingredients
+    // validateBuildingsIngredients(buildings, types);
+    World world = new World();
+    world.wasteConfigMap = new HashMap<>();
+
     // build waste disposal buildings if applicable
     if (configData.wasteDisposals != null && !configData.wasteDisposals.isEmpty()) {
       Map<String, Building> wasteDisposals = buildWasteDisposalBuildings(configData.wasteDisposals, simulation);
       buildings.putAll(wasteDisposals);
+
+      // Add waste types from existing waste disposals
+      for (WasteDisposalDTO dto : configData.wasteDisposals) {
+        world.wasteConfigMap.putAll(dto.wasteTypes);
+      }
     }
 
-    validateBuildingsIngredients(buildings, types);
-    World world = new World();
     world.setTypes(new ArrayList<>(types.values()));
     world.setRecipes(new ArrayList<>(recipes.values()));
     world.setBuildings(new ArrayList<>(buildings.values()));
@@ -43,12 +53,35 @@ public class WorldBuilder {
     world.setTileMapDimensions(boardWidth, boardHeight);
     world.updateTileMap();
 
+    // Add waste types from recipes
+    for (Recipe recipe : world.getRecipes()) {
+      Map<Item, Integer> wasteMap = recipe.getWasteByProducts();
+      for (Map.Entry<Item, Integer> entry : wasteMap.entrySet()) {
+        WasteDisposalDTO.WasteConfig config = new WasteDisposalDTO.WasteConfig();
+        config.capacity = entry.getValue();
+        config.disposalRate = 50; // Hardcoded
+        config.timeSteps = 2; // Hardcoded
+        world.wasteConfigMap.putIfAbsent(entry.getKey().getName(), config);
+      }
+    }
+
     // connect buildings if connections are specified in the JSON
     if (configData.connections != null && !configData.connections.isEmpty()) {
       buildConnections(configData.connections, simulation);
     }
 
     return world;
+  }
+
+  /**
+   * Builds the world from the ConfigData.
+   *
+   * @param configData is the ConfigData to build the world from.
+   * @param simulation is the simulation where this world is used.
+   * @return the World object.
+   */
+  public static World buildWorld(ConfigData configData, Simulation simulation) {
+    return buildWorld(configData, simulation, DEFAULT_BOARD_WIDTH, DEFAULT_BOARD_HEIGHT);
   }
 
   /**
@@ -68,8 +101,17 @@ public class WorldBuilder {
   }
 
   /**
+   * Builds an empty world.
+   *
+   * @return the World object.
+   */
+  public static World buildEmptyWorld() {
+    return buildEmptyWorld(DEFAULT_BOARD_WIDTH, DEFAULT_BOARD_HEIGHT);
+  }
+
+  /**
    * Builds connections between buildings using the ConnectionDTOs.
-   * 
+   *
    * @param connectionDTOs is the list of connection data transfer objects.
    * @param simulation     is the simulation where the connections will be
    *                       created.
@@ -232,7 +274,20 @@ public class WorldBuilder {
       usedNames.add(buildingDTO.name);
       Building building;
 
-      if (buildingDTO.stores != null) {
+      if (buildingDTO.type != null && buildingDTO.type.equals("DronePort")) {
+        DronePortBuilding portBuilding = new DronePortBuilding(buildingDTO.name, new ArrayList<>(), simulation);
+        if (buildingDTO.drones != null) {
+          DronePort port = portBuilding.getDronePort();
+          List<Drone> drones = new ArrayList<>();
+          for (DroneDTO dto : buildingDTO.drones) {
+            Drone drone = new Drone();
+            drone.setInUse(dto.inUse);
+            drones.add(drone);
+          }
+          port.setDrones(drones);
+        }
+        building = portBuilding;
+      } else if (buildingDTO.stores != null) {
         if (buildingDTO.capacity == null || buildingDTO.priority == null) {
           throw new IllegalArgumentException("Storage building '" + buildingDTO.name
               + "' must have both capacity and priority defined.");
@@ -256,16 +311,27 @@ public class WorldBuilder {
         MineBuilding mineBuilding = new MineBuilding(recipe, buildingDTO.name, simulation);
         building = mineBuilding;
       } else if (buildingDTO.type != null) {
-        if (!typeMap.containsKey(buildingDTO.type)) {
+        if (!typeMap.containsKey(buildingDTO.type) && !buildingDTO.type.equals("waste_disposal")) {
           throw new IllegalArgumentException("Type '" + buildingDTO.type + "' is not defined (violates #2).");
         }
-        // TODO: Can Factory building have no sources?
-        if (buildingDTO.getSources().isEmpty()) {
-          throw new IllegalArgumentException("Factory building '" + buildingDTO.name + "' has no sources.");
+
+        // Special handling for waste_disposal type
+        if (buildingDTO.type.equals("waste_disposal")) {
+          // Create a simple waste disposal building with empty settings
+          // The storage field will be loaded separately with processStorage
+          LinkedHashMap<Item, Integer> wasteCapacity = new LinkedHashMap<>();
+          LinkedHashMap<Item, Integer> disposalRates = new LinkedHashMap<>();
+          LinkedHashMap<Item, Integer> timeSteps = new LinkedHashMap<>();
+          building = new WasteDisposalBuilding(buildingDTO.name, wasteCapacity, disposalRates, timeSteps, simulation);
+        } else {
+          // Factory building can have no sources
+          // if (buildingDTO.getSources().isEmpty()) {
+          //   throw new IllegalArgumentException("Factory building '" + buildingDTO.name + "' has no sources.");
+          // }
+          Type type = typeMap.get(buildingDTO.type);
+          FactoryBuilding factoryBuilding = new FactoryBuilding(type, buildingDTO.name, new ArrayList<>(), simulation);
+          building = factoryBuilding;
         }
-        Type type = typeMap.get(buildingDTO.type);
-        FactoryBuilding factoryBuilding = new FactoryBuilding(type, buildingDTO.name, new ArrayList<>(), simulation);
-        building = factoryBuilding;
       } else {
         throw new IllegalArgumentException("Building '" + buildingDTO.name + "' has no mine or type.");
       }
@@ -378,8 +444,8 @@ public class WorldBuilder {
    *         otherwise.
    */
   private static Coordinate findValidLocation(Set<Coordinate> usedCoordinates) {
-    int maxX = boardWidth;
-    int maxY = boardHeight;
+    int maxX = DEFAULT_BOARD_WIDTH;
+    int maxY = DEFAULT_BOARD_HEIGHT;
     // List<Coordinate> candidates = new ArrayList<>();
     Coordinate choice = null;
     for (int x = 0; x < maxX; x++) {

@@ -37,7 +37,8 @@ public class TestUtils {
    * @param itemName         is the String name of the recipe's output item.
    * @param latency          is the latency for the recipe.
    * @param numOfIngredients is the number of ingredients you want in the
-   *                         ingredients hashmap (in the form of {("a", 1), ("b", 2)...} as described in makeTestIngredients())
+   *                         ingredients hashmap (in the form of {("a", 1), ("b",
+   *                         2)...} as described in makeTestIngredients())
    * @return the recipe used for tesing.
    */
   public static Recipe makeTestRecipe(String itemName, int latency, int numOfIngredients) {
@@ -67,12 +68,12 @@ public class TestUtils {
    */
   public static class MockSimulation extends Simulation {
     public MockSimulation() {
-        super("src/test/resources/inputs/doors1.json"); 
+      super("src/test/resources/inputs/doors1.json");
     }
-  
+
     @Override
     public RequestPolicy getRequestPolicy(String building) {
-        return new FifoRequestPolicy(); 
+      return new FifoRequestPolicy();
     }
   }
 
@@ -81,17 +82,22 @@ public class TestUtils {
    */
   public static class MockBuilding extends Building {
     public MockBuilding(String name) {
-        super(name, new ArrayList<>(), new MockSimulation());
+      super(name, new ArrayList<>(), new MockSimulation());
     }
 
     @Override
     public boolean canProduce(Item item) {
-        return true;
+      return true;
     }
 
     @Override
     public JsonObject toJson() {
       return null;
+    }
+
+    @Override
+    public boolean canBeRemovedImmediately() {
+      return true;
     }
   }
 }

@@ -1,9 +1,6 @@
 package edu.duke.ece651.factorysim;
 
-import com.google.gson.JsonObject;
-
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents a world in the simulation which holds all the information.
@@ -15,6 +12,8 @@ public class World {
   public HashMap<Building, Coordinate> locationMap;
   public TileMap tileMap;
 
+  public Map<String, WasteDisposalDTO.WasteConfig> wasteConfigMap;
+
   /**
    * Constructs an empty world.
    */
@@ -24,11 +23,12 @@ public class World {
     this.recipes = null;
     this.locationMap = new HashMap<>();
     this.tileMap = null;
+    this.wasteConfigMap = new HashMap<>();
   }
 
   /**
    * Gets all the buildings of the world.
-   * 
+   *
    * @return the list of buildings in the world.
    */
   public List<Building> getBuildings() {
@@ -37,7 +37,7 @@ public class World {
 
   /**
    * Gets all the factory types in the world.
-   * 
+   *
    * @return the list of factory types in the world.
    */
   public List<Type> getTypes() {
@@ -46,7 +46,7 @@ public class World {
 
   /**
    * Gets all the recipes in the world.
-   * 
+   *
    * @return the list of recipes in the world.
    */
   public List<Recipe> getRecipes() {
@@ -55,7 +55,7 @@ public class World {
 
   /**
    * Sets the buildings in the world.
-   * 
+
    * @param buildings is the list of buildings to set.
    */
   public void setBuildings(List<Building> buildings) {
@@ -64,7 +64,7 @@ public class World {
 
   /**
    * Sets the factory types in the world.
-   * 
+   *
    * @param types is the list of factory types to set.
    */
   public void setTypes(List<Type> types) {
@@ -73,7 +73,7 @@ public class World {
 
   /**
    * Sets the recipes in the world.
-   * 
+   *
    * @param recipes is the list of recipes to set.
    */
   public void setRecipes(List<Recipe> recipes) {
@@ -82,7 +82,7 @@ public class World {
 
   /**
    * Gets the building from name.
-   * 
+   *
    * @return the building with name if the building exists, null otherwise.
    */
   public Building getBuildingFromName(String name) {
@@ -96,7 +96,7 @@ public class World {
 
   /**
    * Gets the recipe for an item.
-   * 
+   *
    * @return the recipe if exists, null otherwise.
    */
   public Recipe getRecipeForItem(Item item) {
@@ -110,7 +110,7 @@ public class World {
 
   /**
    * Checks if the world has a building with the given name.
-   * 
+   *
    * @param name the name of the building to check
    * @return true if the building exists, false otherwise
    */
@@ -125,7 +125,7 @@ public class World {
 
   /**
    * Gets a Type by its name.
-   * 
+   *
    * @param name The name of the type.
    * @return The Type object, or null if not found.
    */
@@ -140,7 +140,7 @@ public class World {
 
   /**
    * Gets a Recipe by its name (output item name).
-   * 
+   *
    * @param name The name of the recipe's output item.
    * @return The Recipe object, or null if not found.
    */
@@ -171,9 +171,10 @@ public class World {
   public TileMap getTileMap() {
     return tileMap;
   }
+
   /**
    * Sets the dimensions of the tile map.
-   * 
+   *
    * @param width  is the width of the board.
    * @param height is the height of the board.
    */
@@ -226,5 +227,18 @@ public class World {
       counter++;
     }
     return resolved;
+  }
+
+  /**
+   * Removes a building from the world.
+   *
+   * @param building is the building to remove.
+   */
+  public void removeBuildingFromWorld(Building building) {
+    buildings.remove(building);
+    locationMap.remove(building);
+    if (building.getLocation() != null) {
+      tileMap.setTileType(building.getLocation(), TileType.ROAD);
+    }
   }
 }

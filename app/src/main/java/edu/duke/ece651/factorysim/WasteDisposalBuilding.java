@@ -129,7 +129,7 @@ public class WasteDisposalBuilding extends Building {
    * 3. Only when the required time steps are completed, actually dispose of the
    * waste
    *
-   * @param wasteType is the waste type  item to process.
+   * @param wasteType is the waste type item to process.
    */
   private void processWasteType(Item wasteType) {
     int timeStepsNeeded = totalDisposalTimeStepsNeededMap.get(wasteType);
@@ -147,6 +147,11 @@ public class WasteDisposalBuilding extends Building {
       if (currentProgress >= timeStepsNeeded) {
         // remove the waste from storage
         takeFromStorage(wasteType, currentProcessing);
+        getSimulation().getLogger().log("[waste disposed]: " + currentProcessing + " units of " +
+            wasteType.getName() + " processed at " +
+            this.getName() + " on cycle " +
+            getSimulation().getCurrentTime());
+
         // reset counters
         processingWasteMap.put(wasteType, 0);
         currentDisposalProgressMap.put(wasteType, 0);
@@ -159,6 +164,10 @@ public class WasteDisposalBuilding extends Building {
     if (currentStorage > 0) {
       // calculate how much to process (no more than rate)
       int amountToProcess = Math.min(currentStorage, rate);
+      getSimulation().getLogger().log("[waste processing started]: " + amountToProcess + " units of " +
+          wasteType.getName() + " at " +
+          this.getName() + " on cycle " +
+          getSimulation().getCurrentTime());
 
       // start processing (but don't remove from storage yet)
       processingWasteMap.put(wasteType, amountToProcess);
@@ -246,5 +255,56 @@ public class WasteDisposalBuilding extends Building {
     }
 
     return json;
+  }
+
+  /**
+   * Checks if the waste disposal building is finished.
+   *
+   * @return true if the waste disposal building is finished, false otherwise.
+   */
+  @Override
+  public boolean isFinished() {
+    boolean baseFinished = super.isFinished();
+
+    // check if all waste has been disposed
+    boolean allWasteDisposed = true;
+    for (Item wasteType : maxCapacityMap.keySet()) {
+      int currentStorage = getStorageNumberOf(wasteType);
+      int currentProcessing = processingWasteMap.get(wasteType);
+      int reserved = reservedCapacityMap.getOrDefault(wasteType, 0);
+      if (currentStorage > 0 || currentProcessing > 0 || reserved > 0) {
+        allWasteDisposed = false;
+        break;
+      }
+    }
+
+    return baseFinished && allWasteDisposed;
+  }
+
+  /**
+   * Checks if this waste disposal building can be removed immediately.
+   * A waste disposal building can be removed immediately if it has no requests in
+   * its queue.
+   *
+   * @return true if the building can be removed immediately, false otherwise.
+   */
+  @Override
+  public boolean canBeRemovedImmediately() {
+    if (!getPendingRequests().isEmpty() || getCurrentRequest() != null) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Determines if the waste disposal building can accept a request.
+   * If the building is marked for removal, it rejects all new requests.
+   *
+   * @param request the request to be considered
+   * @return true if the request is acceptable, false otherwise
+   */
+  @Override
+  public boolean canAcceptRequest(Request request) {
+    return !isPendingRemoval();
   }
 }

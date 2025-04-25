@@ -137,6 +137,7 @@ public class StorageBuilding extends Building {
   public void step() {
     // try to complete pending request using currently available stocks
     // can give away many at a time, and use fifo only to choose request
+    
     while (!getPendingRequest().isEmpty() && currentStockNum > 0) {
       Request request = getPendingRequests().remove(0); // use fifo only
       if (request.isUserRequest()) {
@@ -146,7 +147,6 @@ public class StorageBuilding extends Building {
         Building destination = request.getDeliverTo();
         deliverTo(destination, storageItem, 1);
         takeFromStorage(storageItem, 1);
-//        getSimulation().onIngredientDelivered(storageItem, destination, this);
       }
     }
 
@@ -155,24 +155,31 @@ public class StorageBuilding extends Building {
     arrivingItemNum = 0;
 
     // periodically make refill requests from sources
-    int R = maxCapacity - currentStockNum - outstandingRequestNum + getPendingRequests().size();
+    int pendingRequestsCount = getPendingRequests().size();
+    int R = maxCapacity - currentStockNum - outstandingRequestNum + pendingRequestsCount;
+    
     if (R > 0) {
       int T = maxCapacity;
       int F = (int) Math.ceil((double) (T * T) / (R * priority));
       int currentTime = getSimulation().getCurrentTime();
+      
       if (currentTime % F == 0) {
         List<Building> availableSources = getAvailableSourcesForItem(storageItem);
+        
         if (!availableSources.isEmpty()) {
           Building selectedSource = sourcePolicy.selectSource(
               storageItem,
               availableSources,
               (building, score) -> {
               });
-          int orderNum = getSimulation().getOrderNum();
-          Recipe recipe = getSimulation().getRecipeForItem(storageItem);
-          Request newRequest = new Request(orderNum, storageItem, recipe, selectedSource, this);
-          outstandingRequestNum++;
-          selectedSource.addRequest(newRequest);
+          if (selectedSource != null) {
+            int orderNum = getSimulation().getOrderNum();
+            Recipe recipe = getSimulation().getRecipeForItem(storageItem);
+            Request newRequest = new Request(orderNum, storageItem, recipe, selectedSource, this);
+            outstandingRequestNum++;
+            
+            selectedSource.addRequest(newRequest);
+          }
         }
       }
     }
@@ -271,5 +278,43 @@ public class StorageBuilding extends Building {
       // if no stock, behave like factory
       return super.sumRemainingLatencies();
     }
+  }
+
+  /**
+   * Checks if this storage building can be removed immediately.
+   * A storage building can be removed immediately if it has no requests in its
+   * queue,
+   * no items in storage, and no outstanding requests for more items to store.
+   *
+   * @return true if the building can be removed immediately, false otherwise.
+   */
+  @Override
+  public boolean canBeRemovedImmediately() {
+    if (!getPendingRequests().isEmpty() || getCurrentRequest() != null) {
+      return false;
+    }
+    if (currentStockNum > 0 || outstandingRequestNum > 0 || arrivingItemNum > 0) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Determines if the storage building can accept a request.
+   * If the building is marked for removal, it only accepts requests that
+   * would take items from storage to help empty it.
+   *
+   * @param request the request to be considered
+   * @return true if the request is acceptable, false otherwise
+   */
+  @Override
+  public boolean canAcceptRequest(Request request) {
+    if (!isPendingRemoval()) {
+      return true;
+    }
+    if (request.getDeliverTo() != this && request.getProducer() == this) {
+      return true;
+    }
+    return false;
   }
 }

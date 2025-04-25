@@ -4,8 +4,8 @@ import com.google.gson.*;
 import edu.duke.ece651.factorysim.db.SessionDAO;
 import java.io.*;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
 
 /**
  * Runs the factory simulation, managing buildings and item production.
@@ -20,12 +20,35 @@ public class Simulation {
   private int currentTime;
   private boolean finished = false;
   private int nextOrderNum = 0;
+  private int boardWidth = 1000;
+  private int boardHeight = 100;
 
   private int verbosity;
 
   private Logger logger;
   private final List<Path> pathList = new ArrayList<>();
   DeliverySchedule deliverySchedule = new DeliverySchedule();
+
+  // Event
+  private final EventHandler<Building> onBuildingRemoved = new EventHandler<>();
+
+  /**
+   * Subscribe to the event when a building is removed.
+   *
+   * @param listener is the listener to subscribe.
+   */
+  public void subscribeToOnBuildingRemoved(Consumer<Building> listener) {
+      onBuildingRemoved.subscribe(listener);
+  }
+
+  /**
+   * Unsubscribes to the event when a building is removed.
+   *
+   * @param listener is the listener to unsubscribe.s
+   */
+  public void unsubscribeToOnBuildingRemoved(Consumer<Building> listener) {
+      onBuildingRemoved.unsubscribe(listener);
+  }
 
   /**
    * Creates a simulation from a JSON configuration file.
@@ -218,6 +241,8 @@ public class Simulation {
       }
       currentTime++;
     }
+    // check if any pending removals can be completed
+    checkPendingRemovals();
   }
 
   /**
@@ -568,7 +593,7 @@ public class Simulation {
 
   /**
    * Indicates when waste is delivered to a waste disposal building.
-   * 
+   *
    * @param wasteType        is the item of waste delivered.
    * @param quantity         is the quantity of waste delivered.
    * @param disposalBuilding is the building receiving the waste.
@@ -578,6 +603,15 @@ public class Simulation {
     if (verbosity >= 1) {
       logger.log("[waste delivered]: " + quantity + " " + wasteType.getName() + " to " + disposalBuilding.getName()
           + " from " + sourceBuilding.getName() + " on cycle " + getCurrentTime());
+      if (disposalBuilding instanceof WasteDisposalBuilding) {
+        WasteDisposalBuilding wasteDisposal = (WasteDisposalBuilding) disposalBuilding;
+        int rate = wasteDisposal.getDisposalRateFor(wasteType);
+        int timeSteps = wasteDisposal.getDisposalTimeStepsFor(wasteType);
+
+        logger.log("[waste processing]: " + disposalBuilding.getName() + " will process " +
+            wasteType.getName() + " at a rate of " + rate + " units per " +
+            timeSteps + " time steps");
+      }
     }
   }
 
@@ -623,11 +657,12 @@ public class Simulation {
   void loadFromReader(Reader reader) {
     Gson gson = new Gson();
 
-    String json = new BufferedReader(reader)
-        .lines().collect(Collectors.joining(System.lineSeparator()));
-
-    ConfigData configData = JsonLoader.loadConfigDataFromReader(new StringReader(json));
-    this.world = WorldBuilder.buildWorld(configData, this);
+    String json;
+    try (BufferedReader bufferedReader = new BufferedReader(reader)) {
+      json = bufferedReader.lines().collect(Collectors.joining(System.lineSeparator()));
+    } catch (IOException e) {
+      throw new IllegalArgumentException("Error reading from reader", e);
+    }
 
     JsonObject state = gson.fromJson(new StringReader(json), JsonObject.class);
 
@@ -636,6 +671,35 @@ public class Simulation {
     this.finished = getJsonField(state, "finished", false);
     this.nextOrderNum = getJsonField(state, "nextOrderNum", 0);
     this.verbosity = getJsonField(state, "verbosity", 0);
+    this.boardWidth = getJsonField(state, "boardWidth", 480);
+    this.boardHeight = getJsonField(state, "boardHeight", 270);
+
+    // set tile map dimensions
+//    this.setTileMapDimensions(this.boardWidth, this.boardHeight);
+
+    ConfigData configData = JsonLoader.loadConfigDataFromReader(new StringReader(json));
+    this.world = WorldBuilder.buildWorld(configData, this, this.boardWidth, this.boardHeight);
+
+    // Restore connections
+    JsonElement connectionsElement = state.get("connections");
+    if (connectionsElement != null && !connectionsElement.isJsonNull()) {
+      JsonArray connectionsArray = connectionsElement.getAsJsonArray();
+      for (JsonElement element : connectionsArray) {
+        JsonObject connection = element.getAsJsonObject();
+        String source = connection.get("source").getAsString();
+        String destination = connection.get("destination").getAsString();
+
+        try {
+          connectBuildings(source, destination);
+        } catch (IllegalArgumentException e) {
+          // Log error but continue with other connections
+          if (verbosity > 0) {
+            logger.log("Failed to establish connection from " + source +
+                " to " + destination + ": " + e.getMessage());
+          }
+        }
+      }
+    }
 
     JsonElement requestsElement = state.get("requests");
     JsonArray requestsArray;
@@ -652,7 +716,6 @@ public class Simulation {
     if (deliveriesElement != null) {
       buildDeliveries(deliveriesElement.getAsJsonArray());
     }
-
   }
 
   /**
@@ -809,6 +872,16 @@ public class Simulation {
   }
 
   /**
+   * Sets the dimensions of the tile map.
+   *
+   * @param width  is the width of the board.
+   * @param height is the height of the board.
+   */
+  public void setTileMapDimensions(int width, int height) {
+    world.setTileMapDimensions(width, height);
+  }
+
+  /**
    * Gets the location of a building from the location map.
    *
    * @param buildingName is the name of building to look up.
@@ -866,50 +939,140 @@ public class Simulation {
   /**
    * Attempts to connect two buildings using the shortest valid path on the map.
    * If a valid path already exists in the cache, it is reused. Otherwise, a new
-   * path is found
-   * and added to the path list and the tile map.
+   * path is found and added to the path list and the tile map.
+   * Also verifies that source building's output can be properly used by destination building.
    *
    * @param srcBuilding is the source building to connect.
    * @param dstBuilding is the destination building to connect.
    * @return connected `Path` instance if the buildings are successfully
    *         connected.
    * @throws IllegalArgumentException if no valid path can be found between the
-   *                                  buildings.
+   *                                  buildings or if the buildings are not compatible.
    */
   public Path connectBuildings(Building srcBuilding, Building dstBuilding) {
+    // Check recipe compatibility between source and destination buildings
+    if (!areBuildingsCompatible(srcBuilding, dstBuilding)) {
+      throw new IllegalArgumentException(
+          "Cannot connect " + srcBuilding.getName() + " to " + dstBuilding.getName() +
+          ": Source output cannot be used as input for destination.");
+    }
+
     Coordinate src = srcBuilding.getLocation();
     Coordinate dst = dstBuilding.getLocation();
     for (Path p : pathList) {
       if (p.isMatch(src, dst)) {
+        // Update destination building's sources when connecting
+        List<Building> sources = new ArrayList<>(dstBuilding.getSources());
+        if (!sources.contains(srcBuilding)) {
+          sources.add(srcBuilding);
+          dstBuilding.updateSources(sources);
+        }
         return p;
       }
     }
+
     Path path = PathFinder.findPath(src, dst, world.tileMap);
     if (path == null) {
       throw new IllegalArgumentException(
           "Cannot connect " + srcBuilding.getName() + " to " + dstBuilding.getName() + ": No valid path.");
     } else {
-      // path.dump();
       // add the path to the cache
       pathList.add(path);
 
       // add the path to the tileMap
       world.tileMap.addPath(path);
-      // System.out.println(world.tileMap);
+
+      // Update destination building's sources
+      List<Building> sources = new ArrayList<>(dstBuilding.getSources());
+      if (!sources.contains(srcBuilding)) {
+        sources.add(srcBuilding);
+        dstBuilding.updateSources(sources);
+      }
     }
     return path;
   }
 
+  /**
+   * Checks if the source building's output is compatible with the destination building.
+   * For mines, checks if the mined resource can be used as an ingredient by the destination.
+   * For factories, checks if any factory output can be used as an ingredient by the destination.
+   * For storage buildings, checks if the source produces what the storage building can store.
+   *
+   * @param srcBuilding The source building
+   * @param dstBuilding The destination building
+   * @return true if the buildings are compatible, false otherwise
+   */
+  private boolean areBuildingsCompatible(Building srcBuilding, Building dstBuilding) {
+    // Mines, Factories and Storage buildings have different compatibility checks
+    if (srcBuilding instanceof MineBuilding) {
+      MineBuilding mineBuilding = (MineBuilding) srcBuilding;
+      Item mineOutput = mineBuilding.getResource();
 
-    /**
-     * Disconnects two buildings by removing the path between them.
-     * If the path is in use, it cannot be removed.
-     *
-     * @param srcBuilding is the source building to disconnect.
-     * @param dstBuilding is the destination building to disconnect.
-     * @return true if the buildings are successfully disconnected, false
-     *         otherwise.
-     */
+      // If destination is a factory, check if mine output is used in any recipe
+      if (dstBuilding instanceof FactoryBuilding) {
+        FactoryBuilding factory = (FactoryBuilding) dstBuilding;
+        List<Recipe> recipes = factory.getFactoryType().getRecipes();
+
+        for (Recipe recipe : recipes) {
+          if (recipe.getIngredients().containsKey(mineOutput)) {
+            return true;
+          }
+        }
+        return false; // Mine output not used in any factory recipe
+      }
+      // If destination is a storage building, check if it can store the mine's output
+      else if (dstBuilding instanceof StorageBuilding) {
+        StorageBuilding storage = (StorageBuilding) dstBuilding;
+        return storage.getStorageItem().equals(mineOutput);
+      }
+    }
+    // For factory as source, check if any output can be used by destination
+    else if (srcBuilding instanceof FactoryBuilding) {
+      FactoryBuilding factoryBuilding = (FactoryBuilding) srcBuilding;
+      List<Recipe> recipes = factoryBuilding.getFactoryType().getRecipes();
+
+      if (dstBuilding instanceof FactoryBuilding) {
+        FactoryBuilding destFactory = (FactoryBuilding) dstBuilding;
+        List<Recipe> destRecipes = destFactory.getFactoryType().getRecipes();
+
+        // Check if any source factory output is used as ingredient in any destination factory recipe
+        for (Recipe srcRecipe : recipes) {
+          Item output = srcRecipe.getOutput();
+          for (Recipe destRecipe : destRecipes) {
+            if (destRecipe.getIngredients().containsKey(output)) {
+              return true;
+            }
+          }
+        }
+        return false; // No compatible recipes found
+      }
+      // If destination is a storage building, check if it can store any factory output
+      else if (dstBuilding instanceof StorageBuilding) {
+        StorageBuilding storage = (StorageBuilding) dstBuilding;
+        Item storageItem = storage.getStorageItem();
+
+        for (Recipe recipe : recipes) {
+          if (recipe.getOutput().equals(storageItem)) {
+            return true;
+          }
+        }
+        return false; // No compatible output found for storage
+      }
+    }
+
+    // All other connections are allowed
+    return true;
+  }
+
+  /**
+   * Disconnects two buildings by removing the path between them.
+   * If the path is in use, it cannot be removed.
+   *
+   * @param srcBuilding is the source building to disconnect.
+   * @param dstBuilding is the destination building to disconnect.
+   * @return true if the buildings are successfully disconnected, false
+   *         otherwise.
+   */
   public boolean disconnectBuildings(Building srcBuilding, Building dstBuilding) {
     Coordinate src = srcBuilding.getLocation();
     Coordinate dst = dstBuilding.getLocation();
@@ -938,6 +1101,7 @@ public class Simulation {
 
     throw new IllegalArgumentException("The path does not exist.");
   }
+
 
   public boolean checkNewTileReuse(int pathIndex) {
     Set<Coordinate> newTiles=pathList.get(pathIndex).getNewTiles();
@@ -971,12 +1135,12 @@ public class Simulation {
     return coordinates;
   }
 
-    /**
-     * Checks if a coordinate is used in any path or building.
-     *
-     * @param step the coordinate to check
-     * @return true if the coordinate is used, false otherwise
-     */
+  /**
+   * Checks if a coordinate is used in any path or building.
+   *
+   * @param step the coordinate to check
+   * @return true if the coordinate is used, false otherwise
+   */
   public boolean checkUsage(Coordinate step) {
     if (getBuildingNameByCoordinate(step) != null) {
       return true;
@@ -989,34 +1153,42 @@ public class Simulation {
     return false;
   }
 
-
   /**
    * Attempts to connect two buildings by name using the shortest valid path on
    * the map.
    * If a valid path already exists in the cache, it is reused. Otherwise, a new
-   * path is found
-   * and added to the path list and the tile map.
+   * path is found and added to the path list and the tile map.
+   * Also verifies that source building's output can be properly used by destination building.
    *
    * @param sourceName the name of the source building
    * @param destName   the name of the destination building
    * @return true if the buildings are successfully connected
    * @throws IllegalArgumentException if no valid path can be found between the
-   *                                  buildings
+   *                                  buildings or if they are not recipe compatible
    */
   public boolean connectBuildings(String sourceName, String destName) {
-    return connectBuildings(world.getBuildingFromName(sourceName), world.getBuildingFromName(destName)) != null;
+    Building srcBuilding = world.getBuildingFromName(sourceName);
+    Building dstBuilding = world.getBuildingFromName(destName);
+
+    if (srcBuilding == null) {
+      throw new IllegalArgumentException("Source building '" + sourceName + "' does not exist.");
+    }
+    if (dstBuilding == null) {
+      throw new IllegalArgumentException("Destination building '" + destName + "' does not exist.");
+    }
+
+    return connectBuildings(srcBuilding, dstBuilding) != null;
   }
 
-
-    /**
-     * Attempts to disconnect two buildings by name.
-     * If the path is in use, it cannot be removed.
-     *
-     * @param sourceName the name of the source building
-     * @param destName   the name of the destination building
-     * @return true if the buildings are successfully disconnected, false
-     *         otherwise
-     */
+  /**
+   * Attempts to disconnect two buildings by name.
+   * If the path is in use, it cannot be removed.
+   *
+   * @param sourceName the name of the source building
+   * @param destName   the name of the destination building
+   * @return true if the buildings are successfully disconnected, false
+   *         otherwise
+   */
   public boolean disconnectBuildings(String sourceName, String destName) {
     return disconnectBuildings(world.getBuildingFromName(sourceName), world.getBuildingFromName(destName));
   }
@@ -1045,8 +1217,9 @@ public class Simulation {
   // }
 
   /**
-   * Adds a delivery to the delivery schedule if a valid path exists between
-   * source and destination buildings.
+   * Delivers items from one building to another, using drone delivery if possible.
+   * Will use drone delivery if both buildings are within range of a drone port that has available drones.
+   * Otherwise, use normal road delivery.
    *
    * @param src      the source building
    * @param dst      the destination building
@@ -1056,6 +1229,27 @@ public class Simulation {
    *                                  and destination
    */
   public void addDelivery(Building src, Building dst, Item item, int quantity) {
+    // check if drone delivery is possible; if so, priority over road
+    DronePortBuilding dronePortBuilding = findSuitableDronePort(src, dst);
+
+    if (dronePortBuilding != null) {
+      // drone delivery is possible
+      DronePort dronePort = dronePortBuilding.getDronePort();
+      Drone drone = dronePort.getAvailableDrone();
+      if (drone != null) {
+        DroneDelivery droneDelivery = new DroneDelivery(dronePort, drone, src, dst, item, quantity);
+        deliverySchedule.addDelivery(droneDelivery);
+
+        if (verbosity > 0) {
+          logger.log("[drone delivery scheduled]: Using drone from " + dronePortBuilding.getName() +
+                  " to deliver " + quantity + " " + item.getName() +
+                  " from " + src.getName() + " to " + dst.getName());
+        }
+        return;
+      }
+    }
+
+    // if drone not available, use normal road delivery
     boolean isConnected = false;
     for (int i = 0; i < pathList.size(); i++) {
       if (pathList.get(i).isMatch(src.getLocation(), dst.getLocation())) {
@@ -1068,15 +1262,28 @@ public class Simulation {
     if (!isConnected) {
       throw new IllegalArgumentException("building " + src.getName() + " and " + dst.getName() + " are not connected");
     }
-    // if (pathList.containsKey(src.getLocation()) &&
-    // pathList.get(src.getLocation()).containsKey(dst.getLocation())) {
-    // Path path = pathList.get(src.getLocation()).get(dst.getLocation());
-    // Delivery d=new Delivery(src,dst, item, quantity, path.getDeliveryTime());
-    // deliverySchedule.addDelivery(d);
-    // } else {
-    // throw new IllegalArgumentException("building " + src.getName() + " and " +
-    // dst.getName() + " are not connected");
-    // }
+  }
+
+  /**
+   * Finds a suitable drone port for delivery between two buildings.
+   * A suitable drone port must have both buildings within its radius and have available drones.
+   *
+   * @param src the source building
+   * @param dst the destination building
+   * @return a suitable drone port building, or null if none is available
+   */
+  private DronePortBuilding findSuitableDronePort(Building src, Building dst) {
+    for (Building building : world.getBuildings()) {
+      if (building instanceof DronePortBuilding) {
+        DronePortBuilding dronePortBuilding = (DronePortBuilding) building;
+        DronePort dronePort = dronePortBuilding.getDronePort();
+
+        if (dronePort.isWithinRadius(src) && dronePort.isWithinRadius(dst) && dronePort.hasAvailableDrone()) {
+          return dronePortBuilding;
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -1137,7 +1344,8 @@ public class Simulation {
    * Saves the current simulation state to the database for a given user.
    *
    * This method serializes the internal game state as a JSON string and stores
-   * it in the `sessions` table of the SQLite database, associated with the specified user ID.
+   * it in the `sessions` table of the SQLite database, associated with the
+   * specified user ID.
    *
    * @param userId the identifier of the user whose session is being saved.
    */
@@ -1155,7 +1363,8 @@ public class Simulation {
    * the database and reconstructs the simulation state using it.
    *
    * @param userId the identifier of the user whose session is to be loaded.
-   * @throws IllegalArgumentException if no saved session is found for the given user ID.
+   * @throws IllegalArgumentException if no saved session is found for the given
+   *                                  user ID.
    */
   public void loadFromDB(String userId) {
     String json = SessionDAO.loadSession(userId);
@@ -1167,17 +1376,19 @@ public class Simulation {
     logger.log("Simulation loaded from DB for user " + userId);
   }
 
-    /**
-     * Converts the current game state into a JSON object.
-     *
-     * @return a JsonObject representing the current game state
-     */
+  /**
+   * Converts the current game state into a JSON object.
+   *
+   * @return a JsonObject representing the current game state
+   */
   public JsonObject getGameState() {
     JsonObject state = new JsonObject();
     state.addProperty("currentTime", currentTime);
     state.addProperty("finished", finished);
     state.addProperty("nextOrderNum", nextOrderNum);
     state.addProperty("verbosity", verbosity);
+    state.addProperty("boardWidth", world.getTileMap().getWidth());
+    state.addProperty("boardHeight", world.getTileMap().getHeight());
 
     JsonArray typesArray = new JsonArray();
     for (Type type : world.getTypes()) {
@@ -1211,5 +1422,111 @@ public class Simulation {
     state.add("connections", pathListToJson());
     state.add("deliveries", deliverySchedule.toJson());
     return state;
+  }
+
+  /**
+   * Attempts to mark a building for removal.
+   * If the building can be removed immediately, it is removed; otherwise, it is
+   * marked for pending removal.
+   *
+   * @param building the building to remove
+   * @return true if the building was removed immediately, false if it was marked
+   *         for pending removal
+   */
+  public boolean removeBuilding(Building building) {
+    if (building.canBeRemovedImmediately()) {
+      removeConnectionsForBuilding(building);
+      world.removeBuildingFromWorld(building);
+      if (verbosity > 0) {
+        logger.log("Building '" + building.getName() + "' has been removed.");
+      }
+      onBuildingRemoved.invoke(building);
+      return true;
+    } else {
+      building.markForRemoval();
+      if (verbosity > 0) {
+        logger.log("Building '" + building.getName() + "' has been marked for removal. " +
+            "It will be removed once all pending operations complete.");
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Attempts to mark a building for removal by name.
+   * If the building can be removed immediately, it is removed; otherwise, it is
+   * marked for pending removal.
+   *
+   * @param buildingName the name of the building to remove
+   * @return true if the building was removed immediately, false if it was marked
+   *         for pending removal
+   * @throws IllegalArgumentException if the building doesn't exist
+   */
+  public boolean removeBuilding(String buildingName) {
+    if (!world.hasBuilding(buildingName)) {
+      throw new IllegalArgumentException("Building '" + buildingName + "' does not exist.");
+    }
+
+    Building building = world.getBuildingFromName(buildingName);
+    return removeBuilding(building);
+  }
+
+  /**
+   * Checks if any buildings marked for removal can now be removed.
+   */
+  public void checkPendingRemovals() {
+    List<Building> buildings = world.getBuildings();
+    List<Building> removedBuildings = new ArrayList<>();
+    for (Building building : buildings) {
+      if (building.isPendingRemoval() && building.canBeRemovedImmediately()) {
+        removeConnectionsForBuilding(building);
+        removedBuildings.add(building);
+        if (verbosity > 0) {
+          logger
+              .log("Building '" + building.getName() + "' has completed all pending operations and has been removed.");
+        }
+      }
+    }
+    for (Building building : removedBuildings) {
+      world.removeBuildingFromWorld(building);
+      onBuildingRemoved.invoke(building);
+    }
+  }
+
+  /**
+   * Removes all connections to and from a building.
+   *
+   * @param building the building whose connections should be removed
+   */
+  private void removeConnectionsForBuilding(Building building) {
+    List<Building> connectedBuildings = new ArrayList<>();
+    // find all buildings that this building is a source for
+    for (Building otherBuilding : world.getBuildings()) {
+      if (otherBuilding != building && otherBuilding.getSources().contains(building)) {
+        connectedBuildings.add(otherBuilding);
+      }
+    }
+    // disconnect this building from each connected building
+    for (Building otherBuilding : connectedBuildings) {
+      try {
+        disconnectBuildings(building, otherBuilding);
+      } catch (IllegalArgumentException e) {
+        if (verbosity > 0) {
+          logger.log("Failed to disconnect " + building.getName() + " from " +
+              otherBuilding.getName() + ": " + e.getMessage());
+        }
+      }
+    }
+    // also disconnect all buildings that are sources for this building
+    for (Building source : new ArrayList<>(building.getSources())) {
+      try {
+        disconnectBuildings(source, building);
+      } catch (IllegalArgumentException e) {
+        if (verbosity > 0) {
+          logger.log("Failed to disconnect " + source.getName() + " from " +
+              building.getName() + ": " + e.getMessage());
+        }
+      }
+    }
   }
 }

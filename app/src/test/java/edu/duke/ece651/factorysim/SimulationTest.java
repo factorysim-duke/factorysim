@@ -4,6 +4,7 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Consumer;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -143,9 +144,7 @@ public class SimulationTest {
         "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
         "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
         "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
-        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
-        "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
-        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator();
+      "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator();
     assertEquals(expected, stream.toString());
     stream.reset();
 
@@ -153,21 +152,51 @@ public class SimulationTest {
     // Use `System.lineSeparator()` so tests can pass on Windows
     sim.step(50);
     expected =
+        "[ingredient assignment]: wood assigned to W to deliver to D" + System.lineSeparator() +
+        "[ingredient assignment]: metal assigned to M to deliver to Ha" + System.lineSeparator() +
+        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
+        "[ingredient assignment]: wood assigned to W to deliver to D" + System.lineSeparator() +
+        "[ingredient assignment]: wood assigned to W to deliver to D" + System.lineSeparator() +
+        "[ingredient assignment]: metal assigned to M to deliver to Ha" + System.lineSeparator() +
         "[ingredient delivered]: wood to D from W on cycle 6" + System.lineSeparator() +
         "[ingredient delivered]: metal to Ha from M on cycle 6" + System.lineSeparator() +
         "    0: handle is ready" + System.lineSeparator() +
         "[ingredient delivered]: metal to Hi from M on cycle 6" + System.lineSeparator() +
         "    0: hinge is ready" + System.lineSeparator() +
-        "[ingredient delivered]: metal to Hi from M on cycle 8" + System.lineSeparator() +
-        "    0: hinge is ready" + System.lineSeparator() +
+        "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
+        "[ingredient assignment]: handle assigned to Ha to deliver to D" + System.lineSeparator() +
+        "[ingredient delivered]: wood to D from W on cycle 8" + System.lineSeparator() +
+        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
+        "[ingredient delivered]: wood to D from W on cycle 10" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Ha from M on cycle 10" + System.lineSeparator() +
+        "    0: handle is ready" + System.lineSeparator() +
         "[ingredient delivered]: hinge to D from Hi on cycle 10" + System.lineSeparator() +
         "[ingredient delivered]: metal to Hi from M on cycle 10" + System.lineSeparator() +
         "    0: hinge is ready" + System.lineSeparator() +
-        "[ingredient delivered]: hinge to D from Hi on cycle 12" + System.lineSeparator() +
+        "[ingredient delivered]: wood to D from W on cycle 12" + System.lineSeparator() +
         "[ingredient delivered]: handle to D from Ha on cycle 12" + System.lineSeparator() +
+        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
+        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Ha from M on cycle 14" + System.lineSeparator() +
+        "    0: handle is ready" + System.lineSeparator() +
         "[ingredient delivered]: hinge to D from Hi on cycle 14" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Hi from M on cycle 14" + System.lineSeparator() +
+        "    0: hinge is ready" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Hi from M on cycle 16" + System.lineSeparator() +
+        "    0: hinge is ready" + System.lineSeparator() +
+        "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
+        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
+        "[ingredient delivered]: hinge to D from Hi on cycle 18" + System.lineSeparator() +
         "    0: door is ready" + System.lineSeparator() +
-        "[order complete] Order 0 completed (door) at time 26" + System.lineSeparator();
+        "[ingredient delivered]: metal to Hi from M on cycle 18" + System.lineSeparator() +
+        "    0: hinge is ready" + System.lineSeparator() +
+        "[ingredient delivered]: handle to D from Ha on cycle 18" + System.lineSeparator() +
+        "    0: door is ready" + System.lineSeparator() +
+        "[ingredient delivered]: hinge to D from Hi on cycle 20" + System.lineSeparator() +
+        "[ingredient delivered]: metal to Hi from M on cycle 20" + System.lineSeparator() +
+        "    0: hinge is ready" + System.lineSeparator() +
+        "[ingredient delivered]: hinge to D from Hi on cycle 22" + System.lineSeparator() +
+        "[order complete] Order 0 completed (door) at time 30" + System.lineSeparator();
     assertEquals(expected, stream.toString());
     stream.reset();
 
@@ -214,16 +243,8 @@ public class SimulationTest {
         "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
         "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
         "[source selection]: Hi (qlen) has request for hinge on 0" + System.lineSeparator() +
-        "[Hi:hinge:0] For ingredient metal" + System.lineSeparator() +
-        "    M: 2" + System.lineSeparator() +
-        "    Selecting M" + System.lineSeparator() +
-        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator() +
         "[ingredient assignment]: hinge assigned to Hi to deliver to D" + System.lineSeparator() +
-        "[source selection]: Hi (qlen) has request for hinge on 0" + System.lineSeparator() +
-        "[Hi:hinge:0] For ingredient metal" + System.lineSeparator() +
-        "    M: 3" + System.lineSeparator() +
-        "    Selecting M" + System.lineSeparator() +
-        "[ingredient assignment]: metal assigned to M to deliver to Hi" + System.lineSeparator();
+      "[source selection]: Hi (qlen) has request for hinge on 0" + System.lineSeparator();
     assertEquals(expected, stream.toString());
     stream.reset();
 
@@ -669,5 +690,55 @@ public class SimulationTest {
     assertSame(sim.deliverySchedule, sim.getDeliverySchedule());
   }
 
+  @Test
+  public void test_removeBuilding_immediate() {
+    Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+    Building building = simulation.getWorld().getBuildingFromName("D");
+    assertNotNull(building);
+    Building sourceBuilding = simulation.getWorld().getBuildingFromName("W");
+    assertNotNull(sourceBuilding);
+    assertTrue(building.getPendingRequests().isEmpty());
+    assertNull(building.getCurrentRequest());
+    simulation.connectBuildings(sourceBuilding, building);
+    assertTrue(simulation.removeBuilding(building));
+    assertFalse(simulation.getWorld().hasBuilding("D"));
+    assertThrows(IllegalArgumentException.class, () -> simulation.disconnectBuildings(sourceBuilding, building));
+  }
+  
+  @Test
+  public void test_removeBuilding_pending() {
+    Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+    Building building = simulation.getWorld().getBuildingFromName("D");
+    assertNotNull(building);
+    Item item = new Item("wood");
+    Recipe recipe = TestUtils.makeTestRecipe("wood", 0, 1);
+    Request request = new Request(1, item, recipe, building, null);
+    building.prependPendingRequest(request);
+    assertFalse(simulation.removeBuilding(building));
+    assertTrue(simulation.getWorld().hasBuilding("D"));
+    assertTrue(building.isPendingRemoval());
+    building.getPendingRequests().clear();
+    simulation.checkPendingRemovals();
+    assertFalse(simulation.getWorld().hasBuilding("D"));
+  }
+  
+  @Test
+  public void test_removeBuilding_byName() {
+    Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+    assertTrue(simulation.getWorld().hasBuilding("W"));
+    assertTrue(simulation.removeBuilding("W"));
+    assertFalse(simulation.getWorld().hasBuilding("W"));
+    assertThrows(IllegalArgumentException.class, () -> simulation.removeBuilding("NonExistentBuilding"));
+  }
 
+  @Test
+  public void test_onBuildingRemovedEvent() {
+    List<Building> buildings = new ArrayList<>();
+    Consumer<Building> listener = buildings::add;
+    Simulation sim = new TestUtils.MockSimulation();
+    assertDoesNotThrow(() -> {
+      sim.subscribeToOnBuildingRemoved(listener);
+      sim.unsubscribeToOnBuildingRemoved(listener);
+    });
+  }
 }
