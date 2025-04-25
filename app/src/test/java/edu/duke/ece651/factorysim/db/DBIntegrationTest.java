@@ -33,6 +33,16 @@ class DBIntegrationTest {
         DBInitializer.init();
         assertTrue(DB_DIR.isDirectory(), "data/ directory should now exist");
         assertTrue(DB_FILE.isFile(), "factory.db should now exist");
+        try (Connection conn = DBManager.connect();
+            Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS sessions (" +
+                "  user_id      TEXT PRIMARY KEY, " +
+                "  data         BLOB NOT NULL, " +
+                "  saved_at     INTEGER NOT NULL" +
+                ");"
+            ); 
+        }
     }
 
     @AfterAll

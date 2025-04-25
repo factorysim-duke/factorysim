@@ -156,7 +156,6 @@ class TileMapTest {
     @Test
     public void test_addPath_valid() {
         TileMap tileMap = new TileMap(5, 5);
-        System.out.println(tileMap);
 
         Coordinate p1 = new Coordinate(1, 1);
         Coordinate p2 = new Coordinate(1, 2);
@@ -179,8 +178,8 @@ class TileMapTest {
         // add path
         tileMap.addPath(path);
 
-        System.out.println(tileMap);
-
+        assertEquals(TileType.BUILDING, tileMap.getTileType(p1));
+        assertEquals(TileType.PATH, tileMap.getTileType(p2));
         assertEquals(TileType.BUILDING, tileMap.getTileType(p1));
         assertEquals(TileType.PATH, tileMap.getTileType(p2));
         assertEquals(TileType.PATH, tileMap.getTileType(p3));
@@ -197,7 +196,6 @@ class TileMapTest {
     @Test
     public void test_addPath_valid_close() {
         TileMap tileMap = new TileMap(5, 5);
-        System.out.println(tileMap);
 
         Coordinate p1 = new Coordinate(1, 1);
         Coordinate p4 = new Coordinate(1, 2);
@@ -215,8 +213,6 @@ class TileMapTest {
 
         // add path
         tileMap.addPath(path);
-
-        System.out.println(tileMap);
 
         assertEquals(TileType.BUILDING, tileMap.getTileType(p1));
         assertEquals(TileType.BUILDING, tileMap.getTileType(p4));

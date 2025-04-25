@@ -9,14 +9,20 @@ import java.util.function.Consumer;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
-import edu.duke.ece651.factorysim.db.SessionDAO;
-
+import org.junit.jupiter.api.BeforeAll;
 import static org.junit.jupiter.api.Assertions.*;
+import edu.duke.ece651.factorysim.db.DBInitializer;
+
 
 public class SimulationTest {
     Simulation sim = new Simulation("src/test/resources/inputs/doors1.json");
     ByteArrayOutputStream logOutput = new ByteArrayOutputStream();
     Logger testLogger = new StreamLogger(new PrintStream(logOutput));
+    @BeforeAll
+    static void initDatabase() throws Exception {
+      // this will create the sessions table (and any others) in data/factory.db
+      DBInitializer.init();
+    }
 
     @Test
     public void test_step() {
