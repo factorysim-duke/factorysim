@@ -3,6 +3,8 @@
   "finished": false,
   "nextOrderNum": 3,
   "verbosity": 2,
+  "boardWidth": 1000,
+  "boardHeight": 100,
   "types": [
     {
       "name": "door",

@@ -1,7 +1,5 @@
 package edu.duke.ece651.factorysim;
 
-import com.google.gson.*;
-
 import java.util.*;
 
 /**

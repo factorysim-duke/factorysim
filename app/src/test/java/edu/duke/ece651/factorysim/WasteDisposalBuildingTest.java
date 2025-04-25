@@ -1,15 +1,13 @@
 package edu.duke.ece651.factorysim;
 
-import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
-import com.google.gson.JsonObject;
-
+import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import com.google.gson.JsonObject;
 
 public class WasteDisposalBuildingTest {
   private Simulation simulation;
@@ -119,6 +117,27 @@ public class WasteDisposalBuildingTest {
     assertEquals(10, json.get("y").getAsInt());
   }
 
+  @Test
+  public void test_toJson_includesStorage() {
+    wasteDisposal.addToStorage(sawdust, 120);
+    wasteDisposal.addToStorage(plasticWaste, 70);
+    JsonObject json = wasteDisposal.toJson();
+  
+    assertTrue(json.has("storage"));
+    JsonObject storage = json.getAsJsonObject("storage");
+    assertNotNull(storage);
+    assertEquals(120, storage.get("sawdust").getAsInt());
+    assertEquals(70, storage.get("plastic_waste").getAsInt());
+  }
+  
+  @Test
+  public void test_toJson_withNullLocation() {
+    wasteDisposal.setLocation(null);
+    JsonObject json = wasteDisposal.toJson();
+    assertFalse(json.has("x"));
+    assertFalse(json.has("y"));
+  }
+  
   @Test
   public void test_building_with_waste_byproducts_from_json() {
     Simulation jsonSimulation = new Simulation("src/main/resources/electronics_with_waste.json", 0,
@@ -237,25 +256,53 @@ public class WasteDisposalBuildingTest {
     assertTrue(wasteDisposal.isPendingRemoval());
     assertFalse(wasteDisposal.canAcceptRequest(request));
   }
-  
+
   @Test
-  public void test_markForRemoval() {
+  public void test_markForRemoval() throws NoSuchFieldException, IllegalAccessException {
     assertFalse(wasteDisposal.isPendingRemoval());
     assertTrue(wasteDisposal.markForRemoval());
-    java.lang.reflect.Field pendingRemovalField;
-    try {
-      pendingRemovalField = Building.class.getDeclaredField("pendingRemoval");
-      pendingRemovalField.setAccessible(true);
-      pendingRemovalField.set(wasteDisposal, false);
-    } catch (Exception e) {
-      fail("Failed to reset pendingRemoval field: " + e.getMessage());
-    }
+
+    // reset the private field directly (no try/catch)
+    java.lang.reflect.Field pendingRemovalField =
+        Building.class.getDeclaredField("pendingRemoval");
+    pendingRemovalField.setAccessible(true);
+    pendingRemovalField.set(wasteDisposal, false);
+
+    // simulate a pending request so markForRemoval() fails
     Recipe wasteRecipe = TestUtils.makeTestRecipe("sawdust", 0, 1);
     Building sourceBuilding = new TestUtils.MockBuilding("source");
     sourceBuilding.setLocation(new Coordinate(5, 5));
     Request request = new Request(1, sawdust, wasteRecipe, sourceBuilding, wasteDisposal);
     wasteDisposal.prependPendingRequest(request);
+
     assertFalse(wasteDisposal.markForRemoval());
     assertTrue(wasteDisposal.isPendingRemoval());
+  }
+
+
+  @Test
+  public void test_processWasteType_inProgress() {
+    wasteDisposal.addToStorage(sawdust, 100);
+    wasteDisposal.step();
+    wasteDisposal.step();
+    assertEquals(50, wasteDisposal.getStorageNumberOf(sawdust));
+  }
+
+  @Test
+  public void test_processWasteType_cycleComplete() {
+    wasteDisposal.addToStorage(plasticWaste, 90); // enough for 3 cycles
+    wasteDisposal.step(); // step 1 - process starts
+    wasteDisposal.step(); // step 2 - in progress
+    wasteDisposal.step(); // step 3 - should complete
+
+    // After 3rd step, one batch should be disposed
+    assertTrue(wasteDisposal.getStorageNumberOf(plasticWaste) <= 60); // disposed 30
+  }
+  
+  @Test
+  public void test_processWasteType_noWasteAvailable() {
+    // No sawdust added
+    wasteDisposal.step(); // Should not crash or start any processing
+    assertTrue(wasteDisposal.isFinished());
   }
 }

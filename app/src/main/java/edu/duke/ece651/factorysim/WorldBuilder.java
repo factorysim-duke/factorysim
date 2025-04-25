@@ -394,41 +394,42 @@ public class WorldBuilder {
     return buildings;
   }
 
-  /**
-   * Validates the ingredients of the buildings.
-   *
-   * @param buildings is the Map of buildings.
-   * @param types     is the Map of types.
-   */
-  private static void validateBuildingsIngredients(Map<String, Building> buildings, Map<String, Type> types) {
-    for (Building building : buildings.values()) {
-      if (building instanceof FactoryBuilding) {
-        FactoryBuilding factoryBuilding = (FactoryBuilding) building;
-        Type type = types.get(factoryBuilding.getFactoryType().getName());
-        Set<Item> ingredients = new HashSet<>();
-        for (Recipe recipe : type.getRecipes()) {
-          ingredients.addAll(recipe.getIngredients().keySet());
-        }
-        for (Item ingredient : ingredients) {
-          boolean found = false;
-          for (Building source : factoryBuilding.getSources()) {
-            if (source instanceof MineBuilding && ((MineBuilding) source).canProduce(ingredient)) {
-              found = true;
-              break;
-            }
-            if (source instanceof FactoryBuilding && ((FactoryBuilding) source).canProduce(ingredient)) {
-              found = true;
-              break;
-            }
-          }
-          if (!found) {
-            throw new IllegalArgumentException("Factory building '" + factoryBuilding.getName() + "' has ingredient '"
-                + ingredient.getName() + "' (violates #9).");
-          }
-        }
-      }
-    }
-  }
+  // Currently this method is not used, but it can be used to validate the ingredients of the buildings.
+  // /**
+  //  * Validates the ingredients of the buildings.
+  //  *
+  //  * @param buildings is the Map of buildings.
+  //  * @param types     is the Map of types.
+  //  */
+  // private static void validateBuildingsIngredients(Map<String, Building> buildings, Map<String, Type> types) {
+  //   for (Building building : buildings.values()) {
+  //     if (building instanceof FactoryBuilding) {
+  //       FactoryBuilding factoryBuilding = (FactoryBuilding) building;
+  //       Type type = types.get(factoryBuilding.getFactoryType().getName());
+  //       Set<Item> ingredients = new HashSet<>();
+  //       for (Recipe recipe : type.getRecipes()) {
+  //         ingredients.addAll(recipe.getIngredients().keySet());
+  //       }
+  //       for (Item ingredient : ingredients) {
+  //         boolean found = false;
+  //         for (Building source : factoryBuilding.getSources()) {
+  //           if (source instanceof MineBuilding && ((MineBuilding) source).canProduce(ingredient)) {
+  //             found = true;
+  //             break;
+  //           }
+  //           if (source instanceof FactoryBuilding && ((FactoryBuilding) source).canProduce(ingredient)) {
+  //             found = true;
+  //             break;
+  //           }
+  //         }
+  //         if (!found) {
+  //           throw new IllegalArgumentException("Factory building '" + factoryBuilding.getName() + "' has ingredient '"
+  //               + ingredient.getName() + "' (violates #9).");
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
 
   /**
    * Finds a valid location for a building accoding to these rules:
