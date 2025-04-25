@@ -660,8 +660,8 @@ public class Simulation {
         String json;
         try (BufferedReader bufferedReader = new BufferedReader(reader)) {
             json = bufferedReader.lines().collect(Collectors.joining(System.lineSeparator()));
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Error reading from reader", e);
+        } catch (IOException | UncheckedIOException e) {
+            throw new IllegalArgumentException("Error reading from reader", (e instanceof UncheckedIOException ? e.getCause() : e));
         }
 
         JsonObject state = gson.fromJson(new StringReader(json), JsonObject.class);
@@ -675,7 +675,7 @@ public class Simulation {
         this.boardHeight = getJsonField(state, "boardHeight", 270);
 
         // set tile map dimensions
-//    this.setTileMapDimensions(this.boardWidth, this.boardHeight);
+        // this.setTileMapDimensions(this.boardWidth, this.boardHeight);
 
         ConfigData configData = JsonLoader.loadConfigDataFromReader(new StringReader(json));
         this.world = WorldBuilder.buildWorld(configData, this, this.boardWidth, this.boardHeight);

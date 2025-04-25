@@ -582,26 +582,15 @@ public class SimulationTest {
 
         java.lang.reflect.Field field = Simulation.class.getDeclaredField("pathList");
         field.setAccessible(true);
+        @SuppressWarnings("unchecked")
         List<Path> pathList = (List<Path>) field.get(simulation);
-        Coordinate src = simulation.getBuildingLocation("W");
-        Coordinate dst = simulation.getBuildingLocation("D");
         assertFalse(pathList.isEmpty());
         JsonArray jsonArray = simulation.pathListToJson();
         assertEquals(pathList.size(), jsonArray.size());
-        JsonObject pathJson = jsonArray.get(0).getAsJsonObject();
-
-//
-//    logOutput.reset();
-//    boolean secondConnection = simulation.connectBuildings("W", "D");
-//    assertTrue(secondConnection);
-//
-//    String logs = logOutput.toString();
-//    assertFalse(logs.contains("Path already exists in cache."));
     }
 
     @Test
     public void test_getBuildingNameByCoordinate() {
-        Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
         String b = sim.getBuildingNameByCoordinate(new Coordinate(9, 9));
         assertNull(b);
     }
@@ -818,5 +807,110 @@ public class SimulationTest {
         sim.connectBuildings("M", "Hi");//4,4 -> 2,2
         Path p2 = sim.getPathList().get(1);
         assertEquals(p1.getCost(),p2.getCost());
+    }
+
+    @Test
+    public void test_onWasteDelivered() {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        Logger logger = new StreamLogger(stream);
+        Simulation sim = new Simulation("src/test/resources/inputs/doors1.json", 0, logger);
+        
+        // Create test items and buildings
+        Item wasteItem = new Item("toxic_waste");
+        Building sourceBuilding = new TestUtils.MockBuilding("Factory1");
+        Building regularBuilding = new TestUtils.MockBuilding("DisposalSite");
+        
+        // Case 1: verbosity < 1, nothing should be logged
+        sim.setVerbosity(0);
+        sim.onWasteDelivered(wasteItem, 10, regularBuilding, sourceBuilding);
+        assertEquals("", stream.toString());
+        
+        // Case 2: verbosity >= 1 with regular building
+        sim.setVerbosity(1);
+        stream.reset();
+        sim.onWasteDelivered(wasteItem, 15, regularBuilding, sourceBuilding);
+        String expected = "[waste delivered]: 15 toxic_waste to DisposalSite from Factory1 on cycle 0" + System.lineSeparator();
+        assertEquals(expected, stream.toString());
+        
+        // Case 3: verbosity >= 1 with WasteDisposalBuilding
+        stream.reset();
+        
+        // Create a waste disposal building with disposal rates and time steps
+        LinkedHashMap<Item, Integer> wasteCapacities = new LinkedHashMap<>();
+        wasteCapacities.put(wasteItem, 100);
+        
+        LinkedHashMap<Item, Integer> disposalRates = new LinkedHashMap<>();
+        disposalRates.put(wasteItem, 5);
+        
+        LinkedHashMap<Item, Integer> timeSteps = new LinkedHashMap<>();
+        timeSteps.put(wasteItem, 3);
+        
+        WasteDisposalBuilding wasteDisposal = new WasteDisposalBuilding(
+            "WasteCenter", wasteCapacities, disposalRates, timeSteps, sim
+        );
+        
+        sim.onWasteDelivered(wasteItem, 20, wasteDisposal, sourceBuilding);
+        expected = "[waste delivered]: 20 toxic_waste to WasteCenter from Factory1 on cycle 0" + System.lineSeparator() +
+                   "[waste processing]: WasteCenter will process toxic_waste at a rate of 5 units per 3 time steps" + System.lineSeparator();
+        assertEquals(expected, stream.toString());
+    }
+
+    @Test
+    public void test_load_exception_handling() {
+        Simulation simulation = new Simulation("src/test/resources/inputs/doors1.json");
+        
+        // Test IOException - non-existent file
+        String nonExistentFile = "this_file_does_not_exist.json";
+        Exception exception = assertThrows(IllegalArgumentException.class, 
+            () -> simulation.load(nonExistentFile));
+        assertEquals("Invalid file name for load" + nonExistentFile, exception.getMessage());
+        
+        // Test JsonSyntaxException with malformed JSON
+        try {
+            // Create a temporary file with invalid JSON
+            File tempFile = File.createTempFile("invalid_json", ".json");
+            tempFile.deleteOnExit();
+            
+            try (FileWriter writer = new FileWriter(tempFile)) {
+                writer.write("{ This is not valid JSON }");
+            }
+            
+            Exception jsonException = assertThrows(IllegalArgumentException.class,
+                () -> simulation.load(tempFile.getAbsolutePath()));
+            assertEquals("Invalid file name for load" + tempFile.getAbsolutePath(), 
+                jsonException.getMessage());
+            
+        } catch (IOException e) {
+            fail("Failed to create temporary file for testing: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    public void test_loadFromReader_uncheckedIOException() {
+        // Use the mock so we don't need a real file
+        Simulation sim = new TestUtils.MockSimulation();
+
+        // A Reader that simulates an UncheckedIOException wrapping an IOException
+        Reader uncheckedReader = new Reader() {
+            @Override
+            public int read(char[] cbuf, int off, int len) {
+                throw new UncheckedIOException(new IOException("simulated unchecked failure"));
+            }
+            @Override
+            public void close() { /* no-op */ }
+        };
+
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> sim.loadFromReader(uncheckedReader)
+        );
+
+        // The message should be the same
+        assertEquals("Error reading from reader", ex.getMessage());
+
+        // And the cause should unwrap to the original IOException
+        Throwable cause = ex.getCause();
+        assertTrue(cause instanceof IOException);
+        assertEquals("simulated unchecked failure", cause.getMessage());
     }
 }
