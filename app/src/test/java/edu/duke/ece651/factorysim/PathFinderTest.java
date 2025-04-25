@@ -2,7 +2,6 @@ package edu.duke.ece651.factorysim;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,10 +24,7 @@ class PathFinderTest {
         tileMap.setTileType(f1,TileType.BUILDING);
         tileMap.setTileType(f2,TileType.BUILDING);
 
-        System.out.println("TileMap:\n" + tileMap);
-
         Path path = PathFinder.findPath(m1, f1, tileMap);
-        System.out.println("Path:\n" + path);
         assertNotNull(path, "Should find a path");
         assertEquals(m1, path.getSteps().get(0), "Path start point should be m1");
         assertEquals(f1, path.getSteps().get(path.getSteps().size() - 1), "Path end point should be f1");
@@ -195,7 +191,6 @@ class PathFinderTest {
     @Test
     public void test_findPath_both_ways() {
         TileMap tileMap = new TileMap(5, 5);
-        System.out.println(tileMap);
 
         Coordinate p1 = new Coordinate(0, 0);
         Coordinate p2 = new Coordinate(1, 0);
@@ -220,8 +215,6 @@ class PathFinderTest {
         // add path
         assertNotNull(path, "Should find a path");
         tileMap.addPath(path);
-
-        System.out.println(tileMap);
 
         assertEquals(TileType.BUILDING, tileMap.getTileType(p1));
         assertEquals(TileType.BUILDING, tileMap.getTileType(p2));
