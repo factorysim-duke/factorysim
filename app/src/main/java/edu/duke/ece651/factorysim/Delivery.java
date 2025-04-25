@@ -102,7 +102,11 @@ public class Delivery {
   }
 
   public void updateCurrentCoordinate(List<Path> pathList) {
-    currentCoordinate = pathList.get(pathIndex).getSteps().get(stepIndex);
+    for (Path path : pathList) {
+        if (path.isMatch(source.getLocation(), destination.getLocation())) {
+            currentCoordinate=path.getSteps().get(stepIndex);
+        }
+    }
   }
 
     /**

@@ -91,4 +91,22 @@ class DeliveryScheduleTest {
 
         deliverySchedule.unsubscribe(listener);
     }
+
+    @Test
+    void test_checkUsingPath() {
+        sim.connectBuildings("W", "D");
+        Path path = sim.getPathList().get(0);
+        Delivery delivery = new Delivery(W, D, metal, 1, 5);
+        deliverySchedule.addDelivery(delivery);
+        assertTrue(deliverySchedule.checkUsingPath(path));
+        deliverySchedule.removeDelivery(delivery);
+        assertFalse(deliverySchedule.checkUsingPath(path));
+        sim.connectBuildings("Hi", "D");
+        Delivery delivery2= new Delivery(Hi, D, metal, 1, 5);
+        deliverySchedule.addDelivery(delivery2);
+        deliverySchedule.step(sim.getPathList());
+        deliverySchedule.step(sim.getPathList());
+        assertTrue(deliverySchedule.checkUsingPath(sim.getPathList().get(1)));
+
+    }
 }

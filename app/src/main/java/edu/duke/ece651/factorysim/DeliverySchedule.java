@@ -64,6 +64,11 @@ public class DeliverySchedule {
         }
     }
 
+    /**
+     * Returns a list of all current coordinates of deliveries in the schedule.
+     *
+     * @return a List of Coordinates representing the current locations of all deliveries
+     */
     public List<Coordinate> getCurrentCoordinates() {
         List<Coordinate> coordinates = new ArrayList<>();
         for (Delivery delivery : deliveryList) {
@@ -75,7 +80,7 @@ public class DeliverySchedule {
     /**
      * Checks if any delivery in the schedule is using a specific path.
      * @param path the path to check
-     * @return true if any delivery is using the specified path, false otherwise
+     * @return true if any delivery is using the path, false otherwise
      */
     public boolean checkUsingPath(Path path) {
         for (Delivery delivery : deliveryList) {

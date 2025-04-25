@@ -313,4 +313,5 @@ class TileMapTest {
         Set<String> expectedCoords = new HashSet<>(Arrays.asList("0,0", "0,1", "1,0", "1,1"));
         assertEquals(expectedCoords, foundCoords);
     }
+
 }
