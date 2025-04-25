@@ -458,19 +458,24 @@ public abstract class Building {
   }
 
   /**
-   * Requests missing ingredients from sources.
+   * Requests missing ingredients for a recipe from sources.
    * NOTE: this is where the source policy takes place.
    *
-   * @param recipe is the recipe to check for missing ingredients.
+   * @param recipe is the recipe to prepare ingredients for.
    * @throws IllegalArgumentException if the sources of the building are not
    *                                  enough to give missing items.
    */
   public void requestMissingIngredients(Recipe recipe) {
-    // Get missing ingredients considering only what's in storage
     List<Tuple<Item, Integer>> missingIngredients = findMissingIngredients(recipe);
 
     // Create a map to track pending ingredient requests
     Map<Item, Integer> pendingIngredientRequests = new HashMap<>();
+    
+    // Check if simulation and world are properly initialized
+    if (simulation == null || simulation.getWorld() == null) {
+      throw new IllegalArgumentException("Simulation or world is not properly initialized");
+    }
+    
     List<Building> allBuildings = simulation.getWorld().getBuildings();
 
     // Count pending requests for each ingredient across all buildings

@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import java.util.List;
 
 public class TestUtils {
   /**
@@ -66,8 +67,39 @@ public class TestUtils {
    * Mock simulation for testing.
    */
   public static class MockSimulation extends Simulation {
+    private final ArrayList<String> made = new ArrayList<>();
+    private String badFrom, badTo;
+    private World mockWorld;
+
     public MockSimulation() {
       super("src/test/resources/inputs/doors1.json");
+    }
+
+    public void throwOn(String f, String t) { 
+      badFrom = f; 
+      badTo = t; 
+    }
+
+    @Override
+    public boolean connectBuildings(String from, String to) {
+      if (badFrom != null && from.equals(badFrom) && to.equals(badTo)) {
+        throw new IllegalArgumentException("forced failure");
+      }
+      made.add(from + "->" + to);
+      return true;
+    }
+
+    public List<String> connections() { 
+      return made; 
+    }
+
+    public void setWorld(World w) {
+      this.mockWorld = w;
+    }
+    
+    @Override
+    public World getWorld() {
+      return mockWorld;
     }
 
     @Override

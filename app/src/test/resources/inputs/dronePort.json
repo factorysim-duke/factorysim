@@ -1,0 +1,37 @@
+{
+  "buildings": [
+    {
+      "name": "MetalMine",
+      "mine": "metal",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "name": "DroneStation",
+      "type": "DronePort",
+      "x": 20,
+      "y": 20,
+      "drones": [
+        {
+          "inUse": true
+        },
+        {
+          "inUse": false
+        }
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "DronePort",
+      "recipes": []
+    }
+  ],
+  "recipes": [
+    {
+      "output": "metal",
+      "ingredients": {},
+      "latency": 1
+    }
+  ]
+} 

@@ -1,13 +1,163 @@
 package edu.duke.ece651.factorysim;
 
 import static org.junit.jupiter.api.Assertions.*;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
-import org.junit.jupiter.api.Test;
+import java.lang.reflect.*;
+import java.util.*;
+import java.util.List;
+
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.*;
+import org.junit.jupiter.params.provider.*;
 
 public class WorldBuilderTest {
+
+  /* --------- Basic/Empty World Tests --------- */
+
+  @Test
+  public void test_buildEmptyWorld_default() {
+    World w = WorldBuilder.buildEmptyWorld();
+    assertNotNull(w, "World should not be null");
+    assertEquals(0, w.getTypes().size(), "Types list should be empty");
+    assertEquals(0, w.getRecipes().size(), "Recipes list should be empty");
+    assertEquals(0, w.getBuildings().size(), "Buildings list should be empty");
+  }
+
+  @Test
+  public void test_buildEmptyWorld_customSize() {
+    World w = WorldBuilder.buildEmptyWorld(123, 45);
+    assertNotNull(w, "Custom size empty world should not be null");
+    assertTrue(w.getTypes().isEmpty());
+    assertTrue(w.getRecipes().isEmpty());
+    assertTrue(w.getBuildings().isEmpty());
+  }
+
+  /* --------- Location Placement Tests --------- */
+
+  @Test
+  public void test_isNotTooCloseToOthers_true() {
+    Set<Coordinate> used = new HashSet<>();
+    used.add(new Coordinate(0, 0));
+    assertTrue(WorldBuilder.isNotTooCloseToOthers(new Coordinate(5, 5), used));
+  }
+
+  @Test
+  public void test_isNotTooCloseToOthers_false() {
+    Set<Coordinate> used = new HashSet<>();
+    used.add(new Coordinate(0, 0));
+    assertFalse(WorldBuilder.isNotTooCloseToOthers(new Coordinate(4, 10), used));
+    assertFalse(WorldBuilder.isNotTooCloseToOthers(new Coordinate(10, 4), used));
+  }
+
+  @Test
+  public void test_isNotTooFarFromOthers_true() {
+    Set<Coordinate> used = new HashSet<>();
+    used.add(new Coordinate(0, 0));
+    assertTrue(WorldBuilder.isNotTooFarFromOthers(new Coordinate(9, 9), used));
+  }
+
+  @Test
+  public void test_isNotTooFarFromOthers_false() {
+    Set<Coordinate> used = new HashSet<>();
+    used.add(new Coordinate(0, 0));
+    assertFalse(WorldBuilder.isNotTooFarFromOthers(new Coordinate(11, 0), used));
+    assertFalse(WorldBuilder.isNotTooFarFromOthers(new Coordinate(0, 11), used));
+  }
+
+  @Test
+  public void test_findValidLocation_viaReflection() throws Exception {
+    Method m = WorldBuilder.class.getDeclaredMethod("findValidLocation", Set.class);
+    m.setAccessible(true);
+
+    Coordinate loc1 = (Coordinate) m.invoke(null, Collections.emptySet());
+    assertNull(loc1, "When there are no used coordinates, findValidLocation should return null");
+
+    Set<Coordinate> used = new HashSet<>();
+    used.add(new Coordinate(0, 0));
+    Coordinate loc2 = (Coordinate) m.invoke(null, used);
+    assertNotNull(loc2, "When there are used coordinates, findValidLocation should return a valid location");
+    assertTrue(WorldBuilder.isNotTooCloseToOthers(loc2, used));
+    assertTrue(WorldBuilder.isNotTooFarFromOthers(loc2, used));
+  }
+
+  /* --------- World Building Tests --------- */
+
+  @Test
+  public void test_buildWorld_emptyConfig_customBoard() {
+    ConfigData cfg = new ConfigData();
+    cfg.buildings = Collections.emptyList();
+    cfg.types     = Collections.emptyList();
+    cfg.recipes   = Collections.emptyList();
+    cfg.connections     = Collections.emptyList();
+    cfg.wasteDisposals  = Collections.emptyList();
+
+    Simulation sim = new TestUtils.MockSimulation();
+    World w = WorldBuilder.buildWorld(cfg, sim, 77, 88);
+    assertNotNull(w);
+    assertEquals(0, w.getBuildings().size());
+    assertEquals(0, w.getTypes().size());
+    assertEquals(0, w.getRecipes().size());
+  }
+
+  @Test
+  public void test_buildWorld_emptyConfig_defaultBoard() {
+    ConfigData cfg = new ConfigData();
+    cfg.buildings = Collections.emptyList();
+    cfg.types     = Collections.emptyList();
+    cfg.recipes   = Collections.emptyList();
+    cfg.connections     = Collections.emptyList();
+    cfg.wasteDisposals  = Collections.emptyList();
+
+    Simulation sim = new TestUtils.MockSimulation();
+    World w = WorldBuilder.buildWorld(cfg, sim);
+    assertNotNull(w);
+    assertTrue(w.getBuildings().isEmpty());
+    assertTrue(w.getTypes().isEmpty());
+    assertTrue(w.getRecipes().isEmpty());
+  }
+
+  @Test
+  public void test_buildWorld_invalidWasteConfigs() {
+    ConfigData cfg = new ConfigData();
+    cfg.buildings = Collections.emptyList();
+    cfg.types     = Collections.emptyList();
+    cfg.recipes   = Collections.emptyList();
+    cfg.connections    = Collections.emptyList();
+
+    WasteDisposalDTO dto = new WasteDisposalDTO();
+    dto.name = "WD1";
+    dto.x = 1; dto.y = 1;
+    dto.wasteTypes = new LinkedHashMap<>();
+    WasteDisposalDTO.WasteConfig badCap = new WasteDisposalDTO.WasteConfig();
+    badCap.capacity = 0; badCap.disposalRate = 5; badCap.timeSteps = 2;
+    dto.wasteTypes.put("itemA", badCap);
+
+    cfg.wasteDisposals = List.of(dto);
+
+    Simulation sim = new TestUtils.MockSimulation();
+    assertThrows(IllegalArgumentException.class, () -> {
+      WorldBuilder.buildWorld(cfg, sim);
+    }, "Should throw an exception due to invalid capacity");
+    
+    dto.wasteTypes.clear();
+    WasteDisposalDTO.WasteConfig badRate = new WasteDisposalDTO.WasteConfig();
+    badRate.capacity = 10; badRate.disposalRate = 0; badRate.timeSteps = 2;
+    dto.wasteTypes.put("itemB", badRate);
+    assertThrows(IllegalArgumentException.class, () -> {
+      WorldBuilder.buildWorld(cfg, sim);
+    }, "Should throw an exception due to invalid disposal rate");
+    
+    dto.wasteTypes.clear();
+    WasteDisposalDTO.WasteConfig badTime = new WasteDisposalDTO.WasteConfig();
+    badTime.capacity = 10; badTime.disposalRate = 5; badTime.timeSteps = 0;
+    dto.wasteTypes.put("itemC", badTime);
+    assertThrows(IllegalArgumentException.class, () -> {
+      WorldBuilder.buildWorld(cfg, sim);
+    }, "Should throw an exception due to invalid time steps");
+  }
+
+  /* --------- Integration Tests from WorldBuilderTest --------- */
+  
   @Test
   public void test_WorldBuilder_success() {
     ConfigData configDataDoors1 = TestUtils.loadConfigData("src/test/resources/inputs/doors1.json");
@@ -276,5 +426,250 @@ public class WorldBuilderTest {
     assertEquals(1, electronicsDisposal.getDisposalTimeStepsFor(plasticScraps));
     assertEquals(new Coordinate(50, 40), woodDisposal.getLocation());
     assertEquals(new Coordinate(90, 40), electronicsDisposal.getLocation());
+  }
+
+  @Test
+  public void test_WorldBuilder_drone_port() {
+    ConfigData configData = TestUtils.loadConfigData("src/test/resources/inputs/dronePort.json");
+    assertNotNull(configData, "ConfigData should not be null");
+    Simulation simulation = new TestUtils.MockSimulation();
+    World world = WorldBuilder.buildWorld(configData, simulation);
+    
+    Building dronePort = world.getBuildingFromName("DroneStation");
+    assertNotNull(dronePort, "DroneStation should exist");
+    assertTrue(dronePort instanceof DronePortBuilding);
+    
+    DronePortBuilding portBuilding = (DronePortBuilding) dronePort;
+    DronePort port = portBuilding.getDronePort();
+    assertNotNull(port, "DronePort should exist");
+    
+    List<Drone> drones = port.getDrones();
+    assertNotNull(drones, "Drones list should not be null");
+    assertEquals(2, drones.size(), "Should have 2 drones");
+    
+    // First drone should be in use, second should not be
+    assertTrue(drones.get(0).isInUse(), "First drone should be in use");
+    assertFalse(drones.get(1).isInUse(), "Second drone should not be in use");
+  }
+
+  /* --------- Branch Coverage Tests --------- */
+
+  @DisplayName("buildWorld • invalid config ⇒ IllegalArgumentException")
+  @ParameterizedTest(name = "{0}")
+  @ValueSource(strings = {
+    "MissingReceipe.json",
+    "TypeRecipeMissingIngredient.json",
+    "MineReceipeHasIngredients.json",
+    "BuildingNotMineOrFactory.json",
+    "BuildingTypeNotDefined.json",
+    "SourceBuildingNotDefined.json",
+    "MineBuildingHasSource.json",
+    "StorageMissingCapacity.json",
+    "StorageMissingPriority.json",
+    "StorageMissingFields.json"
+  })
+  void buildWorld_illegalConfigs(String fname) {
+    ConfigData bad = TestUtils.loadConfigData(path(fname));
+    assertThrows(IllegalArgumentException.class,
+        () -> WorldBuilder.buildWorld(bad, new TestUtils.MockSimulation()));
+  }
+
+  @ParameterizedTest(name = "waste-disposal with bad {0} ⇒ IllegalArgumentException")
+  @CsvSource({
+    "capacity,waste_disposal_bad_capacity.json", 
+    "rate,waste_disposal_bad_rate.json", 
+    "timestep,waste_disposal_bad_timestep.json"
+  })
+  void wasteDisposal_invalidFields(String field, String filename) {
+    ConfigData bad = TestUtils.loadConfigData(path(filename));
+    assertThrows(IllegalArgumentException.class,
+        () -> WorldBuilder.buildWorld(bad, new TestUtils.MockSimulation()));
+  }
+
+  /* --------- Connection Tests --------- */
+
+  /** 
+   * A simple ConnectionDTO constructor that uses reflection to set private fields
+   */
+  private ConnectionDTO mkDto(String src, String dst) {
+    ConnectionDTO dto = new ConnectionDTO();
+    try {
+      Field f1 = ConnectionDTO.class.getDeclaredField("source");
+      f1.setAccessible(true);
+      f1.set(dto, src);
+      Field f2 = ConnectionDTO.class.getDeclaredField("destination");
+      f2.setAccessible(true);
+      f2.set(dto, dst);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    return dto;
+  }
+
+  /**
+   * A StubSimulation that captures logs and connectBuildings calls
+   */
+  static class StubSimulation extends TestUtils.MockSimulation {
+    World world; 
+    int verbosity;
+    List<String> logs = new ArrayList<>();
+    boolean connected = false;
+    String srcConnected, dstConnected;
+
+    StubSimulation(World world, int verbosity) {
+      super();
+      this.world = world;
+      this.verbosity = verbosity;
+    }
+
+    @Override public World getWorld() { return world; }
+    @Override public int getVerbosity() { return verbosity; }
+    @Override public Logger getLogger() {
+      return msg -> logs.add(msg);
+    }
+    @Override public boolean connectBuildings(String src, String dst) {
+      connected = true;
+      srcConnected = src;
+      dstConnected = dst;
+      return true;
+    }
+  }
+
+  /**
+   * Calls the private buildConnections method using reflection
+   */
+  private void callBuildConnections(List<ConnectionDTO> dtos, StubSimulation sim) throws Exception {
+    Method m = WorldBuilder.class
+      .getDeclaredMethod("buildConnections", List.class, Simulation.class);
+    m.setAccessible(true);
+    m.invoke(null, dtos, sim);
+  }
+
+  @Test
+  public void worldNotReady_logsWarning() throws Exception {
+    StubSimulation sim = new StubSimulation(null, 1);
+    callBuildConnections(Collections.singletonList(mkDto("A","B")), sim);
+
+    assertEquals(1, sim.logs.size());
+    assertTrue(sim.logs.get(0).contains("Warning: World not set"));
+    assertFalse(sim.connected);
+  }
+
+  @Test
+  public void missingSource_logsAndSkip() throws Exception {
+    // world exists but buildings list is empty
+    World w = WorldBuilder.buildEmptyWorld();
+    StubSimulation sim = new StubSimulation(w, 1);
+    callBuildConnections(Collections.singletonList(mkDto("X","Y")), sim);
+
+    assertEquals(1, sim.logs.size());
+    assertTrue(sim.logs.get(0).contains("Source building 'X' does not exist"));
+    assertFalse(sim.connected);
+  }
+
+  @Test
+  public void missingDestination_logsAndSkip() throws Exception {
+    // world has only "A" building
+    World w = WorldBuilder.buildEmptyWorld();
+    w.getBuildings().add(new TestUtils.MockBuilding("A"));
+
+    StubSimulation sim = new StubSimulation(w, 1);
+    callBuildConnections(Collections.singletonList(mkDto("A","Z")), sim);
+
+    assertEquals(1, sim.logs.size());
+    assertTrue(sim.logs.get(0).contains("Destination building 'Z' does not exist"));
+    assertFalse(sim.connected);
+  }
+
+  @Test
+  public void connectThrows_logsError() throws Exception {
+    // world has A and B buildings
+    World w = WorldBuilder.buildEmptyWorld();
+    w.getBuildings().add(new TestUtils.MockBuilding("A"));
+    w.getBuildings().add(new TestUtils.MockBuilding("B"));
+
+    StubSimulation sim = new StubSimulation(w, 1) {
+      @Override
+      public boolean connectBuildings(String src, String dst) {
+        throw new IllegalArgumentException("boom");
+      }
+    };
+    callBuildConnections(Collections.singletonList(mkDto("A","B")), sim);
+
+    assertEquals(1, sim.logs.size());
+    assertTrue(sim.logs.get(0).contains("Failed to create connection from A to B: boom"));
+    assertFalse(sim.connected);
+  }
+
+  @Test
+  public void successfulConnect_noLogs() throws Exception {
+    // world has A and B buildings
+    World w = WorldBuilder.buildEmptyWorld();
+    w.getBuildings().add(new TestUtils.MockBuilding("A"));
+    w.getBuildings().add(new TestUtils.MockBuilding("B"));
+
+    StubSimulation sim = new StubSimulation(w, 1);
+    callBuildConnections(Collections.singletonList(mkDto("A","B")), sim);
+
+    assertTrue(sim.connected);
+    assertEquals("A", sim.srcConnected);
+    assertEquals("B", sim.dstConnected);
+    assertTrue(sim.logs.isEmpty());
+  }
+
+  @Test
+  public void test_buildConnections_fullMatrix() throws Exception {
+    // miniature world with two buildings
+    TestUtils.MockSimulation sim = new TestUtils.MockSimulation();
+    World tiny = WorldBuilder.buildEmptyWorld();
+    Building A = new StorageBuilding("A", List.of(), sim, new Item("x"), 1, 1);
+    Building B = new StorageBuilding("B", List.of(), sim, new Item("y"), 1, 1);
+    tiny.setBuildings(List.of(A, B));
+    sim.setWorld(tiny);            // make world visible to builder
+
+    // build a connection list that hits every branch:
+    //  1) missing source   (C→A)
+    //  2) missing dest     (A→C)
+    //  3) connect ok       (A→B)
+    //  4) connect throws   (B→A) – we throw manually from MockSimulation
+    List<ConnectionDTO> dto = Arrays.asList(
+        new ConnectionDTO("C", "A"),
+        new ConnectionDTO("A", "C"),
+        new ConnectionDTO("A", "B"),
+        new ConnectionDTO("B", "A"));
+
+    // tell mock to throw when we try B→A
+    sim.throwOn("B", "A");
+
+    // call the *private* method via reflection
+    Method m = WorldBuilder.class.getDeclaredMethod(
+        "buildConnections", List.class, Simulation.class);
+    m.setAccessible(true);
+    m.invoke(null, dto, sim);
+
+    // only the valid one (A→B) should have been registered
+    assertEquals(List.of("A->B"), sim.connections());
+  }
+  
+  @Test
+  public void test_buildConnections_nullWorld() throws Exception {
+    TestUtils.MockSimulation sim = new TestUtils.MockSimulation();
+    // Don't set world on simulation to test null world branch
+    
+    List<ConnectionDTO> dto = Collections.singletonList(new ConnectionDTO("A", "B"));
+    
+    Method m = WorldBuilder.class.getDeclaredMethod(
+        "buildConnections", List.class, Simulation.class);
+    m.setAccessible(true);
+    m.invoke(null, dto, sim);
+    
+    // No connections should be made
+    assertTrue(sim.connections().isEmpty());
+  }
+
+  /* --------- Helper methods --------- */
+
+  private static String path(String fname) {
+    return "src/test/resources/inputs/" + fname;
   }
 }

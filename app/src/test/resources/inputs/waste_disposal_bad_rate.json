@@ -1,0 +1,35 @@
+{
+  "buildings": [
+    {
+      "name": "WoodMinor",
+      "mine": "wood"
+    }
+  ],
+  "types": [
+    {
+      "name": "WoodType",
+      "recipes": ["wood"]
+    }
+  ],
+  "recipes": [
+    {
+      "output": "wood",
+      "ingredients": {},
+      "latency": 1
+    }
+  ],
+  "wasteDisposals": [
+    {
+      "name": "wood_waste_disposal",
+      "x": 50,
+      "y": 40,
+      "wasteTypes": {
+        "sawdust": {
+          "capacity": 400,
+          "disposalRate": -1,
+          "timeSteps": 2
+        }
+      }
+    }
+  ]
+} 

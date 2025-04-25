@@ -110,7 +110,7 @@ public class StorageBuildingTest {
 
   @Test
   public void test_step_refill_with_available_source() {
-    Simulation simulation = new TestUtils.MockSimulation();
+    TestUtils.MockSimulation simulation = new TestUtils.MockSimulation();
     Item door = new Item("door");
     Recipe doorRecipe = TestUtils.makeTestRecipe("door", 2, 5);
     Recipe handleRecipe = TestUtils.makeTestRecipe("handle", 2, 5);
@@ -130,6 +130,18 @@ public class StorageBuildingTest {
     ArrayList<Building> sources = new ArrayList<>();
     sources.add(doorFactory);
     StorageBuilding testBuilding = new StorageBuilding("test", sources, simulation, door, 100, 1.0);
+    
+    // Create and set a minimal world with all the buildings
+    World testWorld = new World();
+    List<Building> allBuildings = new ArrayList<>();
+    allBuildings.add(woodMine);
+    allBuildings.add(metalMine);
+    allBuildings.add(handleFactory);
+    allBuildings.add(hingeFactory);
+    allBuildings.add(doorFactory);
+    allBuildings.add(testBuilding);
+    testWorld.setBuildings(allBuildings);
+    simulation.setWorld(testWorld);
 
     testBuilding.addToStorage(door, 10);
     testBuilding.step();

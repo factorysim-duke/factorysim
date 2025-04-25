@@ -9,6 +9,23 @@ public class ConnectionDTO {
   public String destination;
 
   /**
+   * Default constructor for JSON deserialization.
+   */
+  public ConnectionDTO() {
+  }
+  
+  /**
+   * Constructor for creating a ConnectionDTO with source and destination.
+   * 
+   * @param source The source building name
+   * @param destination The destination building name
+   */
+  public ConnectionDTO(String source, String destination) {
+    this.source = source;
+    this.destination = destination;
+  }
+
+  /**
    * Gets the source building name for a connection.
    * 
    * @return the name of the source building.
