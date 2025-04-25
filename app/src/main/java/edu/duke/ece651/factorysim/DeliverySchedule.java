@@ -74,13 +74,12 @@ public class DeliverySchedule {
 
     /**
      * Checks if any delivery in the schedule is using a specific path.
-     *
-     * @param pathIndex the index of the path to check
+     * @param path the path to check
      * @return true if any delivery is using the specified path, false otherwise
      */
-    public boolean checkUsingPath(int pathIndex) {
+    public boolean checkUsingPath(Path path) {
         for (Delivery delivery : deliveryList) {
-            if (delivery.isUsingPath(pathIndex)) {
+            if (delivery.isUsingPath(path)) {
                 return true;
             }
         }

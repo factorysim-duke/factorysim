@@ -921,12 +921,13 @@ public class Simulation {
       Path path = iterator.next();
 
       if (path.isMatch(src, dst)) {
-        if (deliverySchedule.checkUsingPath(index)) {
-          throw new IllegalArgumentException("The path is in use and cannot be removed.");
+        if (deliverySchedule.checkUsingPath(path)) {
+          throw new IllegalArgumentException("The path is in use by delivery and cannot be removed.");
         }
-
+        if(checkNewTileReuse(index)){
+          throw new IllegalArgumentException("The path is in use by other path and cannot be removed.");
+        }
         iterator.remove();
-
         for (Coordinate step : getCoordinatesToRemove(path)) {
           world.tileMap.setTileType(step, TileType.ROAD);
         }
@@ -936,6 +937,22 @@ public class Simulation {
     }
 
     throw new IllegalArgumentException("The path does not exist.");
+  }
+
+  public boolean checkNewTileReuse(int pathIndex) {
+    Set<Coordinate> newTiles=pathList.get(pathIndex).getNewTiles();
+    for (int i = 0; i < pathList.size(); i++) {
+      if (i <= pathIndex) {
+        continue;
+      }
+      Path p = pathList.get(i);
+      for (Coordinate c : newTiles) {
+        if (p.getSteps().contains(c)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
     /**
@@ -1195,5 +1212,4 @@ public class Simulation {
     state.add("deliveries", deliverySchedule.toJson());
     return state;
   }
-
 }

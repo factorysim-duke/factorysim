@@ -93,11 +93,11 @@ public class Delivery {
     /**
      * Checks if the delivery is using a specific path.
      *
-     * @param pathIndex the index of the path to check
+     * @param path the path to check
      * @return true if the delivery is using the specified path; false otherwise
      */
-    public boolean isUsingPath(int pathIndex) {
-        return this.pathIndex == pathIndex;
+    public boolean isUsingPath(Path path) {
+        return path.isMatch(source.getLocation(), destination.getLocation());
     }
 
     public Coordinate getCurrentCoordinate() {
