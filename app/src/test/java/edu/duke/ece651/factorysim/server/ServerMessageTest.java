@@ -1,5 +1,6 @@
 package edu.duke.ece651.factorysim.server;
 
+import edu.duke.ece651.factorysim.client.ServerMessage;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

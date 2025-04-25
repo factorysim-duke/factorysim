@@ -6,6 +6,9 @@
  */
 package edu.duke.ece651.factorysim;
 
+import edu.duke.ece651.factorysim.client.ServerConnection;
+import edu.duke.ece651.factorysim.client.ServerMessage;
+
 import java.io.*;
 
 /**
@@ -26,6 +29,67 @@ public class App {
     this.sim = new Simulation(filePath);
     this.inputReader = inputReader;
     this.commandHandler = new CommandHandler(sim);
+  }
+
+  public App(String host, int port, String preset, BufferedReader inputReader) throws IOException {
+    try (ServerConnection server = new ServerConnection(host, port)) {
+      // Try to fetch a preset from the server
+      ServerMessage response = server.loadPreset(preset);
+      if (!response.status.equalsIgnoreCase("ok")) {
+        throw new RuntimeException("Failed to load preset from the server: " + response.message);
+      }
+
+      // Create app
+      File tempFile = createTempFile("temp", ".json", response.payload);
+      this.sim = new Simulation(tempFile.getAbsolutePath());
+      this.inputReader = inputReader;
+      this.commandHandler = new CommandHandler(sim);
+      deleteTempFile(tempFile);
+    }
+  }
+  
+  public App(String host, int port, String user, String password, BufferedReader inputReader) throws IOException {
+    try (ServerConnection server = new ServerConnection(host, port)) {
+      // Try to sign up first
+      ServerMessage response = server.signup(user, password);
+      if (!response.status.equalsIgnoreCase("ok")) {
+        // If failed to sign up, try to log in
+        response = server.login(user, password);
+        if (!response.status.equalsIgnoreCase("ok")) {
+          // Failed to log in as well, error
+          throw new RuntimeException("Failed to log into the server: " + response.message);
+        }
+      }
+
+      // Successfully logged in, try to load user save
+      response = server.loadUserSave(user);
+      if (!response.status.equalsIgnoreCase("ok")) {
+        throw new RuntimeException("Failed to load save from the server: " + response.message);
+      }
+
+      // Create app
+      File tempFile = createTempFile("temp", ".json", response.payload);
+      this.sim = new Simulation(tempFile.getAbsolutePath());
+      this.inputReader = inputReader;
+      this.commandHandler = new CommandHandler(sim);
+      deleteTempFile(tempFile);
+    }
+  }
+
+  private static File createTempFile(String prefix, String suffix, String content) throws IOException {
+    File tempFile = File.createTempFile(prefix, suffix);
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+      writer.write(content);
+    }
+    return tempFile;
+  }
+
+  private static void deleteTempFile(File tempFile) {
+    if (tempFile != null && tempFile.exists()) {
+      if (!tempFile.delete()) {
+        System.err.println("Failed to delete temporary file: " + tempFile.getAbsolutePath());
+      }
+    }
   }
 
   /**
@@ -63,9 +127,13 @@ public class App {
   // }
 
   /**
-   * Main entry of the application.
+   * Main entry of the application.<br/>
+   * Usage:<br/>
+   * `app {filePath}` (loads local save)<br/>
+   * `app {host} {port} {preset}` (loads server preset)<br/>
+   * `app {host} {port} {user} {password}` (loads server save)
    *
-   * @param args Command line arguments (not used).
+   * @param args Command line argument.
    * @throws IOException if an input error occurs.
    */
   public static void main(String[] args) throws IOException {
@@ -74,10 +142,40 @@ public class App {
     // InputStreamReader(System.in));
     // actualMain(filePath, inputReader);
     // DBInitializer.init();
-    String filePath = args[0];
-    BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
-    App app = new App(filePath, inputReader);
-    app.run();
-  }
 
+    BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
+    if (args.length == 1) {
+      String filePath = args[0];
+      App app = new App(filePath, inputReader);
+      app.run();
+    } else if (args.length == 3 || args.length == 4) {
+      // Get host and parse port
+      String host = args[0];
+      int port;
+      try {
+        port = Integer.parseInt(args[1]);
+      } catch (NumberFormatException e) {
+        System.err.println("Invalid port number: " + e.getMessage());
+        System.exit(1);
+        return;
+      }
+
+      // Run apps
+      if (args.length == 3) {
+        String preset = args[2];
+        App app = new App(host, port, preset, inputReader);
+        app.run();
+      } else { // args.length == 4
+        String user = args[2];
+        String password = args[3];
+        App app = new App(host, port, user, password, inputReader);
+        app.run();
+      }
+    } else {
+      System.err.println("Usages: app <file_path>");
+      System.err.println("        app <host> <port> <preset_path>");
+      System.err.println("        app <host> <port> <username> <password>");
+      System.exit(1);
+    }
+  }
 }

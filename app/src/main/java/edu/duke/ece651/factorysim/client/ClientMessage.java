@@ -1,4 +1,4 @@
-package edu.duke.ece651.factorysim.server;
+package edu.duke.ece651.factorysim.client;
 
 public class ClientMessage {
     public String type;
