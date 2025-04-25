@@ -2,6 +2,9 @@ package edu.duke.ece651.factorysim.db;
 
 import java.sql.*;
 
+/**
+ * Manages session data in the database.
+ */
 public class SessionDAO {
 
     /**

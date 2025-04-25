@@ -5,9 +5,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+/**
+ * Manages the SQLite database connection.
+ */
 public class DBManager {
-    private static final String DB_URL = "jdbc:sqlite:data/factory.db";
-
+    // private static final String DB_URL = "jdbc:sqlite:data/factory.db";
     /**
      * Connects to the SQLite database.
      *
