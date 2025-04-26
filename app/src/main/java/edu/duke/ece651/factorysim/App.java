@@ -55,7 +55,7 @@ public class App {
     deleteTempFile(tempFile);
   }
 
-  private static File createTempFile(String prefix, String suffix, String content) throws IOException {
+  public static File createTempFile(String prefix, String suffix, String content) throws IOException {
     File tempFile = File.createTempFile(prefix, suffix);
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
       writer.write(content);
@@ -63,7 +63,7 @@ public class App {
     return tempFile;
   }
 
-  private static void deleteTempFile(File tempFile) {
+    public static void deleteTempFile(File tempFile) {
     if (tempFile != null && tempFile.exists()) {
       if (!tempFile.delete()) {
         System.err.println("Failed to delete temporary file: " + tempFile.getAbsolutePath());
