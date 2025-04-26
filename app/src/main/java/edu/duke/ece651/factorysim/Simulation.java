@@ -616,6 +616,15 @@ public class Simulation {
   }
 
   /**
+   * Converts the simulation to a JSON string.
+   * @return converted JSON string.
+   */
+  public String toJson() {
+    Gson gson = new Gson();
+    return gson.toJson(getGameState());
+  }
+
+  /**
    * Saves the current simulation state to a file.
    *
    * @param fileName the name of the file to save to.
