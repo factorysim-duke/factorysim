@@ -4,6 +4,7 @@
 package edu.duke.ece651.factorysim;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.parallel.ResourceAccessMode;
@@ -11,6 +12,8 @@ import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.api.parallel.Resources;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 class AppTest {
 
@@ -51,5 +54,26 @@ class AppTest {
         input.close();
 
     }
-
+    
+    @Test
+    void test_createTempFile_and_deleteTempFile() throws IOException {
+        String testContent = "test";
+        File tempFile = App.createTempFile("test", ".json", testContent);
+        assertTrue(tempFile.exists());
+        String fileContent = new String(Files.readAllBytes(tempFile.toPath()));
+        assertEquals(testContent, fileContent);
+        App.deleteTempFile(tempFile);
+        assertFalse(tempFile.exists());
+    }
+    
+    @Test
+    void test_deleteTempFile_null() {
+        assertDoesNotThrow(() -> App.deleteTempFile(null));
+    }
+    
+    @Test
+    void test_deleteTempFile_nonexistent() {
+        File nonExistentFile = new File("non_existent_file.txt");
+        assertDoesNotThrow(() -> App.deleteTempFile(nonExistentFile));
+    }
 }
