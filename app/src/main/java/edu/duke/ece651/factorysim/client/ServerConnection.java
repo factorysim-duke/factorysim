@@ -10,6 +10,10 @@ public class ServerConnection implements Closeable {
     private final BufferedWriter out;
     private final Gson gson;
 
+    public Socket getSocket() {
+      return this.socket;
+    }
+
     public ServerConnection(String host, int port) throws IOException {
         this.socket = new Socket(host, port);
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));

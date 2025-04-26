@@ -254,17 +254,19 @@ public class ServerConnectionTest {
     serverSocket.close();
   }
 
-  private void startFakeServer(int responses, FakeResponseProvider responseProvider) throws IOException {
+  private int startFakeServer(int responses, FakeResponseProvider responseProvider) throws IOException {
     ServerSocket serverSocket = new ServerSocket(0);
     int port = serverSocket.getLocalPort();
 
     new Thread(() -> {
-      try (Socket client = serverSocket.accept();
+      try (ServerSocket server = serverSocket;
+           Socket client = server.accept();
            BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()))) {
 
         for (int i = 0; i < responses; i++) {
           String req = in.readLine();
+          if (req == null) break;
           ServerMessage resp = responseProvider.createResponse(req);
           out.write(new Gson().toJson(resp));
           out.newLine();
@@ -275,12 +277,7 @@ public class ServerConnectionTest {
       }
     }).start();
 
-    // Connect to server
-    try (ServerConnection conn = new ServerConnection("localhost", port)) {
-      responseProvider.testClient(conn);
-    }
-
-    serverSocket.close();
+    return port;
   }
 
   interface FakeResponseProvider {
@@ -343,5 +340,74 @@ public class ServerConnectionTest {
         assertEquals("user-save-data", loadResp.payload);
       }
     });
+  }
+
+  @Test
+  public void test_ServerConnectionManager_loadPreset_signup() throws Exception {
+    startFakeServer(2, new FakeResponseProvider() {
+      @Override
+      public ServerMessage createResponse(String request) {
+        if (request.contains("load")) {
+          return new ServerMessage("ok", "Preset loaded", "preset-data");
+        }
+        if (request.contains("signup")) {
+          return new ServerMessage("ok", "Signup successful", null);
+        }
+        return new ServerMessage("error", "Unexpected request", null);
+      }
+
+      @Override
+      public void testClient(ServerConnection conn) throws IOException {
+        ServerConnectionManager scm = ServerConnectionManager.getInstance();
+        String preset = scm.loadPreset("localhost", conn.getSocket().getPort(), "preset1");
+        assertEquals("preset-data", preset);
+
+        scm.signup("localhost", conn.getSocket().getPort(), "newuser", "pass");
+      }
+    });
+  }
+
+  @Test
+  public void test_ServerConnectionManager_connect_save_load_disconnect() throws Exception {
+    int port = startFakeServer(4, new FakeResponseProvider() {
+      @Override
+      public ServerMessage createResponse(String request) {
+        if (request.contains("\"type\":\"login\"")) {
+          return new ServerMessage("error", "Login failed", null);
+        }
+        if (request.contains("\"type\":\"signup\"")) {
+          return new ServerMessage("ok", "Signup successful", null);
+        }
+        if (request.contains("\"type\":\"save\"")) {
+          return new ServerMessage("ok", "Save successful", null);
+        }
+        if (request.contains("\"type\":\"load\"")) {
+          return new ServerMessage("ok", "Load successful", "user-save-data");
+        }
+        return new ServerMessage("error", "Unexpected", null);
+      }
+
+      @Override
+      public void testClient(ServerConnection conn) { }
+    });
+
+    ServerConnectionManager scm = ServerConnectionManager.getInstance();
+    scm.connect("localhost", port, "user", "pass");
+
+    scm.saveUserSave("save-data-here");
+
+    String loadedData = scm.loadUserSave();
+    assertEquals("user-save-data", loadedData);
+
+    scm.disconnect();
+  }
+
+  @Test
+  public void test_ServerConnectionManager_exceptions() {
+    ServerConnectionManager scm = ServerConnectionManager.getInstance();
+
+    // Should throw because no active connection
+    assertThrows(RuntimeException.class, () -> scm.loadUserSave());
+    assertThrows(RuntimeException.class, () -> scm.saveUserSave("something"));
   }
 }
