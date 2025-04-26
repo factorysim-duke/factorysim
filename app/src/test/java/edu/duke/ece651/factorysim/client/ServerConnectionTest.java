@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
+import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ServerConnectionTest {
@@ -204,5 +205,143 @@ public class ServerConnectionTest {
     ExceptionalServerConnection connection = new ExceptionalServerConnection();
     connection.close();
     assertTrue(true, "Test passed if no exception is thrown");
+  }
+
+  @Test
+  public void test_constructor() {
+    assertThrows(Exception.class,
+            () -> new ServerConnection("something that definitely not a host", 999999999));
+  }
+
+  @Test
+  public void test_signup_login() throws Exception {
+    ServerSocket serverSocket = new ServerSocket(0);
+    int port = serverSocket.getLocalPort();
+
+    Thread serverThread = new Thread(() -> {
+      try (Socket client = serverSocket.accept();
+           BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+           BufferedWriter out = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()))) {
+
+        for (int i = 0; i < 2; i++) {
+          String req = in.readLine();
+          ServerMessage resp;
+          if (req.contains("signup")) {
+            resp = new ServerMessage("ok", "Successfully signed up", null);
+          } else { // assume login
+            resp = new ServerMessage("ok", "Successfully logged in", null);
+          }
+          out.write(new Gson().toJson(resp));
+          out.newLine();
+          out.flush();
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
+    serverThread.start();
+
+    try (ServerConnection conn = new ServerConnection("localhost", port)) {
+      ServerMessage signupResp = conn.signup("user", "pass");
+      assertEquals("ok", signupResp.status);
+      assertEquals("Successfully signed up", signupResp.message);
+
+      ServerMessage loginResp = conn.login("user", "pass");
+      assertEquals("ok", loginResp.status);
+      assertEquals("Successfully logged in", loginResp.message);
+    }
+
+    serverSocket.close();
+  }
+
+  private void startFakeServer(int responses, FakeResponseProvider responseProvider) throws IOException {
+    ServerSocket serverSocket = new ServerSocket(0);
+    int port = serverSocket.getLocalPort();
+
+    new Thread(() -> {
+      try (Socket client = serverSocket.accept();
+           BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+           BufferedWriter out = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()))) {
+
+        for (int i = 0; i < responses; i++) {
+          String req = in.readLine();
+          ServerMessage resp = responseProvider.createResponse(req);
+          out.write(new Gson().toJson(resp));
+          out.newLine();
+          out.flush();
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }).start();
+
+    // Connect to server
+    try (ServerConnection conn = new ServerConnection("localhost", port)) {
+      responseProvider.testClient(conn);
+    }
+
+    serverSocket.close();
+  }
+
+  interface FakeResponseProvider {
+    ServerMessage createResponse(String request);
+    void testClient(ServerConnection conn) throws IOException;
+  }
+
+  @Test
+  public void test_save() throws Exception {
+    startFakeServer(1, new FakeResponseProvider() {
+      @Override
+      public ServerMessage createResponse(String request) {
+        assertTrue(request.contains("save"));
+        return new ServerMessage("ok", "Save successful", null);
+      }
+
+      @Override
+      public void testClient(ServerConnection conn) throws IOException {
+        ServerMessage saveResp = conn.save("fake save data");
+        assertEquals("ok", saveResp.status);
+        assertEquals("Save successful", saveResp.message);
+        assertNull(saveResp.payload);
+      }
+    });
+  }
+
+  @Test
+  public void test_loadPreset() throws Exception {
+    startFakeServer(1, new FakeResponseProvider() {
+      @Override
+      public ServerMessage createResponse(String request) {
+        assertTrue(request.contains("load"));
+        return new ServerMessage("ok", "Preset loaded", "preset-data-here");
+      }
+
+      @Override
+      public void testClient(ServerConnection conn) throws IOException {
+        ServerMessage loadResp = conn.loadPreset("easy-preset");
+        assertEquals("ok", loadResp.status);
+        assertEquals("Preset loaded", loadResp.message);
+        assertEquals("preset-data-here", loadResp.payload);
+      }
+    });
+  }
+
+  @Test
+  public void test_loadUserSave() throws Exception {
+    startFakeServer(1, new FakeResponseProvider() {
+      @Override
+      public ServerMessage createResponse(String request) {
+        assertTrue(request.contains("load"));
+        return new ServerMessage("ok", "Load successful", "user-save-data");
+      }
+
+      @Override
+      public void testClient(ServerConnection conn) throws IOException {
+        ServerMessage loadResp = conn.loadUserSave();
+        assertEquals("ok", loadResp.status);
+        assertEquals("Load successful", loadResp.message);
+        assertEquals("user-save-data", loadResp.payload);
+      }
+    });
   }
 }
