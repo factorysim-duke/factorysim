@@ -1,6 +1,5 @@
-package edu.duke.ece651.factorysim;
+package edu.duke.ece651.factorysim.client;
 
-import edu.duke.ece651.factorysim.client.*;
 import java.io.IOException;
 
 public class ServerConnectionManager {
@@ -69,5 +68,16 @@ public class ServerConnectionManager {
             throw new RuntimeException("Failed to load user save: " + response.message);
         }
         return response.payload;
+    }
+
+    public void saveUserSave(String save) throws IOException {
+        if (conn == null) {
+            throw new RuntimeException("Failed to save user save: Disconnected");
+        }
+
+        ServerMessage response = conn.save(save);
+        if (!response.status.equalsIgnoreCase("ok")) {
+            throw new RuntimeException("Failed to save user save: " + response.message);
+        }
     }
 }

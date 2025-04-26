@@ -6,8 +6,7 @@
  */
 package edu.duke.ece651.factorysim;
 
-import edu.duke.ece651.factorysim.client.ServerConnection;
-import edu.duke.ece651.factorysim.client.ServerMessage;
+import edu.duke.ece651.factorysim.client.*;
 
 import java.io.*;
 
