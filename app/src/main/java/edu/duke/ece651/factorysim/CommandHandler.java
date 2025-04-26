@@ -23,6 +23,8 @@ public class CommandHandler {
         registerCommand(new SaveCommand());
         registerCommand(new LoadCommand());
         registerCommand(new ConnectCommand());
+        registerCommand(new DBSaveCommand());
+        registerCommand(new DBLoadCommand());
     }
 
     /**
