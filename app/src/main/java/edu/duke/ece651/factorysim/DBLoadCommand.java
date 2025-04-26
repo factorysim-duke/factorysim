@@ -11,6 +11,16 @@ public class DBLoadCommand implements Command {
 
     @Override
     public void execute(String[] args, Simulation sim) {
+        // Check argument count
+        if (args.length != 1) {
+            throw new IllegalArgumentException("Invalid 'dbload' command: illegal number of arguments");
+        }
+
+        // Make sure the first argument is "dbload"
+        if (!args[0].equals(getName())) {
+            throw new IllegalArgumentException("Invalid 'dbload' command: command name doesn't match");
+        }
+
         try {
             String json = ServerConnectionManager.getInstance().loadUserSave();
             File tempFile = App.createTempFile("temp", ".json", json);
