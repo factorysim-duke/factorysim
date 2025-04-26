@@ -470,12 +470,12 @@ public abstract class Building {
 
     // Create a map to track pending ingredient requests
     Map<Item, Integer> pendingIngredientRequests = new HashMap<>();
-    
+
     // Check if simulation and world are properly initialized
     if (simulation == null || simulation.getWorld() == null) {
       throw new IllegalArgumentException("Simulation or world is not properly initialized");
     }
-    
+
     List<Building> allBuildings = simulation.getWorld().getBuildings();
 
     // Count pending requests for each ingredient across all buildings
@@ -510,8 +510,8 @@ public abstract class Building {
 
       if (availableSources.isEmpty()) {
         // TODO: double check if this is correct
-        // throw new IllegalArgumentException("No source can produce the item " + item.getName());
-        throw new IllegalArgumentException("");
+        throw new IllegalArgumentException("No source can produce the item " + item.getName());
+        // System.err.println("No source can produce the item " + item.getName());
       }
 
       List<Tuple<Building, Integer>> sourceWithScores = new ArrayList<>();
@@ -519,7 +519,9 @@ public abstract class Building {
           (source, score) -> sourceWithScores.add(new Tuple<>(source, score)));
 
       if (selectedSource == null) {
+        // TODO: double check if this is correct
         throw new IllegalArgumentException("No source selected for item " + item.getName());
+        // System.err.println("No source selected for item " + item.getName());
       }
 
       Recipe recipeNeeded = simulation.getRecipeForItem(item);
