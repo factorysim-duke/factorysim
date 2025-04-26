@@ -11,45 +11,108 @@ import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.api.parallel.Resources;
 
 import java.io.*;
+import java.nio.file.Files;
 
 class AppTest {
 
-    @Test
-    @ResourceLock(value = Resources.SYSTEM_OUT, mode = ResourceAccessMode.READ_WRITE)
-    void test_main()throws IOException{
-        ByteArrayOutputStream bytes=new ByteArrayOutputStream();
-        PrintStream out=new PrintStream(bytes,true);
+  @Test
+  @ResourceLock(value = Resources.SYSTEM_OUT, mode = ResourceAccessMode.READ_WRITE)
+  void test_main() throws IOException {
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    PrintStream out = new PrintStream(bytes, true);
 
-        InputStream input = getClass().getClassLoader().getResourceAsStream("inputs/input1.txt");
-        assertNotNull(input);
+    InputStream input = getClass().getClassLoader().getResourceAsStream("inputs/input1.txt");
+    assertNotNull(input);
 
-        InputStream expectedStream = getClass().getClassLoader().getResourceAsStream("outputs/output1.txt");
-        assertNotNull(expectedStream);
-        InputStream oldIn = System.in;
-        PrintStream oldOut = System.out;
+    InputStream expectedStream = getClass().getClassLoader().getResourceAsStream("outputs/output1.txt");
+    assertNotNull(expectedStream);
+    InputStream oldIn = System.in;
+    PrintStream oldOut = System.out;
 
-        try {
-            System.setIn(input);
-            System.setOut(out);
-            String filePath = "src/test/resources/inputs/doors1.json";
-            String[] args = {filePath};
-            App.main(args);
-//            App.actualMain(filePath, new BufferedReader(new InputStreamReader(System.in)));
-        }
-        finally {
-            //replace back
-            System.setIn(oldIn);
-            System.setOut(oldOut);
-        }
-        //output.txt as expected
-        String expected = new String(expectedStream.readAllBytes()).replace("\r\n", "\n");
-
-        //actual output
-        String actual = bytes.toString().replace("\r\n", "\n");
-        assertEquals(expected, actual);
-        expectedStream.close();
-        input.close();
-
+    try {
+      System.setIn(input);
+      System.setOut(out);
+      String filePath = "src/test/resources/inputs/doors1.json";
+      String[] args = { filePath };
+      App.main(args);
+    } finally {
+      // replace back
+      System.setIn(oldIn);
+      System.setOut(oldOut);
     }
+    // output.txt as expected
+    String expected = new String(expectedStream.readAllBytes()).replace("\r\n", "\n");
 
+    // actual output
+    String actual = bytes.toString().replace("\r\n", "\n");
+    assertEquals(expected, actual);
+    expectedStream.close();
+    input.close();
+
+  }
+
+  @Test
+  void test_createTempFile_and_deleteTempFile() throws IOException {
+    String testContent = "test";
+    File tempFile = App.createTempFile("test", ".json", testContent);
+    assertTrue(tempFile.exists());
+    String fileContent = new String(Files.readAllBytes(tempFile.toPath()));
+    assertEquals(testContent, fileContent);
+    App.deleteTempFile(tempFile);
+    assertFalse(tempFile.exists());
+  }
+
+  @Test
+  void test_deleteTempFile_null() {
+    assertDoesNotThrow(() -> App.deleteTempFile(null));
+  }
+
+  @Test
+  void test_deleteTempFile_nonexistent() {
+    File nonExistentFile = new File("non_existent_file.txt");
+    assertDoesNotThrow(() -> App.deleteTempFile(nonExistentFile));
+  }
+
+  @Test
+  void test_constructor_with_preset() {
+    BufferedReader inputReader = new BufferedReader(new StringReader(""));
+    assertThrows(IOException.class, () -> {
+      new App("localhost", 8080, "testPreset", inputReader);
+    });
+  }
+
+  @Test
+  void test_constructor_with_user_credentials() {
+    BufferedReader inputReader = new BufferedReader(new StringReader(""));
+    assertThrows(IOException.class, () -> {
+      new App("localhost", 8080, "testUser", "testPassword", inputReader);
+    });
+  }
+
+  @Test
+  @ResourceLock(value = Resources.SYSTEM_OUT, mode = ResourceAccessMode.READ_WRITE)
+  void test_main_with_file_path() throws IOException {
+    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+    PrintStream originalOut = System.out;
+    System.setOut(new PrintStream(outContent));
+    InputStream originalIn = System.in;
+    ByteArrayInputStream testIn = new ByteArrayInputStream("finish\n".getBytes());
+    System.setIn(testIn);
+
+    try {
+      String[] args = { "src/test/resources/inputs/doors1.json" };
+      App.main(args);
+      assertTrue(outContent.toString().contains(">"), "Simulation should output prompt");
+    } finally {
+      System.setIn(originalIn);
+      System.setOut(originalOut);
+    }
+  }
+
+  @Test
+  void test_port_parsing() {
+    assertThrows(NumberFormatException.class, () -> {
+      Integer.parseInt("invalid_port");
+    });
+  }
 }
